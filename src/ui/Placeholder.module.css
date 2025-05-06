@@ -1,0 +1,19 @@
+.placeholder {
+    display: inline-block;
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+    animation: placeholder-glow 2s ease-in-out infinite;
+  }
+  
+  @keyframes placeholder-glow {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
