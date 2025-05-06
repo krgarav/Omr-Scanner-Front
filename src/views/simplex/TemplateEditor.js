@@ -4,7 +4,8 @@ import FormData from "components/FormData";
 import classes from "./Template.module.css";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
-
+import NormalHeader from "components/Headers/NormalHeader";
+import SmallHeader from "components/Headers/SmallHeader";
 const TemplateEditor = ({ image, title }) => {
   const [boxes, setBoxes] = useState([]);
   const [activeBox, setActiveBox] = useState(null);
@@ -15,7 +16,7 @@ const TemplateEditor = ({ image, title }) => {
   const [containerSize, setContainerSize] = useState({});
   const [zoomScale, setZoomScale] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
-
+  const buttonRef = useRef(null);
   useEffect(() => {
     const handledeleteKey = (e) => {
       if (e.key === "Delete" && activeBox !== null) {
@@ -254,12 +255,19 @@ const TemplateEditor = ({ image, title }) => {
     console.log(obj);
   };
   return (
-    <div>
-      <h1 className="text-4xl font-bold text-gray-800 text-center mb-6 drop-shadow-sm">
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+      }}
+    >
+      <SmallHeader />
+      {/* <h1 className="text-4xl font-bold text-gray-800 text-center mb-6 drop-shadow-sm">
         <span>Template Name : </span> {title}
-      </h1>
+      </h1> */}
 
-      <section style={{ display: "flex" }}>
+      <section style={{ display: "flex", justifyContent: "center" }}>
         <div
           style={{
             position: "relative",
@@ -273,7 +281,7 @@ const TemplateEditor = ({ image, title }) => {
         >
           <img
             ref={imageRef}
-            src={image}
+            src={"/1.jpg"}
             alt="to crop"
             style={{
               display: "block",
@@ -322,7 +330,7 @@ const TemplateEditor = ({ image, title }) => {
       </section>
 
       <div className="flex justify-center mt-1 z-[9999]">
-        <button
+        <Button
           onClick={() => {
             setCurrentBoxData({});
             setIsOpen(true);
@@ -331,26 +339,62 @@ const TemplateEditor = ({ image, title }) => {
           className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200"
         >
           Add Box
-        </button>
+        </Button>
       </div>
-      <button
+      <Button
         onClick={saveTemplate}
         className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-2 rounded-full shadow-lg hover:bg-green-700 transition duration-200 z-50"
       >
         Save Template
-      </button>
+      </Button>
       {isOpen && (
-        <Modal onClose={() => setIsOpen(false)}>
-          <h2 className="text-xl font-semibold mb-4">Modal Title</h2>
-          <FormData
-            setCurrentBoxData={setCurrentBoxData}
-            currentBoxData={currentBoxData}
-            setBoxes={setBoxes}
-            activeBox={activeBox}
-            allBubbles={allBubbles}
-            isNewBox={true}
-            setIsOpen={setIsOpen}
-          />
+        <Modal
+          show={isOpen}
+          size="md"
+          aria-labelledby="contained-modal-title-vcenter"
+          centered
+        >
+          <Modal.Header>
+            <Modal.Title id="contained-modal-title-vcenter">
+              Create Template
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <FormData
+              setCurrentBoxData={setCurrentBoxData}
+              currentBoxData={currentBoxData}
+              setBoxes={setBoxes}
+              activeBox={activeBox}
+              allBubbles={allBubbles}
+              isNewBox={true}
+              setIsOpen={setIsOpen}
+              ref={buttonRef}
+            />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+              }}
+              variant="warning"
+            >
+              Close
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => {
+                console.log(buttonRef);
+                if (buttonRef.current) {
+                  console.log(buttonRef);
+                  buttonRef.current.click(); // Triggers form submit
+                }
+              }}
+            >
+              Save
+            </Button>
+          </Modal.Footer>
         </Modal>
       )}
     </div>
