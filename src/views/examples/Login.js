@@ -35,43 +35,43 @@ import {
   Row,
   Col,
 } from "reactstrap";
-import Spinner from 'react-bootstrap/Spinner';
-import { jwtDecode } from 'jwt-decode';
+import Spinner from "react-bootstrap/Spinner";
+import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-// useEffect(()=>{
-//   localStorage.clear();
-// },[])
+  // useEffect(()=>{
+  //   localStorage.clear();
+  // },[])
   const navigate = useNavigate();
 
   const signInHandler = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!email) {
       alert("Email cannot be blank.");
-      return
+      return;
     }
     if (!password) {
       alert("Password cannot be blank.");
-      return
+      return;
     }
     try {
       const obj = {
         email,
         password,
       };
-      setIsLoading(true)
-      const res = await login(obj);
-      console.log(res)
+      setIsLoading(true);
+      const res = await login(email, password);
+      console.log(res);
       if (res === undefined) {
         toast.error("Can't Connect to network");
       }
       if (!res.success) {
         alert(res.message);
-        setIsLoading(false)
+        setIsLoading(false);
         return;
       }
       localStorage.setItem("token", res.token);
@@ -83,10 +83,9 @@ const Login = () => {
       } else {
         navigate("/admin/index", { replace: true });
       }
-      setIsLoading(false)
-
+      setIsLoading(false);
     } catch (error) {
-      setIsLoading(false)
+      setIsLoading(false);
       console.log(error);
     }
   };
