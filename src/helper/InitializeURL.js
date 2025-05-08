@@ -20,7 +20,7 @@ const initializeUrls = async () => {
     GET_PROCESS_32_PAGE_DATA: `${baseUrl}ProcessData`,
     SCAN_32_PAGE_FILES: `${baseUrl}Scan_32_Page_Booklet`,
     GET_ALL_TEMPLATE: `${baseUrl}api/Template/List_ImeTemp`,
-    GET_LAYOUT_DATA: `${baseUrl}GetLayoutDataById`,
+    GET_LAYOUT_DATA: `${baseUrl}api/Template/Single_ImeTem`,
     CREATE_TEMPLATE: `${baseUrl}api/Template/Create_ImeTemp`,
     SEND_FILE: `${baseUrl}SaveLayoutFiles`,
     DELETE_TEMPLATE: `${baseUrl}DeleteLayout`,

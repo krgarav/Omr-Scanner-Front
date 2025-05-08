@@ -32,7 +32,7 @@ export const deleteTemplate = async (id) => {
 
 export const getLayoutDataById = async (id) => {
   const urls = await url.getUrls();
-  const endpoint = `${urls.GET_LAYOUT_DATA}?Id=${id}`;
+  const endpoint = `${urls.GET_LAYOUT_DATA}?id=${id}`;
   return await get(endpoint);
 };
 
@@ -69,5 +69,11 @@ export const cancelScan = async () => {
 export const checkJobStatus = async (id) => {
   const urls = await url.getUrls();
   const endpoint = `${urls.CHECK_DELETE_TEMPLATE}?Id=${id}`;
+  return await get(endpoint);
+};
+
+export const getBaseURL = async (id) => {
+  const urls = await url.getUrls();
+  const endpoint = `${urls.MAIN_URL}`;
   return await get(endpoint);
 };

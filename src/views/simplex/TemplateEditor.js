@@ -7,6 +7,8 @@ import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
 import NormalHeader from "components/Headers/NormalHeader";
 import SmallHeader from "components/Headers/SmallHeader";
 import { useParams } from "react-router-dom";
+import { getLayoutDataById } from "helper/TemplateHelper";
+import getBaseUrl from "services/BackendApi";
 const TemplateEditor = ({ image, title }) => {
   const [boxes, setBoxes] = useState([]);
   const [activeBox, setActiveBox] = useState(null);
@@ -17,15 +19,30 @@ const TemplateEditor = ({ image, title }) => {
   const [containerSize, setContainerSize] = useState({});
   const [zoomScale, setZoomScale] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
+  const [paths, setPaths] = useState(null);
+  const [baseUrl, setBaseUrl] = useState(null);
   const buttonRef = useRef(null);
   const { Id } = useParams();
-  console.log(Id);
+  useEffect(() => {
+    const fetchData = async () => {
+      const baseUrl = await getBaseUrl();
+      setBaseUrl(baseUrl);
+    };
+    fetchData();
+  }, []);
+  useEffect(() => {
+    const fetchTemplateData = async () => {
+      const res = await getLayoutDataById(Id);
+      console.log(res.data);
 
-  useEffect(()=>{
-    const fetchTemplateData = async()=>{
-      
+      if (res) {
+        setPaths(res.data);
+      }
+    };
+    if (Id) {
+      fetchTemplateData();
     }
-  },[])      
+  }, [Id]);
 
   useEffect(() => {
     const handledeleteKey = (e) => {
@@ -264,6 +281,8 @@ const TemplateEditor = ({ image, title }) => {
     };
     console.log(obj);
   };
+  console.log(paths);
+  if (!paths) return;
   return (
     <div
       style={{
@@ -291,7 +310,7 @@ const TemplateEditor = ({ image, title }) => {
         >
           <img
             ref={imageRef}
-            src={"/1.jpg"}
+            src={`${baseUrl}${paths.imgPath}`}
             alt="to crop"
             style={{
               display: "block",
