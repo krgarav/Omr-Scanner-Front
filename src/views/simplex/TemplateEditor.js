@@ -6,6 +6,7 @@ import { RxDragHandleDots2 } from "react-icons/rx";
 import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
 import NormalHeader from "components/Headers/NormalHeader";
 import SmallHeader from "components/Headers/SmallHeader";
+import { useParams } from "react-router-dom";
 const TemplateEditor = ({ image, title }) => {
   const [boxes, setBoxes] = useState([]);
   const [activeBox, setActiveBox] = useState(null);
@@ -17,6 +18,15 @@ const TemplateEditor = ({ image, title }) => {
   const [zoomScale, setZoomScale] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef(null);
+  const { Id } = useParams();
+  console.log(Id);
+
+  useEffect(()=>{
+    const fetchTemplateData = async()=>{
+      
+    }
+  },[])      
+
   useEffect(() => {
     const handledeleteKey = (e) => {
       if (e.key === "Delete" && activeBox !== null) {

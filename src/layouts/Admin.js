@@ -16,7 +16,13 @@
 
 */
 import React from "react";
-import { useLocation, Route, Routes, Navigate } from "react-router-dom";
+import {
+  useLocation,
+  Route,
+  Routes,
+  Navigate,
+  useParams,
+} from "react-router-dom";
 // reactstrap components
 import { Container } from "reactstrap";
 // core components
@@ -36,7 +42,7 @@ import TemplateEditor from "views/simplex/TemplateEditor";
 const Admin = (props) => {
   const mainContent = React.useRef(null);
   const location = useLocation();
-
+ 
   React.useEffect(() => {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
@@ -79,7 +85,7 @@ const Admin = (props) => {
         }}
       />
       <div className="main-content" ref={mainContent}>
-        <div style={{ position: "sticky" ,top:0,zIndex: 999 }}>
+        <div style={{ position: "sticky", top: 0, zIndex: 999 }}>
           <AdminNavbar
             {...props}
             brandText={getBrandText(props?.location?.pathname)}
@@ -90,7 +96,7 @@ const Admin = (props) => {
           {getRoutes(routes)}
           <Route path="*" element={<Navigate to="/admin/index" replace />} />
           <Route
-            path="/template/create-template"
+            path="/template/create-template/:Id"
             element={<TemplateEditor />}
           />
           <Route

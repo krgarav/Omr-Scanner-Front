@@ -68,25 +68,28 @@ const Login = () => {
       console.log(res);
       if (res === undefined) {
         toast.error("Can't Connect to network");
-      }
-      if (!res.success) {
-        alert(res.message);
-        setIsLoading(false);
         return;
       }
-      localStorage.setItem("token", res.token);
-      const decoded = jwtDecode(res.token);
-      if (decoded.Role === "Operator") {
-        navigate("/operator/index", { replace: true });
-      } else if (decoded.Role === "Moderator") {
-        navigate("/moderator/index", { replace: true });
-      } else {
-        navigate("/admin/index", { replace: true });
+      if (!res.success) {
+        setIsLoading(false);
+        localStorage.setItem("token", res.token);
+        const decoded = jwtDecode(res.token);
+        console.log(decoded);
+        if (decoded.Role === "Operator") {
+          navigate("/operator/index", { replace: true });
+        } else if (decoded.Role === "Moderator") {
+          navigate("/moderator/index", { replace: true });
+        } else {
+          navigate("/admin/index", { replace: true });
+        }
+
+        return;
       }
-      setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
   return (

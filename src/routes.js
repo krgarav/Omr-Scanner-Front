@@ -16,7 +16,6 @@ import AppManagement from "views/AppManagement";
 import About from "views/About";
 
 var routes = [
-
   {
     path: "/index",
     name: "Dashboard",
@@ -24,13 +23,13 @@ var routes = [
     component: <Index />,
     layout: "/admin",
   },
-  {
-    path: "/jobs",
-    name: "Job Management",
-    icon: "ni ni-briefcase-24 text-yellow",
-    component: <Jobs />,
-    layout: "/admin",
-  },
+  // {
+  //   path: "/jobs",
+  //   name: "Job Management",
+  //   icon: "ni ni-briefcase-24 text-yellow",
+  //   component: <Jobs />,
+  //   layout: "/admin",
+  // },
 
   {
     path: "/template",
@@ -50,7 +49,7 @@ var routes = [
 
   {
     path: "/job-queue",
-    name: "Admin Job Queue",
+    name: "Scan OMR Sheets",
     icon: "ni ni-money-coins text-yellow",
     component: <AdminJobQueue />,
     layout: "/admin",
@@ -63,13 +62,13 @@ var routes = [
     layout: "/admin",
   },
 
-  {
-    path: "/application-ip",
-    name: "App Management",
-    icon: "ni ni-bullet-list-67 text-red",
-    component: <AppManagement />,
-    layout: "/admin",
-  },
+  // {
+  //   path: "/application-ip",
+  //   name: "App Management",
+  //   icon: "ni ni-bullet-list-67 text-red",
+  //   component: <AppManagement />,
+  //   layout: "/admin",
+  // },
 
   // {
   //   path: "/maps",
@@ -78,7 +77,6 @@ var routes = [
   //   component: <Maps />,
   //   layout: "/admin",
   // },
-
 
   {
     path: "/user-profile",

@@ -29,6 +29,7 @@ import { checkJobStatus } from "helper/TemplateHelper";
 import Placeholder from "ui/Placeholder";
 import CloneTemplateHandler from "services/CloneTemplate";
 import BookletModal from "ui/BookletModal";
+import { createTemplate } from "helper/TemplateHelper";
 
 const base64ToFile = (base64, filename) => {
   const byteString = atob(base64.split(",")[1]);
@@ -48,11 +49,14 @@ const Template = () => {
   const [toggle, setToggle] = useState(false);
   const [loading, setLoading] = useState(false);
   const [templateLoading, setTemplateLoading] = useState(false);
+  const [templateName, setTemplateName] = useState(null);
+  const [templateImage, setTemplateImage] = useState(null);
   const navigate = useNavigate();
   const dataCtx = useContext(DataContext);
   useEffect(() => {
     sessionStorage.clear();
   }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       setTemplateLoading(true);
@@ -62,10 +66,8 @@ const Template = () => {
         toast.error("Error fetching templates");
         setTemplateLoading(false);
       }
-      const mpObj = templates?.map((item) => {
-        return [{ layoutParameters: item }];
-      });
-      dataCtx.addToAllTemplate(mpObj);
+      console.log(templates?.body);
+      dataCtx.addToAllTemplate(templates?.body);
       setTemplateLoading(false);
     };
     fetchData();
@@ -248,6 +250,7 @@ const Template = () => {
       <td></td>
     </tr>
   ));
+
   const LoadedTemplates = dataCtx.allTemplates?.map((d, i) => (
     <tr
       key={i}
@@ -255,10 +258,10 @@ const Template = () => {
       style={{ cursor: "pointer" }} // Adds a pointer cursor on hover
     >
       <td>{i + 1}</td>
-      <td>{d[0].layoutParameters.layoutName}</td>
-      <td>{d[0].layoutParameters.timingMarks}</td>
-      <td>{d[0].layoutParameters.totalColumns}</td>
-      <td>{d[0].layoutParameters["bubbleType"]}</td>
+      <td>{d.fileName}</td>
+      {/* <td>{d.imgPath}</td>
+      <td>{d.jsonPath}</td>
+      <td>{"Omr Template"}</td> */}
       <td className="text-right">
         <UncontrolledDropdown>
           <DropdownToggle
@@ -288,8 +291,20 @@ const Template = () => {
     </tr>
   ));
 
-  const handleCreate = () => {
-    navigate("/admin/template/create-template");
+  const handleCreate = async () => {
+    if (!templateName || !templateImage) {
+      toast.error("Please provide both template name and image.");
+      return;
+    }
+
+    try {
+      const res = await createTemplate(templateName, templateImage);
+      const id = res.data[0].id;
+      toast.success("Template created successfully!");
+      navigate(`/admin/template/create-template/${id}`);
+    } catch (err) {
+      console.error("Error creating template:", err);
+    }
   };
 
   return (
@@ -354,9 +369,9 @@ const Template = () => {
                     <tr>
                       <th scope="col">SL no.</th>
                       <th scope="col">Template Name</th>
-                      <th scope="col">Row</th>
+                      {/* <th scope="col">Row</th>
                       <th scope="col">Col</th>
-                      <th scope="col">Bubble Type</th>
+                      <th scope="col">Bubble Type</th> */}
                       <th scope="col"></th>
                     </tr>
                   </thead>
@@ -570,8 +585,8 @@ const Template = () => {
                 type="text"
                 className="form-control"
                 placeholder="Enter Template Name"
-                // value={email}
-                // onChange={(e) => setEmail(e.target.value)}
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
               />
             </div>
           </Row>
@@ -585,7 +600,7 @@ const Template = () => {
                 className="form-control"
                 id="image-upload"
                 accept="image/*"
-                // onChange={(e) => handleImageChange(e)}
+                onChange={(e) => setTemplateImage(e.target.files[0])}
               />
             </div>
           </Row>

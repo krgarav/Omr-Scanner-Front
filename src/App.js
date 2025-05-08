@@ -125,7 +125,7 @@ const App = () => {
       }
     };
 
-    fetchData();
+    // fetchData();
   }, []);
 
   const handleSaveIp = (ip, protocol) => {
