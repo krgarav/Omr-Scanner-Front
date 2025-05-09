@@ -12,7 +12,8 @@ import getBaseUrl from "services/BackendApi";
 import { updateTemplate } from "helper/TemplateHelper";
 import { toast } from "react-toastify";
 import { replace } from "lodash";
-const TemplateEditor = ({ image, title }) => {
+import axios from "axios";
+const TemplateEditor = () => {
   const [boxes, setBoxes] = useState([]);
   const [activeBox, setActiveBox] = useState(null);
   const [currentBoxData, setCurrentBoxData] = useState(null);
@@ -27,6 +28,27 @@ const TemplateEditor = ({ image, title }) => {
   const buttonRef = useRef(null);
   const { Id } = useParams();
   const navigate = useNavigate();
+  const [jsonData, setJsonData] = useState(null);
+
+  useEffect(() => {
+    const fetchJsonData = async () => {
+      try {
+        const res = await axios.get(`${baseUrl}${paths.jsonPath}`);
+        if (res) {
+          const field = res.data.fields;
+          // const bubbles = res.fields[0].bubbles;
+          // console.log(field)
+          setBoxes(res.data.fields);
+        }
+        console.log(res);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    if (paths && baseUrl) {
+      fetchJsonData();
+    }
+  }, [paths, baseUrl]);
 
   useEffect(() => {
     const fetchData = async () => {
