@@ -96,63 +96,16 @@ const Template = () => {
   const handleRowClick = (rowData, index) => {};
   const editHandler = async (arr, index) => {
     setLoading(true);
-    const tempdata = arr[0].layoutParameters;
-    const templateId = tempdata.id;
+
+    const templateId = arr.id;
     const res = await getLayoutDataById(templateId);
-    const templateFile = res.templateFiles.slice(-3);
-
-    if (templateFile.length < 3) {
-      alert("No images found in this template.Cannot Open the template.");
-      setLoading(false);
-      return;
+    if (res?.data?.jsonPath === "") {
+      toast.warning("Template Not Created Yet!!");
     }
-    const csvpath = res?.templateFiles[2].excelPath;
-    const frontImgpath = res?.templateFiles[0].imagePath;
-    const backImgpath = res?.templateFiles[1].imagePath;
-    const res1 = await getTemplateImage(frontImgpath);
-    const res3 = await getTemplateImage(backImgpath);
-
-    if (res3 === undefined) {
-      alert("No back image found in this template.Cannot Open the template. ");
-      setLoading(false);
-      return;
-    }
-    if (res1 === undefined) {
-      alert("No front image found in this template.Cannot Open the template. ");
-      setLoading(false);
-      return;
-    }
-
-    const imgfile = base64ToFile(res1.image, "front.jpg");
-
-    const res2 = await getTemplateCsv(csvpath);
-    if (res2 === undefined) {
-      alert("No CSV found in this template.Cannot Open the template. ");
-      setLoading(false);
-      return;
-    }
-
-    const csvContent = Papa.unparse(res2.data);
-    // Create a Blob from the CSV content
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-
-    // Create a File from the Blob
-    const csvfile = new File([blob], "data.csv", { type: "text/csv" });
+    console.log(res);
+    // return;
     setLoading(false);
-
-    navigate("/admin/template/edit-template", {
-      state: {
-        templateIndex: index,
-        timingMarks: +tempdata.timingMarks,
-        totalColumns: +tempdata.totalColumns,
-        templateImagePath: res1,
-        templateBackImagePath: res3,
-        bubbleType: tempdata.bubbleType,
-        templateId: tempdata.id,
-        excelJsonFile: res2.data,
-      },
-    });
-    setLoading(false);
+    navigate(`/admin/template/create-template/${arr.id}`);
   };
 
   const deleteImage = async (imageUrl) => {
@@ -208,7 +161,7 @@ const Template = () => {
       // const imageUrl = arr[0].layoutParameters.templateImagePath;
       // const result = await deleteImage(imageUrl);
       const responseJob = await checkJobStatus(id);
-      console.log(responseJob);
+
       // return;
       if (responseJob.success) {
         const result = window.confirm(
@@ -230,6 +183,7 @@ const Template = () => {
       return;
     }
   };
+
   const placeHolderJobs = new Array(10).fill(null).map((_, index) => (
     <tr key={index}>
       <td>

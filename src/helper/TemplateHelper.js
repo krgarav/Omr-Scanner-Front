@@ -1,5 +1,5 @@
 import axios from "axios";
-import { post, del, get, put, postWithFormData } from "./api_helper";
+import { post, del, get, put, postWithFormData, putWithFormData } from "./api_helper";
 import * as url from "./url_helper";
 
 // Create Class
@@ -23,6 +23,23 @@ export const createTemplate = async (templateName, image) => {
 
   return await post(endpoint, formData, config);
 };
+
+export const updateTemplate = async (FileName, image) => {
+  const urls = await url.getUrls();
+  const endpoint = `${urls.UPDATE_TEMPLATE}?FileName=${FileName}`;
+
+  const formData = new FormData();
+  formData.append("tempName", image);
+
+  const config = {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  };
+
+  return await putWithFormData(endpoint, formData, config);
+};
+
 
 export const deleteTemplate = async (id) => {
   const urls = await url.getUrls();

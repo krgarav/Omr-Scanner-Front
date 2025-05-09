@@ -16,15 +16,15 @@ const getBaseUrl = () => {
       const backendIP = await config.backendUrl;
 
       // Return the base URL based on the config
-      return `https://${backendIP}/`;
+      return `http://${backendIP}/`;
     } catch (error) {
       console.error("Error fetching config:", error);
-      return "http://localhost:81/";
+      return "https://localhost:81/";
     }
   };
   return fetchDetails();
   // return "http://localhost:81/";
   // return  "https://3gzd7ks7-5289.inc1.devtunnels.ms/"
-  //  return "https://28mdpn6d-5289.inc1.devtunnels.ms/"
+  //  return "https://3s47rfjz-7257.inc1.devtunnels.ms/"
 };
 export default getBaseUrl;

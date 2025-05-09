@@ -6,9 +6,12 @@ import { RxDragHandleDots2 } from "react-icons/rx";
 import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
 import NormalHeader from "components/Headers/NormalHeader";
 import SmallHeader from "components/Headers/SmallHeader";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getLayoutDataById } from "helper/TemplateHelper";
 import getBaseUrl from "services/BackendApi";
+import { updateTemplate } from "helper/TemplateHelper";
+import { toast } from "react-toastify";
+import { replace } from "lodash";
 const TemplateEditor = ({ image, title }) => {
   const [boxes, setBoxes] = useState([]);
   const [activeBox, setActiveBox] = useState(null);
@@ -23,6 +26,8 @@ const TemplateEditor = ({ image, title }) => {
   const [baseUrl, setBaseUrl] = useState(null);
   const buttonRef = useRef(null);
   const { Id } = useParams();
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchData = async () => {
       const baseUrl = await getBaseUrl();
@@ -59,6 +64,7 @@ const TemplateEditor = ({ image, title }) => {
       window.removeEventListener("keydown", handledeleteKey);
     };
   }, [activeBox]);
+
   useEffect(() => {
     if (containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect();
@@ -270,19 +276,40 @@ const TemplateEditor = ({ image, title }) => {
   const zoomIn = () => {
     setZoomScale((prev) => prev + 0.1);
   };
-  const saveTemplate = () => {
+  const saveTemplate = async () => {
     // console.log(boxes);
     const mappedData = boxes.map((box, idx) => {
       return { ...box, bubbles: allBubbles[idx] };
     });
     const obj = {
-      name: title,
+      name: paths.fileName,
       fields: mappedData,
     };
-    console.log(obj);
+
+    const jsonString = JSON.stringify(obj);
+
+    // Optional: ensure the filename ends with `.json`
+    const jsonFileName = paths.fileName.endsWith(".json")
+      ? paths.fileName
+      : `${paths.fileName}.json`;
+
+    // Create a File from JSON string (more appropriate if filename is needed)
+    const jsonFile = new File([jsonString], jsonFileName, {
+      type: "application/json",
+    });
+
+    const res = await updateTemplate(paths.fileName, jsonFile);
+    if (res?.state) {
+      toast.success("Template Saved Successfully");
+      navigate("/admin/template", { replace: true });
+    }
+
+    // console.log(obj);
+    // console.log(paths.fileName);
   };
-  console.log(paths);
+
   if (!paths) return;
+
   return (
     <div
       style={{
@@ -364,6 +391,7 @@ const TemplateEditor = ({ image, title }) => {
             setCurrentBoxData({});
             setIsOpen(true);
           }}
+          // variant=""
           // onClick={addBox}
           className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200"
         >
@@ -372,7 +400,8 @@ const TemplateEditor = ({ image, title }) => {
       </div>
       <Button
         onClick={saveTemplate}
-        className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-2 rounded-full shadow-lg hover:bg-green-700 transition duration-200 z-50"
+        variant="success"
+        // className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-2 rounded-full shadow-lg hover:bg-green-700 transition duration-200 z-50"
       >
         Save Template
       </Button>
