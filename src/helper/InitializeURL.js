@@ -6,7 +6,7 @@ const initializeUrls = async () => {
   const baseUrl = await getBaseUrl();
   console.log(baseUrl);
   return {
-    CREATE_USER: `${baseUrl}UserRegistration`,
+    CREATE_USER: `${baseUrl}api/userAuth/SignUp`,
     UPDATE_USER: `${baseUrl}UpdateUser`,
     GET_USERS: `${baseUrl}api/userAuth/GetList`,
     LOGIN: `${baseUrl}api/userAuth/LoginForm`,

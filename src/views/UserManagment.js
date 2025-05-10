@@ -70,10 +70,8 @@ const UserManagment = () => {
       const data = await fetchAllUsers();
       setLoading(false);
       console.log(data);
-      if (data?.success) {
-        console.log(roles.result);
-        setAllUsers(data?.result);
-      }
+
+      setAllUsers(data);
     } catch (error) {
       console.log(error);
       toast.error("Something went wrong");
@@ -81,7 +79,7 @@ const UserManagment = () => {
     }
   };
   useEffect(() => {
-    fetchRoles();
+    // fetchRoles();
     fetchUsers();
   }, [toggle]);
   const handleSelectRole = (selectedValue) => {
@@ -145,7 +143,6 @@ const UserManagment = () => {
       }
 
       try {
-        // const { data } = await axios.post("https://rb5xhrfq-5289.inc1.devtunnels.ms/UserRegistration", { name, email, phoneNumber, role, password, ConfirmPassword });
         let userRole = selectecdRole.roleName;
         const userName = name;
         const data = await createUser({
@@ -238,10 +235,10 @@ const UserManagment = () => {
     <>
       <tr key={i}>
         <td>{i + 1}</td>
-        <td>{d.userName}</td>
-        <td>{d.email}</td>
-        <td>{d.phoneNumber}</td>
-        <td>{d?.userRoleList[0]?.roleName}</td>
+        <td>{d?.empName}</td>
+        <td>{d?.empEmail}</td>
+        <td>{d?.contact}</td>
+        <td>{d?.role}</td>
         <td className="text-right">
           <UncontrolledDropdown>
             <DropdownToggle

@@ -40,7 +40,6 @@ const useTokenRedirect = () => {
           setTimeout(() => {
             navigate("/auth/login", { replace: true });
           }, 100);
-       
         }
         if (decoded.Role === "Operator") {
           if (location.pathname.includes("operator")) {
@@ -76,28 +75,7 @@ const App = () => {
   const [templateLoading, setTemplateLoading] = useState(true); // State to manage loading
   const dataCtx = useContext(DataContext); // Assuming you are using context
   const toggle = true;
-  useEffect(() => {
-    if (dataCtx.allTemplates.length === 0) {
-      const fetchData = async () => {
-        setTemplateLoading(true);
-        try {
-          const templates = await fetchAllTemplate();
-          if (!templates) {
-            throw new Error("Error fetching templates");
-          }
-          const mpObj = templates.map((item) => {
-            return [{ layoutParameters: item }];
-          });
-          dataCtx.addToAllTemplate(mpObj);
-        } catch (error) {
-          toast.error(error.message || "Error fetching templates");
-        } finally {
-          setTemplateLoading(false);
-        }
-      };
-      fetchData();
-    }
-  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {

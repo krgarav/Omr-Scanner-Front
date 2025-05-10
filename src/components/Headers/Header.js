@@ -19,7 +19,7 @@ const Header = () => {
         setAllUserCount(allUsers.result.length);
       }
     };
-    fetchDetails();
+    // fetchDetails();
   }, []);
   return (
     <>

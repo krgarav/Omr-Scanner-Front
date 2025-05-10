@@ -33,11 +33,17 @@ const TemplateEditor = () => {
   useEffect(() => {
     const fetchJsonData = async () => {
       try {
-        const res = await axios.get(`${baseUrl}${paths.jsonPath}`);
+        const res = await axios.get(`${baseUrl}${paths.jsonPath}`, {
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        });
         if (res) {
           const field = res.data.fields;
           // const bubbles = res.fields[0].bubbles;
-          // console.log(field)
+          console.log(field);
           setBoxes(res.data.fields);
         }
         console.log(res);
@@ -307,7 +313,8 @@ const TemplateEditor = () => {
       name: paths.fileName,
       fields: mappedData,
     };
-
+    console.log(obj);
+    // return;
     const jsonString = JSON.stringify(obj);
 
     // Optional: ensure the filename ends with `.json`

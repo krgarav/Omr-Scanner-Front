@@ -33,7 +33,7 @@ var routes = [
 
   {
     path: "/template",
-    name: "Layout Management",
+    name: "Template Manager",
     icon: "ni ni-collection text-red",
     component: <Template />,
     layout: "/admin",
