@@ -82,29 +82,22 @@ const PrintModal = ({ show }) => {
       >
         <Modal.Header>
           <Modal.Title id="modal-custom-navbar">
-            {printDataEmpty
-              ? " Would you like to add printing option to the sheets?"
-              : "Would you like to change printing option of the sheets?"}
+            Please Select the template and upload folder:-
           </Modal.Title>
         </Modal.Header>
+        <Modal.Body>
+          
+        </Modal.Body>
 
         <Modal.Footer style={{ display: "flex", justifyContent: "center" }}>
           <Button
             variant="success"
             onClick={() => {
-              setShowPrintForm(true);
-              // setShowPrint(false)
-            }}
-          >
-            Yes
-          </Button>
-          <Button
-            variant="warning"
-            onClick={() => {
+              // setShowPrintForm(true);
               setShowPrint(false);
             }}
           >
-            No
+            Confirm
           </Button>
         </Modal.Footer>
       </Modal>
@@ -112,10 +105,8 @@ const PrintModal = ({ show }) => {
         <PrintFieldModal
           show={showPrintForm}
           onHide={() => {
-            setShowPrint(false)
+            setShowPrint(false);
             setShowPrintForm(false);
-
-
           }}
           data={printData}
         />

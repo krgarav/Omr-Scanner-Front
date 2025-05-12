@@ -14,6 +14,7 @@ import FolderStructure from "views/FolderStructure";
 import AdminJobQueue from "views/AdminJobQueue";
 import AppManagement from "views/AppManagement";
 import About from "views/About";
+import AdminScanJob from "views/AdminScanJob";
 
 var routes = [
   {
@@ -51,7 +52,7 @@ var routes = [
     path: "/job-queue",
     name: "Scan OMR Sheets",
     icon: "ni ni-money-coins text-yellow",
-    component: <AdminJobQueue />,
+    component: <AdminScanJob />,
     layout: "/admin",
   },
   {

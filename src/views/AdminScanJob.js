@@ -81,21 +81,7 @@ const AdminScanJob = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const serialRef = useRef();
-  // useEffect(() => {
-  //   let num = JSON.parse(localStorage.getItem("lastSerialNo"), 10) || 1;
-  //   setLastSerialNo(num);
-  // }, []);
-  // useEffect(() => {
-  //   // let num = JSON.parse(localStorage.getItem("lastSerialNo"), 10) || 1;
-  //   const lastSlNo = processedData[processedData.length - 1];
 
-  //   console.log(lastSlNo);
-  //   if (lastSlNo) {
-  //     const lastSerialNo = lastSlNo["Serial No"];
-  //     localStorage.setItem("lastSerialNo", JSON.stringify(lastSerialNo));
-  //   }
-  //   // setLastSerialNo(num)
-  // }, [processedData]);
   useEffect(() => {
     const gridContainer = gridRef.current?.element?.querySelector(".e-content");
 
@@ -179,100 +165,7 @@ const AdminScanJob = () => {
       setTemplateName(templateName);
     }
   }, [location]);
-  // useEffect(() => {
-  //     const interval = setInterval(() => {
-  //         setItems(prevItems => {
-  //             const nextIndex = prevItems.length;
-  //             if (nextIndex < data.length) {
-  //                 return [...prevItems, data[nextIndex]];
-  //             } else {
-  //                 clearInterval(interval);
-  //                 return prevItems;
-  //             }
-  //         });
-  //     }, 1000);
 
-  //     return () => clearInterval(interval); // Cleanup on unmount
-  // }, [data]);
-
-  //
-  //     const decoded = jwtDecode(token);
-  //     if (decoded.Role === "Operator") {
-  //       setToolbar([
-  //         "Add",
-  //         "Edit",
-  //         "Delete",
-  //         "Update",
-  //         "Cancel",
-  //         "ExcelExport",
-  //         "CsvExport",
-  //       ]);
-  //       setServices([Sort, Toolbar, ExcelExport, Filter, Edit]);
-  //     } else {
-  //       setToolbar(["ExcelExport", "CsvExport"]);
-  //       setServices([Sort, Toolbar, ExcelExport, Filter]);
-  //     }
-  //   }, []);
-  // const getScanData = async () => {
-  //   try {
-  //     const token = localStorage.getItem("token");
-
-  //     const userInfo = jwtDecode(token);
-  //     console.log(userInfo);
-
-  //     const userId = userInfo.UserId;
-  //     // Fetch data based on selected value ID
-  //     // const response = await getUrls();
-  //     // console.log(response)
-  //     // const GetDataURL =  response.GET_PROCESS_32_PAG_DATA;
-  //     // console.log(GetDataURL)
-  //     const res = await axios.get(
-  //       proccessUrl + `?Id=${selectedValue}&UserId=${userId}`
-  //     );
-
-  //     const data = res.data;
-  //     // fetchProcessData(selectedValue, userId);
-  //     console.log(data);
-
-  //     // Check if the data fetch was successful
-  //     if (data?.result?.success) {
-  //       // Extract keys from the first item in the data array
-  //       const newDataKeys = Object.keys(data.result.data[0]).map((key) => {
-  //         return key.endsWith(".") ? key.slice(0, -1) : key;
-  //       });
-
-  //       // Add a serial number to each entry
-  //       let num = 1;
-  //       const updatedData = data.result.data.map((item) => {
-  //         const newItem = {};
-
-  //         // Iterate over the keys of the item
-  //         for (const key in item) {
-  //           // Check if the key ends with a dot
-  //           const newKey = key.endsWith(".") ? key.slice(0, -1) : key;
-  //           // Assign the value to the new key in newItem
-  //           newItem[newKey] = item[key];
-  //         }
-
-  //         // Add the Serial No property
-  //         newItem["Serial No"] = num++;
-  //         return newItem;
-  //       });
-
-  //       // Set headData with the new keys, ensuring "Serial No" is included as a heading
-  //       setHeadData(["Serial No", ...newDataKeys]);
-
-  //       // Update the data state with the fetched data
-  //       setProcessedData(updatedData);
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     // toast.error("Something went wrong");
-
-  //     // Set scanning to false in case of error
-  //     // setScanning(false);
-  //   }
-  // };
   const handleScroll = async (e) => {
     const scrollTop = e.target.scrollTop;
     console.log("Scroll event triggered. ScrollTop:", scrollTop);
@@ -346,59 +239,7 @@ const AdminScanJob = () => {
       return error;
     }
   };
-  // const getScanData = async () => {
-  //   let num = 1;
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     const userInfo = jwtDecode(token);
-  //     const userId = userInfo.UserId;
 
-  //     const res = await axios.get(
-  //       proccessUrl + ?Id=${selectedValue}&UserId=${userId}
-  //     );
-  //     const data = res.data;
-
-  //     if (data?.result?.success) {
-  //       const newDataKeys = Object.keys(data.result.data[0]).map((key) => {
-  //         return key.endsWith(".") ? key.slice(0, -1) : key;
-  //       });
-  //       setHeadData(["Serial No", ...newDataKeys]);
-  //       let updatedData = [];
-
-  //       updatedData = data.result.data.map((item) => {
-  //         const newItem = {};
-  //         for (const key in item) {
-  //           const newKey = key.endsWith(".") ? key.slice(0, -1) : key;
-  //           newItem[newKey] = item[key];
-  //         }
-  //         newItem["Serial No"] = num++;
-  //         return newItem;
-  //       });
-
-  //       // setProcessedData(updatedData);
-  //       setProcessedData((prevData) => {
-  //         const combinedData = [...prevData, ...updatedData]; // Add new data to the rear
-  //         if (combinedData.length > 100) {
-  //           return combinedData.slice(-100); // Keep only the last 100 items
-  //         }
-  //         return combinedData;
-  //       });
-
-  //       gridRef.current.refresh();
-  //       return res;
-  //     }
-  //     return {
-  //       success: false,
-  //       data: res?.data?.result,
-  //       message: "The API response did not indicate success.",
-  //     };
-  //   } catch (error) {
-  //     console.error(error);
-  //     await handleStop();
-  //     toast.error("Unable to fetch data");
-  //     return error;
-  //   }
-  // };
   useEffect(() => {
     if (!scanning) return;
 
@@ -791,33 +632,7 @@ const AdminScanJob = () => {
         <div
           className="w-100  m-1"
           style={{ overflowY: "auto", backgroundColor: "green", zIndex: "999" }}
-        >
-          {/* <div
-            className="w-100 d-flex"
-            style={{ zIndex: "999", width: "8%", height: "80%" }}
-          >
-          \
-            <input
-              type="number"
-            
-              ref={serialRef}
-              style={{ zIndex: "999", width: "8%" }}
-            />
-          </div> */}
-
-          {/* <div className="d-flex justify-content-end  custom-control custom-switch">
-            <input
-              type="checkbox"
-              className="custom-control-input"
-              id="customSwitch1"
-              checked={isAutoScrollEnabled}
-              onChange={handleToggle}
-            />
-            <label className="custom-control-label" htmlFor="customSwitch1">
-              Auto Scroll
-            </label>
-          </div> */}
-        </div>
+        ></div>
         <div className="control-section">
           <GridComponent
             ref={gridRef}
