@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
 import PrintFieldModal from "./PrintFieldModal";
 import { checkPrintData } from "helper/Booklet32Page_helper";
+import { fetchAllTemplate } from "helper/TemplateHelper";
 const PrintModal = ({ show }) => {
   const [showPrint, setShowPrint] = useState(true);
   const [showPrintForm, setShowPrintForm] = useState(false);
+  const [template, setTemplate] = useState([]);
   const [printDataEmpty, setPrintDataEmpty] = useState(false);
   const [printData, setPrintData] = useState({});
   const [loading, setLoading] = useState(false);
@@ -12,15 +14,9 @@ const PrintModal = ({ show }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const tempId = JSON.parse(localStorage.getItem("scantemplateId"));
-        const res = await checkPrintData(tempId);
-        console.log(res);
-
-        if (res === undefined) {
-          setPrintDataEmpty(true);
-        } else {
-          setPrintData(res);
-          setPrintDataEmpty(false);
+        const templates = await fetchAllTemplate();
+        if (templates) {
+          setTemplate(templates?.body);
         }
       } catch (error) {
         console.error(error);
@@ -30,6 +26,13 @@ const PrintModal = ({ show }) => {
     };
     fetchData();
   }, []);
+  const allTemplate = template.map((item, index) => {
+    return (
+      <option key={index} value={item.id}>
+        {item.fileName}
+      </option>
+    );
+  });
 
   if (loading) {
     return (
@@ -86,7 +89,27 @@ const PrintModal = ({ show }) => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          
+          <div className="mb-3">
+            <label htmlFor="nameInput" className="form-label">
+              Folder
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="nameInput"
+              placeholder="Select Folder"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="optionSelect" className="form-label">
+              Select Option
+            </label>
+            <select className="form-control" id="optionSelect">
+              <option value="">-- Select an option --</option>
+              {allTemplate}
+            </select>
+          </div>
         </Modal.Body>
 
         <Modal.Footer style={{ display: "flex", justifyContent: "center" }}>
