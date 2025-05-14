@@ -3,12 +3,14 @@ import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
 import PrintFieldModal from "./PrintFieldModal";
 import { checkPrintData } from "helper/Booklet32Page_helper";
 import { fetchAllTemplate } from "helper/TemplateHelper";
-const PrintModal = ({ show }) => {
+const PrintModal = ({ show, setData }) => {
   const [showPrint, setShowPrint] = useState(true);
   const [showPrintForm, setShowPrintForm] = useState(false);
   const [template, setTemplate] = useState([]);
   const [printDataEmpty, setPrintDataEmpty] = useState(false);
   const [printData, setPrintData] = useState({});
+  const [folderName, setFolderName] = useState(null);
+  const [templateId, setTemplateId] = useState(null);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     const fetchData = async () => {
@@ -33,6 +35,18 @@ const PrintModal = ({ show }) => {
       </option>
     );
   });
+  const handleSuccess = () => {
+    if (!folderName) {
+      alert("No Folder Selected");
+      return;
+    }
+    if (!templateId) {
+      alert("No Template Selected");
+      return;
+    }
+    setData({ folderName, templateId });
+    setShowPrint(false);
+  };
 
   if (loading) {
     return (
@@ -98,6 +112,10 @@ const PrintModal = ({ show }) => {
               className="form-control"
               id="nameInput"
               placeholder="Select Folder"
+              onChange={(e) => {
+                setFolderName(e.target.value);
+              }}
+              value={folderName}
             />
           </div>
 
@@ -105,7 +123,14 @@ const PrintModal = ({ show }) => {
             <label htmlFor="optionSelect" className="form-label">
               Select Option
             </label>
-            <select className="form-control" id="optionSelect">
+            <select
+              className="form-control"
+              id="optionSelect"
+              onChange={(e) => {
+                setTemplateId(e.target.value);
+              }}
+              value={templateId}
+            >
               <option value="">-- Select an option --</option>
               {allTemplate}
             </select>
@@ -113,13 +138,7 @@ const PrintModal = ({ show }) => {
         </Modal.Body>
 
         <Modal.Footer style={{ display: "flex", justifyContent: "center" }}>
-          <Button
-            variant="success"
-            onClick={() => {
-              // setShowPrintForm(true);
-              setShowPrint(false);
-            }}
-          >
+          <Button variant="success" onClick={handleSuccess}>
             Confirm
           </Button>
         </Modal.Footer>

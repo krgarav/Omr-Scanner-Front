@@ -11,7 +11,9 @@ export const fetchProcessData = async () => {
 
 export const scanFiles = async (selectedValue, userId) => {
   const urls = await url.getUrls();
-  return post(`${urls.SCAN_FILES}?Id=${selectedValue}&UserId=${userId}`);
+  return post(
+    `${urls.SCAN_FILES}?folderPath=${selectedValue}&idTemp=${userId}`
+  );
 };
 export const printData = async (data) => {
   const urls = await url.getUrls();
@@ -29,12 +31,16 @@ export const checkPrintData = async (layoutId) => {
   return get(`${urls.CHECK_PRINT}?LayoutId=${layoutId}`);
 };
 
-export const getDataByRowRange = async (startRow,endRow,LayoutId,UserId) => {
+export const getDataByRowRange = async (startRow, endRow, LayoutId, UserId) => {
   const urls = await url.getUrls();
-  return get(`${urls.GET_ROW_DATA}?startRow=${startRow}&endRow=${endRow}&LayoutId=${LayoutId}&UserId=${UserId}`);
+  return get(
+    `${urls.GET_ROW_DATA}?startRow=${startRow}&endRow=${endRow}&LayoutId=${LayoutId}&UserId=${UserId}`
+  );
 };
 
-export const getTotalExcellRow = async (LayoutId,UserId) => {
+export const getTotalExcellRow = async (LayoutId, UserId) => {
   const urls = await url.getUrls();
-  return get(`${urls.GET_TOTAL_EXCEL_ROW}?LayoutId=${LayoutId}&UserId=${UserId}`);
+  return get(
+    `${urls.GET_TOTAL_EXCEL_ROW}?LayoutId=${LayoutId}&UserId=${UserId}`
+  );
 };

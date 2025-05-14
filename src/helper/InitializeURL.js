@@ -13,7 +13,7 @@ const initializeUrls = async () => {
     DELETE_USER: `${baseUrl}DeleteUser?Id=`,
     GET_USER_ROLES: `${baseUrl}GetUserRole`,
     GET_PROCESS_DATA: `${baseUrl}ProcessData`,
-    SCAN_FILES: `${baseUrl}ScanFiles`,
+    SCAN_FILES: `${baseUrl}api/OmrProcessing/process-omr`,
     REFRESH_SCANNER: `${baseUrl}RefreshScanner`,
     GET_PROCESS_24_PAGE_DATA: `${baseUrl}Process_24_Page_Booklet_Data`,
     SCAN_24_PAGE_FILES: `${baseUrl}Scan_24_Page_Booklet`,

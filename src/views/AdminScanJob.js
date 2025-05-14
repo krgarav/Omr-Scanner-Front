@@ -74,6 +74,7 @@ const AdminScanJob = () => {
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastSerialNo, setLastSerialNo] = useState(0);
+  const [data, setData] = useState(null);
   const template = emptyMessageTemplate;
 
   const gridRef = useRef();
@@ -81,6 +82,44 @@ const AdminScanJob = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const serialRef = useRef();
+
+  // Connect to WebSocket on mount
+  useEffect(() => {
+    const ws = new WebSocket("ws://192.168.1.5:5500/ws");
+
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+    };
+
+    ws.onmessage = (event) => {
+      console.log("Message received:", event.data);
+      const jsonData = JSON.parse(event.data);
+      setHeadData(Object.keys(jsonData[0]));
+      setProcessedData((prev) => {
+        return [...prev, jsonData];
+      });
+      // Example: when receiving "success", hide print
+      if (event.data === "success") {
+        console.log("success");
+        // handleSuccess();
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket closed");
+    };
+
+    // setSocket(ws);
+
+    // Cleanup
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   useEffect(() => {
     const gridContainer = gridRef.current?.element?.querySelector(".e-content");
@@ -269,55 +308,10 @@ const AdminScanJob = () => {
   };
 
   const handleStart = async () => {
-    // setShowPrintModal(true);
-    // return
-    let startingIntervalId;
-    let scanningTimeoutId;
     try {
-      setStarting(true);
-      const token = localStorage.getItem("token");
-
-      if (token) {
-        const userInfo = jwtDecode(token);
-        const userId = userInfo.UserId;
-        startingIntervalId = setTimeout(() => {
-          setStarting(false);
-        }, 6000);
-
-        scanningTimeoutId = setTimeout(() => {
-          setScanning(true);
-        }, 6000);
-        const response = await scanFiles(selectedValue, userId);
-        // Clear the timeouts after the response is received
-        clearTimeout(startingIntervalId);
-        clearTimeout(scanningTimeoutId);
-        if (!response?.result?.success) {
-          await handleStop();
-          toast.error(response?.result?.message);
-        } else {
-          toast.success(response?.result?.message);
-        }
-        if (response) {
-          if (!response?.success) {
-            toast.error(response?.message);
-          } else {
-            toast.success(response?.message);
-          }
-          setScanning(false);
-        }
-        if (response === undefined) {
-          toast.error("Request Timeout");
-          setScanning(false);
-        }
-      }
-    } catch (error) {
-      await handleStop();
-      setStarting(false);
-      // Clear the timeouts after the response is received
-      clearTimeout(startingIntervalId);
-      clearTimeout(scanningTimeoutId);
-      console.log(error);
-    }
+      const res = await scanFiles(data.folderName, data.templateId);
+    } catch (error) {}
+    console.log(data);
   };
 
   const handleSave = (args) => {
@@ -695,7 +689,7 @@ const AdminScanJob = () => {
           {/* </div> */}
         </div>
       </Container>
-      {showPrintModal && <PrintModal show={showPrintModal} />}
+      {showPrintModal && <PrintModal show={showPrintModal} setData={setData} />}
     </>
   );
 };
