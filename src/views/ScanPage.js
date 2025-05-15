@@ -77,7 +77,7 @@ const ScanPage = () => {
           transform: "translateX(-50%)",
           padding: "10px",
           zIndex: 999,
-          width: "400px", // Optional, for consistent width
+          width: "500px", // Optional, for consistent width
         }}
       >
         <h5 className="mb-3">Please Select the template and upload folder:</h5>
@@ -86,29 +86,25 @@ const ScanPage = () => {
           <label htmlFor="example-text-input" className=" col-form-label">
             Data Path:
           </label>
-          {folderName && (
-            <div className="col-md-7">
-              <input
-                type="text"
-                disabled
-                value={folderName}
-                className="form-control"
-                placeholder="Enter the data path"
-                onChange={(e) => setDataPath(e.target.value)}
-              />
-            </div>
-          )}
-          <div className={folderName ? "col-md-3" : "col-md-4"}>
+
+          <div className="d-flex align-items-center gap-2">
+            <input
+              type="text"
+              disabled
+              value={folderName}
+              className="form-control"
+              placeholder="Enter the data path"
+            />
             <Button
               variant="info"
-              onClick={() => {
-                // setCurrentDirState("data");
-                setDirectoryPickerModal(true);
-              }}
+              className="ml-1"
+              onClick={() => setDirectoryPickerModal(true)}
+              style={{ width: "60%" }}
             >
               Choose Directory
             </Button>
           </div>
+
           {/* <label htmlFor="nameInput" className="form-label">
             Folder
           </label>
