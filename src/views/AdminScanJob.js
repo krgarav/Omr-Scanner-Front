@@ -99,8 +99,8 @@ const AdminScanJob = () => {
       }
     })();
   }, []);
-  // Connect to WebSocket on mount
 
+  // Connect to WebSocket on mount
   useEffect(() => {
     const ws = new WebSocket(`ws://${baseUrl}/ws`);
 

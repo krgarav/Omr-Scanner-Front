@@ -18,7 +18,7 @@ const DirectoryPicker = ({ handleChange }) => {
         const GetDataURL = response.MAIN_URL;
         setHostUrl(GetDataURL);
       } catch (error) {
-        console.error('Error fetching URLs:', error);
+        console.error("Error fetching URLs:", error);
         // Handle the error appropriately (e.g., show an error message)
       } finally {
         setLoading(false);

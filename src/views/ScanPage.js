@@ -3,6 +3,7 @@ import { fetchAllTemplate } from "helper/TemplateHelper";
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import DirectoryPicker from "./DirectoryPicker";
 
 const ScanPage = () => {
   const [showPrint, setShowPrint] = useState(true);
@@ -13,6 +14,8 @@ const ScanPage = () => {
   const [folderName, setFolderName] = useState(null);
   const [templateId, setTemplateId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [dataPath, setDataPath] = useState("");
+  const [directoryPickerModal, setDirectoryPickerModal] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
     const fetchData = async () => {
@@ -51,6 +54,17 @@ const ScanPage = () => {
     navigate("/admin/job-queue/adminscanjob");
     setShowPrint(false);
   };
+
+  const directoryChangeHandler = (directory) => {
+    directory = directory.substring(1);
+    console.log(directory);
+    // if (imageEnable) {
+    //   setSelectedImageDirectory(directory);
+    //   return;
+    // }
+
+    setFolderName(directory);
+  };
   return (
     <>
       <NormalHeader />
@@ -69,7 +83,33 @@ const ScanPage = () => {
         <h5 className="mb-3">Please Select the template and upload folder:</h5>
 
         <div className="mb-3">
-          <label htmlFor="nameInput" className="form-label">
+          <label htmlFor="example-text-input" className=" col-form-label">
+            Data Path:
+          </label>
+          {folderName && (
+            <div className="col-md-7">
+              <input
+                type="text"
+                disabled
+                value={folderName}
+                className="form-control"
+                placeholder="Enter the data path"
+                onChange={(e) => setDataPath(e.target.value)}
+              />
+            </div>
+          )}
+          <div className={folderName ? "col-md-3" : "col-md-4"}>
+            <Button
+              variant="info"
+              onClick={() => {
+                // setCurrentDirState("data");
+                setDirectoryPickerModal(true);
+              }}
+            >
+              Choose Directory
+            </Button>
+          </div>
+          {/* <label htmlFor="nameInput" className="form-label">
             Folder
           </label>
           <input
@@ -79,7 +119,7 @@ const ScanPage = () => {
             placeholder="Select Folder"
             onChange={(e) => setFolderName(e.target.value)}
             value={folderName}
-          />
+          /> */}
         </div>
 
         <div className="mb-3">
@@ -110,6 +150,44 @@ const ScanPage = () => {
           onClick={() => setShowPrint(false)}
         ></button>
       </div>
+
+      <Modal
+        show={directoryPickerModal}
+        // onHide={props.onHide}
+        size="lg"
+        aria-labelledby="modal-custom-navbar"
+        centered
+        dialogClassName="modal-90w"
+        backdrop="static"
+        keyboard={false}
+      >
+        <Modal.Header>
+          <Modal.Title id="modal-custom-navbar">Select Directory</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body style={{ height: "65dvh" }}>
+          <DirectoryPicker handleChange={directoryChangeHandler} />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setDirectoryPickerModal(false);
+            }}
+          >
+            Close
+          </Button>
+
+          <Button
+            variant="success"
+            onClick={() => {
+              setDirectoryPickerModal(false);
+            }}
+          >
+            Save Selected Directory
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 };
