@@ -61,10 +61,10 @@ const Template = () => {
     const fetchData = async () => {
       setTemplateLoading(true);
       const templates = await fetchAllTemplate();
-      console.log(templates);
       if (templates === undefined) {
         toast.error("Error fetching templates");
         setTemplateLoading(false);
+        return;
       }
       console.log(templates?.body);
       dataCtx.addToAllTemplate(templates?.body);
@@ -75,7 +75,6 @@ const Template = () => {
 
   const duplicateHandler = (arr) => {
     setShowDetailModal(true);
-    console.log(arr);
     setTemplateDetail(arr);
   };
   const cloneHandler = async (arr) => {

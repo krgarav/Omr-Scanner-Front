@@ -32,6 +32,7 @@ import { headerData } from "data/jsonDataTest";
 import { VirtualScroll } from "@syncfusion/ej2-grids";
 import { getTotalExcellRow } from "helper/Booklet32Page_helper";
 import { getDataByRowRange } from "helper/Booklet32Page_helper";
+import getBaseUrl from "services/BackendApi";
 function emptyMessageTemplate() {
   return (
     <div className="text-center">
@@ -73,6 +74,7 @@ const AdminScanJob = () => {
   const [scrollState, setScrollState] = useState(false);
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [baseUrl, setBaseURL] = useState(null);
   const [lastSerialNo, setLastSerialNo] = useState(0);
   const [data, setData] = useState(null);
   const template = emptyMessageTemplate;
@@ -83,9 +85,24 @@ const AdminScanJob = () => {
   const navigate = useNavigate();
   const serialRef = useRef();
 
-  // Connect to WebSocket on mount
   useEffect(() => {
-    const ws = new WebSocket("ws://192.168.1.5:5500/ws");
+    (async () => {
+      try {
+        const baseUrl = await getBaseUrl();
+        // You can use baseUrl here
+        if (baseUrl) {
+          const url = new URL(baseUrl);
+          setBaseURL(url.host);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, []);
+  // Connect to WebSocket on mount
+
+  useEffect(() => {
+    const ws = new WebSocket(`ws://${baseUrl}/ws`);
 
     ws.onopen = () => {
       console.log("WebSocket connected");
@@ -122,7 +139,7 @@ const AdminScanJob = () => {
     return () => {
       ws.close();
     };
-  }, []);
+  }, [baseUrl]);
 
   useEffect(() => {
     const gridContainer = gridRef.current?.element?.querySelector(".e-content");
