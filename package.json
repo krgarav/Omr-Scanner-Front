@@ -10,7 +10,7 @@
   },
   "author": "Kumar Gaurav",
   "license": "IOS",
-     "scripts": {
+  "scripts": {
     "start": "react-scripts start --port 3002",
     "build": "react-scripts build",
     "test": "react-scripts test",

@@ -94,10 +94,13 @@ const AdminScanJob = () => {
     ws.onmessage = (event) => {
       console.log("Message received:", event.data);
       const jsonData = JSON.parse(event.data);
-      setHeadData(Object.keys(jsonData[0]));
-      setProcessedData((prev) => {
-        return [...prev, jsonData];
-      });
+      const data = jsonData?.FieldResults;
+      if (data) {
+        setHeadData(Object.keys(data));
+        setProcessedData((prev) => {
+          return [...prev, data];
+        });
+      }
       // Example: when receiving "success", hide print
       if (event.data === "success") {
         console.log("success");
@@ -309,9 +312,19 @@ const AdminScanJob = () => {
 
   const handleStart = async () => {
     try {
-      const res = await scanFiles(data.folderName, data.templateId);
-    } catch (error) {}
-    console.log(data);
+      const folderName = localStorage.getItem("folderName");
+      const templateId = localStorage.getItem("templateId");
+      if (!folderName || !templateId) {
+        toast.error("Please select a folder and template");
+        return;
+      }
+      const res = await scanFiles(folderName, templateId);
+    } catch (error) {
+      console.log(error);
+      if (error?.response?.data) {
+        toast.error(error?.response?.data);
+      }
+    }
   };
 
   const handleSave = (args) => {
@@ -581,7 +594,7 @@ const AdminScanJob = () => {
       console.log(error);
     }
   };
-  // console.log(location.state)
+
   return (
     <>
       <NormalHeader />
@@ -689,7 +702,7 @@ const AdminScanJob = () => {
           {/* </div> */}
         </div>
       </Container>
-      {showPrintModal && <PrintModal show={showPrintModal} setData={setData} />}
+      {/* {showPrintModal && <PrintModal show={showPrintModal} setData={setData} />} */}
     </>
   );
 };
