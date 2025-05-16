@@ -86,6 +86,7 @@
     "react-zoom-pan-pinch": "^3.4.4",
     "reactstrap": "8.10.0",
     "sass": "1.69.5",
+    "strip-json-comments": "^5.0.1",
     "uuid": "^10.0.0"
   },
   "devDependencies": {

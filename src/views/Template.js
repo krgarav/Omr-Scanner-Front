@@ -16,7 +16,6 @@ import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataContext from "store/DataContext";
 import axios from "axios";
-import TemplateModal from "../ui/TemplateModal";
 import { fetchAllTemplate } from "helper/TemplateHelper";
 import { deleteTemplate } from "helper/TemplateHelper";
 import CryptoJS from "crypto-js";

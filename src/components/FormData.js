@@ -11,6 +11,7 @@ const FormData = forwardRef(
       allBubbles,
       isNewBox,
       setIsOpen,
+      setActiveBox,
     },
     ref
   ) => {
@@ -45,6 +46,7 @@ const FormData = forwardRef(
             idx === activeBox ? { ...currentBoxData } : box
           )
         );
+        setActiveBox(null);
       }
     };
 
@@ -119,8 +121,8 @@ const FormData = forwardRef(
                   }))
                 }
               >
-                <option value="alphabet">Alphabet</option>
-                <option value="integer">Integer</option>
+                <option value="formfield">Form Field</option>
+                <option value="questionfield">Question Field</option>
               </Form.Control>
             </Form.Group>
           </Col>
@@ -132,7 +134,7 @@ const FormData = forwardRef(
               <Form.Label>Reading Direction:</Form.Label>
               <Form.Control
                 as="select"
-                value={currentBoxData?.ReadingDirection}
+                value={currentBoxData?.ReadingDirection ?? ""}
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
                     ...prev,
@@ -140,8 +142,9 @@ const FormData = forwardRef(
                   }))
                 }
               >
-                <option value="horizontal">Horizontal</option>
-                <option value="vertical">Vertical</option>
+                <option value="">Select direction</option>
+                <option value="Horizontal">Horizontal</option>
+                <option value="Vertical">Vertical</option>
               </Form.Control>
             </Form.Group>
           </Col>
@@ -151,7 +154,7 @@ const FormData = forwardRef(
               <Form.Label>Allow Multiple:</Form.Label>
               <Form.Control
                 as="select"
-                value={currentBoxData?.allowMultiple}
+                value={currentBoxData?.allowMultiple ?? ""}
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
                     ...prev,
@@ -159,13 +162,35 @@ const FormData = forwardRef(
                   }))
                 }
               >
+                <option value="">Select multiple</option>
                 <option value="true">True</option>
                 <option value="false">False</option>
               </Form.Control>
             </Form.Group>
           </Col>
         </Row>
-
+        <Row>
+          <Col md={12}>
+            <Form.Group controlId="readingDirection">
+              <Form.Label>Field Value:</Form.Label>
+              <Form.Control
+                as="select"
+                value={currentBoxData?.fieldValue ?? ""}
+                onChange={(e) =>
+                  setCurrentBoxData((prev) => ({
+                    ...prev,
+                    fieldValue: e.target.value,
+                  }))
+                }
+              >
+                <option value="">Select field value</option>
+                <option value="Integer">Integer</option>
+                <option value="Alphabet">Alphabet</option>
+                <option value="Custom">Custom</option>
+              </Form.Control>
+            </Form.Group>
+          </Col>
+        </Row>
         <Row>
           <Col md={6}>
             <Form.Group controlId="margin">
@@ -200,14 +225,14 @@ const FormData = forwardRef(
               </Form.Label>
               <Form.Control
                 type="range"
-                min={0.01}
-                max={0.9}
-                step={0.01}
+                min={0}
+                max={10}
+                step={1}
                 value={currentBoxData?.bubbleIntensity}
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
                     ...prev,
-                    bubbleIntensity: e.target.value,
+                    bubbleIntensity: Number(e.target.value),
                   }))
                 }
               />
@@ -217,7 +242,7 @@ const FormData = forwardRef(
 
         <div className="text-right mt-4">
           <Button
-            style={{ display: "none" }}
+            style={{ display: isNewBox ? "none" : "" }}
             ref={ref}
             type="submit"
             variant="primary"

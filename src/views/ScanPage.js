@@ -61,8 +61,7 @@ const ScanPage = () => {
     // if (imageEnable) {
     //   setSelectedImageDirectory(directory);
     //   return;
-    // }
-
+    //
     setFolderName(directory);
   };
   return (

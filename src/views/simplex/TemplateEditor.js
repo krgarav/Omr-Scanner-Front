@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Rnd } from "react-rnd";
 import FormData from "components/FormData";
 import classes from "./Template.module.css";
-import { RxDragHandleDots2 } from "react-icons/rx";
+import { RxDragHandleDots2, RxCross2 } from "react-icons/rx";
 import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
 import NormalHeader from "components/Headers/NormalHeader";
 import SmallHeader from "components/Headers/SmallHeader";
@@ -13,6 +13,7 @@ import { updateTemplate } from "helper/TemplateHelper";
 import { toast } from "react-toastify";
 import { replace } from "lodash";
 import axios from "axios";
+import stripJsonComments from "strip-json-comments";
 const TemplateEditor = () => {
   const [boxes, setBoxes] = useState([]);
   const [activeBox, setActiveBox] = useState(null);
@@ -40,13 +41,17 @@ const TemplateEditor = () => {
             Expires: "0",
           },
         });
+
         if (res) {
+          // const cleanJsonStr = stripJsonComments(res.data);
+          // const parsed = JSON.parse(cleanJsonStr);
+          // console.log(JSON.parse(res.data));
           const field = res.data.fields;
-          // const bubbles = res.fields[0].bubbles;
           console.log(field);
-          setBoxes(res.data.fields);
+          // // const bubbles = res.fields[0].bubbles;
+          // console.log(parsed);
+          setBoxes(field);
         }
-        console.log(res);
       } catch (error) {
         console.log(error);
       }
@@ -284,20 +289,6 @@ const TemplateEditor = () => {
 
   const allBubbles = boxes.map((box) => getBubbleCoordinates(box, imageRef));
 
-  const downloadHandler = () => {
-    const dataStr = JSON.stringify(allBubbles, null, 2); // Convert to formatted JSON
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "template.json";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url); // Clean up
-  };
   const zoomOut = () => {
     setZoomScale((prev) => prev - 0.1);
   };
@@ -381,8 +372,8 @@ const TemplateEditor = () => {
           {activeBox !== null && (
             <Rnd
               default={{
-                x: 100,
-                y: 100,
+                x: -40,
+                y: 0,
                 width: 400,
                 height: "auto",
               }}
@@ -393,9 +384,25 @@ const TemplateEditor = () => {
             >
               <div className="bg-white rounded-lg shadow-lg w-full">
                 {/* Drag handle bar */}
-                <div className="bg-blue-600 text-white px-4 py-2 rounded-t-lg drag-handle cursor-move flex items-center gap-2">
-                  <RxDragHandleDots2 className="text-xl" />
-                  <span>Move Form</span>
+                <div
+                  className="bg-primary text-white px-3 py-2 rounded-top d-flex align-items-center justify-content-between drag-handle"
+                  style={{ cursor: "move" }}
+                >
+                  <div className="d-flex align-items-center">
+                    <RxDragHandleDots2 className="me-2 fs-5" />
+                    <span>Move Form</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="close text-white hover:text-red-200"
+                    aria-label="Close"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent drag interference
+                      setActiveBox(null);
+                    }}
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </button>
                 </div>
 
                 {/* Actual form (not draggable) */}
@@ -406,6 +413,8 @@ const TemplateEditor = () => {
                     setBoxes={setBoxes}
                     activeBox={activeBox}
                     allBubbles={allBubbles}
+                    isNewBox={false}
+                    setActiveBox={setActiveBox}
                   />
                 </div>
               </div>
@@ -414,26 +423,27 @@ const TemplateEditor = () => {
         </div>
       </section>
 
-      <div className="flex justify-center mt-1 z-[9999]">
-        <Button
+      <div className="d-flex justify-content-center mt-2 z-9999">
+        <button
+          type="button"
+          className="btn btn-primary me-2"
           onClick={() => {
             setCurrentBoxData({});
             setIsOpen(true);
           }}
-          // variant=""
-          // onClick={addBox}
-          className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-200"
         >
           Add Box
-        </Button>
+        </button>
+
+        <button
+          type="button"
+          className="btn btn-success"
+          onClick={saveTemplate}
+        >
+          Save Template
+        </button>
       </div>
-      <Button
-        onClick={saveTemplate}
-        variant="success"
-        // className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-2 rounded-full shadow-lg hover:bg-green-700 transition duration-200 z-50"
-      >
-        Save Template
-      </Button>
+
       {isOpen && (
         <Modal
           show={isOpen}
