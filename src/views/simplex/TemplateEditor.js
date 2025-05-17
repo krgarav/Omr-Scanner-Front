@@ -130,7 +130,6 @@ const TemplateEditor = () => {
       },
     ]);
   };
-  console.log(boxes);
   const removeBox = (index) => {
     setBoxes((prev) => prev.filter((_, i) => i !== index));
   };
@@ -181,7 +180,7 @@ const TemplateEditor = () => {
         }}
       >
         <div ref={containerRef} className={style}>
-          {Array.from({ length: box.totalCol }).map((_, rowIdx) => (
+          {Array.from({ length: box.totalRow }).map((_, rowIdx) => (
             <div
               key={rowIdx}
               style={{
@@ -189,16 +188,16 @@ const TemplateEditor = () => {
                 gap: `${box.gap}px`,
                 alignItems: "center",
                 width: "100%",
-                height: `${100 / box.totalCol}%`,
+                height: `${100 / box.totalRow}%`,
                 justifyContent: "space-between",
               }}
             >
-              {Array.from({ length: box.totalRow }).map((_, colIdx) => (
+              {Array.from({ length: box.totalCol }).map((_, colIdx) => (
                 <div
                   key={colIdx}
                   style={{
                     aspectRatio: "1",
-                    width: `calc((100% - ${(box.totalRow - 1) * box.gap}px) / ${
+                    width: `calc((100% - ${(box.totalCol - 1) * box.gap}px) / ${
                       box.totalRow
                     })`,
                     height: "80%",
@@ -339,9 +338,6 @@ const TemplateEditor = () => {
       }}
     >
       <SmallHeader />
-      {/* <h1 className="text-4xl font-bold text-gray-800 text-center mb-6 drop-shadow-sm">
-        <span>Template Name : </span> {title}
-      </h1> */}
 
       <section style={{ display: "flex", justifyContent: "center" }}>
         <div

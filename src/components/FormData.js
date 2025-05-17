@@ -63,11 +63,11 @@ const FormData = forwardRef(
               <Form.Label>Row:</Form.Label>
               <Form.Control
                 type="number"
-                value={currentBoxData?.totalCol}
+                value={currentBoxData?.totalRow}
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
                     ...prev,
-                    totalCol: e.target.value,
+                    totalRow: e.target.value,
                   }))
                 }
               />
@@ -79,11 +79,11 @@ const FormData = forwardRef(
               <Form.Label>Col:</Form.Label>
               <Form.Control
                 type="number"
-                value={currentBoxData?.totalRow}
+                value={currentBoxData?.totalCol}
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
                     ...prev,
-                    totalRow: e.target.value,
+                    totalCol: e.target.value,
                   }))
                 }
               />

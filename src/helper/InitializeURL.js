@@ -24,7 +24,7 @@ const initializeUrls = async () => {
     CREATE_TEMPLATE: `${baseUrl}api/Template/Create_ImeTemp`,
     UPDATE_TEMPLATE: `${baseUrl}api/Template/Update_ImeTemp`,
     SEND_FILE: `${baseUrl}SaveLayoutFiles`,
-    DELETE_TEMPLATE: `${baseUrl}DeleteLayout`,
+    DELETE_TEMPLATE: `${baseUrl}api/Template/Del_ImeTemp`,
     CHECK_DELETE_TEMPLATE: `${baseUrl}GetJobStatus`,
     GET_TEMPLATE_IMAGE: `${baseUrl}GetTemplateImage`,
     GET_TEMPLATE_CSV: `${baseUrl}GetTemplateCSV`,

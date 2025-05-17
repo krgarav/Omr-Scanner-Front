@@ -33,6 +33,10 @@ import { VirtualScroll } from "@syncfusion/ej2-grids";
 import { getTotalExcellRow } from "helper/Booklet32Page_helper";
 import { getDataByRowRange } from "helper/Booklet32Page_helper";
 import getBaseUrl from "services/BackendApi";
+import ImageViewer from "react-simple-image-viewer";
+import { Rnd } from "react-rnd";
+import PanZoom from "react-easy-panzoom";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 function emptyMessageTemplate() {
   return (
     <div className="text-center">
@@ -611,7 +615,21 @@ const AdminScanJob = () => {
       console.log(error);
     }
   };
+  const onRowSelected = (args) => {
+    const rowData = args.data;
+    console.log("Selected row data:", rowData);
+    console.log("Specific field value:", rowData.FileName); // Replace `fieldName` with your actual field
+    setIsViewerOpen(true);
+    setCurrentImage(rowData.FileName);
+  };
 
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [currentImage, setCurrentImage] = useState(null);
+
+  const closeImageViewer = () => {
+    setIsViewerOpen(false);
+    console.log("Image viewer closed");
+  };
   return (
     <>
       <NormalHeader />
@@ -676,10 +694,75 @@ const AdminScanJob = () => {
             allowEditing={false}
             emptyRecordTemplate={template.bind(this)}
             // rowDataBound={rowDataBound}
+            rowSelected={onRowSelected}
           >
             <ColumnsDirective>{columnsDirective}</ColumnsDirective>
             <Inject services={[VirtualScroll]} />
           </GridComponent>
+
+          {isViewerOpen && (
+            <Rnd
+              default={{
+                x: window.innerWidth / 2 - 200,
+                y: window.innerHeight / 2 - 150,
+                width: 400,
+                height: "auto",
+              }}
+              bounds="window"
+              dragHandleClassName="modal-drag-handle"
+              enableResizing={true}
+              style={{ zIndex: 1000 }}
+            >
+              <div
+                style={{
+                  background: "#fff",
+                  padding: "1rem",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+                  borderRadius: "8px",
+                  height: "100%",
+                }}
+              >
+                {/* Drag handle (no buttons here) */}
+                <div
+                  className="modal-drag-handle"
+                  style={{ marginBottom: "8px" }}
+                >
+                  <h5 style={{ margin: 0 }}>Image Viewer</h5>
+                </div>
+
+                {/* Close button OUTSIDE of drag handle */}
+                <button
+                  onClick={closeImageViewer}
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    zIndex: 1001,
+                    border: "none",
+                    background: "transparent",
+                    fontSize: "1.2rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  ✖
+                </button>
+
+                <TransformWrapper>
+                  <TransformComponent>
+                    <img
+                      src={`http://${baseUrl}/${currentImage}`}
+                      alt="Selected"
+                      style={{
+                        width: "100%",
+                        maxHeight: "70vh",
+                        display: "block",
+                      }}
+                    />
+                  </TransformComponent>
+                </TransformWrapper>
+              </div>
+            </Rnd>
+          )}
           <div>
             <Button
               className="mt-2"
