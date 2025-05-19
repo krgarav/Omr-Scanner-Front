@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import DirectoryPicker from "./DirectoryPicker";
+import RecognizationBtn from "ui/RecognizationBtn";
 
 const ScanPage = () => {
   const [showPrint, setShowPrint] = useState(true);
@@ -145,7 +146,16 @@ const ScanPage = () => {
           onClick={() => setShowPrint(false)}
         ></button>
       </div>
-
+      <div
+        className="position-absolute"
+        style={{
+          bottom: "20px",
+          right: "20px",
+          zIndex: 1050, // optional, ensure it's on top
+        }}
+      >
+        <RecognizationBtn />
+      </div>
       <Modal
         show={directoryPickerModal}
         // onHide={props.onHide}

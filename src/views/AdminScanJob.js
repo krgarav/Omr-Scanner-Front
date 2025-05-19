@@ -35,7 +35,6 @@ import { getDataByRowRange } from "helper/Booklet32Page_helper";
 import getBaseUrl from "services/BackendApi";
 import ImageViewer from "react-simple-image-viewer";
 import { Rnd } from "react-rnd";
-import PanZoom from "react-easy-panzoom";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 function emptyMessageTemplate() {
   return (
@@ -81,6 +80,8 @@ const AdminScanJob = () => {
   const [baseUrl, setBaseURL] = useState(null);
   const [lastSerialNo, setLastSerialNo] = useState(0);
   const [data, setData] = useState(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [currentImage, setCurrentImage] = useState(null);
   const template = emptyMessageTemplate;
 
   const gridRef = useRef();
@@ -617,14 +618,9 @@ const AdminScanJob = () => {
   };
   const onRowSelected = (args) => {
     const rowData = args.data;
-    console.log("Selected row data:", rowData);
-    console.log("Specific field value:", rowData.FileName); // Replace `fieldName` with your actual field
     setIsViewerOpen(true);
     setCurrentImage(rowData.FileName);
   };
-
-  const [isViewerOpen, setIsViewerOpen] = useState(false);
-  const [currentImage, setCurrentImage] = useState(null);
 
   const closeImageViewer = () => {
     setIsViewerOpen(false);
