@@ -43,7 +43,7 @@ export const updateTemplate = async (FileName, image) => {
 
 export const deleteTemplate = async (id) => {
   const urls = await url.getUrls();
-  const endpoint = `${urls.DELETE_TEMPLATE}?Id=${id}`;
+  const endpoint = `${urls.DELETE_TEMPLATE}?id=${id}`;
   return await del(endpoint);
 };
 

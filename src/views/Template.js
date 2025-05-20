@@ -155,28 +155,12 @@ const Template = () => {
   const deleteHandler = async (arr, index) => {
     const result = window.confirm("Are you sure you want to delete template ?");
     if (result) {
-      const id = arr[0].layoutParameters.id;
-      // const imageUrl = arr[0].layoutParameters.templateImagePath;
-      // const result = await deleteImage(imageUrl);
-      const responseJob = await checkJobStatus(id);
-
-      // return;
-      if (responseJob.success) {
-        const result = window.confirm(
-          "Job already created by this template.Do you still want to delete Template?"
-        );
-        if (!result) {
-          return;
-        }
-      }
-
+      const id = arr.id;
       const res = await deleteTemplate(id);
-      if (res?.success) {
+      if (res?.state) {
         setToggle((prev) => !prev);
         toast.success("Successfully deleted template");
       }
-
-      // dataCtx.deleteTemplate(index)
     } else {
       return;
     }

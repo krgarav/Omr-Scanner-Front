@@ -91,24 +91,26 @@ const AdminScanJob = () => {
   const serialRef = useRef();
 
   useEffect(() => {
-    (async () => {
+    const fetchBaseUrl = async () => {
       try {
-        const baseUrl = await getBaseUrl();
-        // You can use baseUrl here
-        if (baseUrl) {
-          const url = new URL(baseUrl);
+        const base = await getBaseUrl(); // your custom function
+        if (base) {
+          const url = new URL(base);
           setBaseURL(url.host);
         }
       } catch (error) {
-        console.error(error);
+        console.error("Failed to fetch base URL:", error);
       }
-    })();
-  }, []);
+    };
 
+    fetchBaseUrl();
+  }, []);
   // Connect to WebSocket on mount
   useEffect(() => {
     const ws = new WebSocket(`ws://${baseUrl}/ws`);
+    // const ws = new WebSocket(`ws://192.168.1.10:5500/ws`);
 
+    // console.log(baseUrl)
     ws.onopen = () => {
       console.log("WebSocket connected");
     };

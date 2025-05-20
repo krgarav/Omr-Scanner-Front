@@ -225,8 +225,8 @@ const FormData = forwardRef(
               </Form.Label>
               <Form.Control
                 type="range"
-                min={0}
-                max={10}
+                min={1}
+                max={30}
                 step={1}
                 value={currentBoxData?.bubbleIntensity}
                 onChange={(e) =>
