@@ -10,8 +10,6 @@ const ScanPage = () => {
   const [showPrint, setShowPrint] = useState(true);
   const [showPrintForm, setShowPrintForm] = useState(false);
   const [template, setTemplate] = useState([]);
-  const [printDataEmpty, setPrintDataEmpty] = useState(false);
-  const [printData, setPrintData] = useState({});
   const [folderName, setFolderName] = useState(null);
   const [templateId, setTemplateId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -147,15 +145,30 @@ const ScanPage = () => {
         ></button>
       </div>
       <div
-        className="position-absolute"
         style={{
-          bottom: "20px",
+          position: "absolute",
+          top: "100px",
           right: "20px",
-          zIndex: 1050, // optional, ensure it's on top
+          padding: "10px",
+          zIndex: 999,
+          width: "500px",
+          height: "80vh",
+          // backgroundColor: "black",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <RecognizationBtn />
+        <div
+          style={{
+            marginTop: "auto", // Push to bottom
+            display: "flex",
+            justifyContent: "center", // Center horizontally
+          }}
+        >
+          <RecognizationBtn />
+        </div>
       </div>
+
       <Modal
         show={directoryPickerModal}
         // onHide={props.onHide}

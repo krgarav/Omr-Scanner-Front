@@ -29,7 +29,6 @@ const TemplateEditor = () => {
   const buttonRef = useRef(null);
   const { Id } = useParams();
   const navigate = useNavigate();
-  const [jsonData, setJsonData] = useState(null);
 
   useEffect(() => {
     const fetchJsonData = async () => {
@@ -43,13 +42,7 @@ const TemplateEditor = () => {
         });
 
         if (res) {
-          // const cleanJsonStr = stripJsonComments(res.data);
-          // const parsed = JSON.parse(cleanJsonStr);
-          // console.log(JSON.parse(res.data));
-          const field = res.data.fields;
-          console.log(field);
-          // // const bubbles = res.fields[0].bubbles;
-          // console.log(parsed);
+          const field = res?.data?.fields;
           setBoxes(field);
         }
       } catch (error) {

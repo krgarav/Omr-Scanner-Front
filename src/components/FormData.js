@@ -27,6 +27,36 @@ const FormData = forwardRef(
         alert("Please fill all the fields");
         return;
       }
+      const {
+        totalRow,
+        totalCol,
+        fieldName,
+        fieldType,
+        ReadingDirection,
+        allowMultiple,
+        fieldValue,
+        bubbleIntensity,
+      } = currentBoxData;
+
+      if (
+        !totalRow ||
+        !totalCol ||
+        !fieldName ||
+        !fieldType ||
+        !ReadingDirection ||
+        !allowMultiple ||
+        !fieldValue ||
+        !bubbleIntensity
+      ) {
+        alert("Please complete all required fields.");
+        return;
+      }
+
+      // Ensure totalRow and totalCol are positive numbers
+      if (Number(totalRow) <= 0 || Number(totalCol) <= 0) {
+        alert("Row and Column values must be greater than 0.");
+        return;
+      }
       if (isNewBox) {
         setBoxes((prevBoxes) => [
           ...prevBoxes,
@@ -121,6 +151,7 @@ const FormData = forwardRef(
                   }))
                 }
               >
+                <option value="">Select direction</option>
                 <option value="formfield">Form Field</option>
                 <option value="questionfield">Question Field</option>
               </Form.Control>
@@ -191,6 +222,24 @@ const FormData = forwardRef(
             </Form.Group>
           </Col>
         </Row>
+
+        <Row>
+          <Col md={12}>
+            <Form.Group controlId="readingDirection">
+              <Form.Label>Custom Value:</Form.Label>
+              <Form.Control
+                as="input"
+                value={currentBoxData?.fieldValue ?? ""}
+                onChange={(e) =>
+                  setCurrentBoxData((prev) => ({
+                    ...prev,
+                    fieldValue: e.target.value,
+                  }))
+                }
+              ></Form.Control>
+            </Form.Group>
+          </Col>
+        </Row>
         <Row>
           <Col md={6}>
             <Form.Group controlId="margin">
@@ -199,7 +248,7 @@ const FormData = forwardRef(
               </Form.Label>
               <Form.Control
                 type="range"
-                min={0}
+                min={-20}
                 max={20}
                 step={0.1}
                 value={currentBoxData?.gap}
