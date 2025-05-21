@@ -1,6 +1,5 @@
 import React from "react";
 import classes from "./Jobcard.module.css";
-import DuplexJob from "./DuplexJob";
 const Jobcard = (props) => {
   const handleClick = () => {
     props.handleJob(props.text);

@@ -1,4 +1,4 @@
-import React, { useEffect, forwardRef } from "react";
+import React, { useEffect, forwardRef, useState } from "react";
 import { Modal, Button, Row, Col, Spinner, Form } from "react-bootstrap";
 
 const FormData = forwardRef(
@@ -15,12 +15,18 @@ const FormData = forwardRef(
     },
     ref
   ) => {
+    const [customInput, setCustomInput] = useState("");
+
     useEffect(() => {
       if (isNewBox) {
         setCurrentBoxData({});
       }
     }, [isNewBox]);
-
+    useEffect(() => {
+      if (Array.isArray(currentBoxData?.Custom)) {
+        setCustomInput(currentBoxData.Custom.join(", "));
+      }
+    }, []);
     const onSubmitHandler = (e) => {
       e.preventDefault();
       if (!currentBoxData) {
@@ -200,6 +206,7 @@ const FormData = forwardRef(
             </Form.Group>
           </Col>
         </Row>
+
         <Row>
           <Col md={12}>
             <Form.Group controlId="readingDirection">
@@ -207,12 +214,20 @@ const FormData = forwardRef(
               <Form.Control
                 as="select"
                 value={currentBoxData?.fieldValue ?? ""}
-                onChange={(e) =>
+                onChange={(e) => {
+                  if (e.target.value !== "Custom") {
+                    setCurrentBoxData((prev) => {
+                      const copiedData = { ...prev };
+                      delete copiedData.Custom; // remove Custom property
+                      return copiedData;
+                    });
+                  }
+
                   setCurrentBoxData((prev) => ({
                     ...prev,
                     fieldValue: e.target.value,
-                  }))
-                }
+                  }));
+                }}
               >
                 <option value="">Select field value</option>
                 <option value="Integer">Integer</option>
@@ -222,24 +237,34 @@ const FormData = forwardRef(
             </Form.Group>
           </Col>
         </Row>
+        {currentBoxData?.fieldValue === "Custom" && (
+          <Row>
+            <Col md={12}>
+              <Form.Group controlId="readingDirection">
+                <Form.Label>Custom Value:</Form.Label>
+                <Form.Control
+                  as="input"
+                  value={customInput}
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    setCustomInput(inputValue); // allow free typing
 
-        <Row>
-          <Col md={12}>
-            <Form.Group controlId="readingDirection">
-              <Form.Label>Custom Value:</Form.Label>
-              <Form.Control
-                as="input"
-                value={currentBoxData?.fieldValue ?? ""}
-                onChange={(e) =>
-                  setCurrentBoxData((prev) => ({
-                    ...prev,
-                    fieldValue: e.target.value,
-                  }))
-                }
-              ></Form.Control>
-            </Form.Group>
-          </Col>
-        </Row>
+                    const parsedArray = inputValue
+                      .split(",")
+                      .map((item) => item.trim())
+                      .filter((item) => item.length > 0);
+
+                    setCurrentBoxData((prev) => ({
+                      ...prev,
+                      Custom: parsedArray,
+                    }));
+                  }}
+                ></Form.Control>
+              </Form.Group>
+            </Col>
+          </Row>
+        )}
+
         <Row>
           <Col md={6}>
             <Form.Group controlId="margin">

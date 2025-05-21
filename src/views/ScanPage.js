@@ -5,6 +5,7 @@ import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import DirectoryPicker from "./DirectoryPicker";
 import RecognizationBtn from "ui/RecognizationBtn";
+import RecognizationModal from "ui/RecognizationModal";
 
 const ScanPage = () => {
   const [showPrint, setShowPrint] = useState(true);
@@ -15,6 +16,7 @@ const ScanPage = () => {
   const [loading, setLoading] = useState(false);
   const [dataPath, setDataPath] = useState("");
   const [directoryPickerModal, setDirectoryPickerModal] = useState(false);
+  const [showRecognizationModal, setShowRecognizationModal] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
     const fetchData = async () => {
@@ -150,10 +152,8 @@ const ScanPage = () => {
           top: "100px",
           right: "20px",
           padding: "10px",
-          zIndex: 999,
           width: "500px",
           height: "80vh",
-          // backgroundColor: "black",
           display: "flex",
           flexDirection: "column",
         }}
@@ -165,7 +165,11 @@ const ScanPage = () => {
             justifyContent: "center", // Center horizontally
           }}
         >
-          <RecognizationBtn />
+          <RecognizationBtn
+            handleBtnClick={() => {
+              setShowRecognizationModal(true);
+            }}
+          />
         </div>
       </div>
 
@@ -206,6 +210,13 @@ const ScanPage = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <RecognizationModal
+        show={showRecognizationModal}
+        onClose={() => {
+          setShowRecognizationModal(false);
+        }}
+      />
     </>
   );
 };

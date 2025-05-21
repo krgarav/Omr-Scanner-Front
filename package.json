@@ -3,7 +3,7 @@
   "version": "2.1.1",
   "description": "Scanner project",
   "main": "index.js",
-  "homepage": ".",
+  "homepage": "",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/creativetimofficial/argon-dashboard-react.git"
