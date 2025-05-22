@@ -4,6 +4,8 @@ import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
 import Jobcard from "./Jobcard";
 import getBaseUrl from "services/BackendApi";
 import axios from "axios";
+import { toast } from "react-toastify";
+import { updateTemplate } from "helper/TemplateHelper";
 const RecognizationModal = ({ show, onClose }) => {
   const [templateId, setTemplateId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -35,11 +37,11 @@ const RecognizationModal = ({ show, onClose }) => {
     };
     fetchData();
   }, []);
-
+  console.log(paths);
   useEffect(() => {
     const fetchJsonData = async () => {
       try {
-        const res = await axios.get(`${baseUrl}${paths}`, {
+        const res = await axios.get(`${baseUrl}${paths?.jsonPath}`, {
           headers: {
             "Cache-Control": "no-cache",
             Pragma: "no-cache",
@@ -60,17 +62,17 @@ const RecognizationModal = ({ show, onClose }) => {
       fetchJsonData();
     }
   }, [paths, baseUrl]);
-  const handleBubbleChange = (e, id) => {
+  const handleBubbleChange = (e, idx) => {
     const newValue = e.target.value;
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, bubbleIntensity: newValue } : item
+    setAllFields((prevItems) =>
+      prevItems.map((item, index) =>
+        index === idx ? { ...item, bubbleIntensity: +newValue } : item
       )
     );
   };
   const Fields = allFields.map((item, index) => {
     return (
-      <div className="upload-box border rounded p-4 mb-3 bg-light">
+      <div key={index} className="upload-box border rounded p-4 mb-3">
         <h5 className="mb-3">
           <strong>Field Name:</strong> {item?.fieldName}
         </h5>
@@ -91,14 +93,17 @@ const RecognizationModal = ({ show, onClose }) => {
 
         <div className="form-group">
           <label htmlFor={`bubbleIntensity-${item?.id}`}>
-            <strong>Bubble Intensity:</strong>
+            <strong>Bubble Intensity: {item?.bubbleIntensity}</strong>
           </label>
           <input
-            type="text"
-            className="form-control"
+            type="range"
+            className="form-control-range"
             id={`bubbleIntensity-${item?.id}`}
             value={item?.bubbleIntensity}
-            onChange={(e) => handleBubbleChange(e, item.id)}
+            min="-30"
+            max="30"
+            step="1"
+            onChange={(e) => handleBubbleChange(e, index)}
           />
         </div>
       </div>
@@ -106,14 +111,39 @@ const RecognizationModal = ({ show, onClose }) => {
   });
   const allTemplate = template.map((item, index) => {
     return (
-      <option
-        key={index}
-        value={JSON.stringify({ id: item.id, path: item.jsonPath })}
-      >
+      <option key={index} value={JSON.stringify(item)}>
         {item.fileName}
       </option>
     );
   });
+  const handleSave = async () => {
+    const result = window.confirm("Are you sure you want to save?");
+    if (!result) {
+      return;
+    }
+    const obj = {
+      name: paths.fileName,
+      fields: allFields,
+    };
+
+    const jsonString = JSON.stringify(obj);
+
+    // Optional: ensure the filename ends with `.json`
+    const jsonFileName = paths.fileName.endsWith(".json")
+      ? paths.fileName
+      : `${paths.fileName}.json`;
+
+    // Create a File from JSON string (more appropriate if filename is needed)
+    const jsonFile = new File([jsonString], jsonFileName, {
+      type: "application/json",
+    });
+
+    const res = await updateTemplate(paths.fileName, jsonFile);
+    if (res?.state) {
+      toast.success("Configuration Saved Successfully");
+      onClose();
+    }
+  };
   return (
     <Modal
       show={show}
@@ -142,7 +172,7 @@ const RecognizationModal = ({ show, onClose }) => {
             onChange={(e) => {
               const selected = JSON.parse(e.target.value);
               setTemplateId(selected.id);
-              setPaths(selected.path);
+              setPaths(selected);
             }}
             // value={templateId}
           >
@@ -188,7 +218,7 @@ const RecognizationModal = ({ show, onClose }) => {
           Close
         </Button>
 
-        <Button variant="success" onClick={onClose}>
+        <Button variant="success" onClick={handleSave}>
           Save Recognisations settings
         </Button>
       </Modal.Footer>

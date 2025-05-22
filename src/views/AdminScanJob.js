@@ -36,6 +36,10 @@ import getBaseUrl from "services/BackendApi";
 import ImageViewer from "react-simple-image-viewer";
 import { Rnd } from "react-rnd";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import RecognizationBtn from "ui/RecognizationBtn";
+import RecognizationModal from "ui/RecognizationModal";
+import { pauseScanning } from "helper/Booklet32Page_helper";
+import { resumeScanning } from "helper/Booklet32Page_helper";
 function emptyMessageTemplate() {
   return (
     <div className="text-center">
@@ -79,9 +83,10 @@ const AdminScanJob = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [baseUrl, setBaseURL] = useState(null);
   const [lastSerialNo, setLastSerialNo] = useState(0);
-  const [data, setData] = useState(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState(null);
+  const [showRecognizationModal, setShowRecognizationModal] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const template = emptyMessageTemplate;
 
   const gridRef = useRef();
@@ -107,6 +112,7 @@ const AdminScanJob = () => {
   }, []);
   // Connect to WebSocket on mount
   useEffect(() => {
+    if (!baseUrl) return;
     const ws = new WebSocket(`ws://${baseUrl}/ws`);
     // const ws = new WebSocket(`ws://192.168.1.10:5500/ws`);
 
@@ -140,9 +146,6 @@ const AdminScanJob = () => {
       console.log("WebSocket closed");
     };
 
-    // setSocket(ws);
-
-    // Cleanup
     return () => {
       ws.close();
     };
@@ -306,20 +309,6 @@ const AdminScanJob = () => {
     }
   };
 
-  useEffect(() => {
-    if (!scanning) return;
-
-    const intervalId = setInterval(() => {
-      if (scanning) {
-        getScanData();
-      } else {
-        clearInterval(intervalId);
-      }
-    }, 3000);
-
-    return () => clearInterval(intervalId);
-  }, [scanning]);
-
   const intervalCreation = (data) => {
     const interval = setInterval(() => {
       setItems((prevItems) => {
@@ -336,6 +325,7 @@ const AdminScanJob = () => {
 
   const handleStart = async () => {
     try {
+      setScanning(true);
       const folderName = localStorage.getItem("folderName");
       const templateId = localStorage.getItem("templateId");
       if (!folderName || !templateId) {
@@ -348,6 +338,8 @@ const AdminScanJob = () => {
       if (error?.response?.data) {
         toast.error(error?.response?.data);
       }
+    } finally {
+      setScanning(false);
     }
   };
 
@@ -411,11 +403,18 @@ const AdminScanJob = () => {
   };
   const handleStop = async () => {
     try {
-      setScanning(false);
-      setStarting(false);
-      const cancel = await cancelScan();
+      if (!isPaused) {
+        setIsPaused(true);
+        await pauseScanning();
+        toast.warning("Scanning paused");
+      } else {
+        setIsPaused(false);
+        await resumeScanning();
+        toast.info("Scanning resumed");
+      }
     } catch (error) {
-      console.log(error);
+      console.error("Error toggling scan state:", error);
+      toast.error("Failed to toggle scanning state");
     }
   };
   const columnsDirective = headData.map((item, index) => {
@@ -526,35 +525,7 @@ const AdminScanJob = () => {
   const handleRefreshData = async () => {
     try {
       setIsRefreshing(true);
-      const token = localStorage.getItem("token");
-
-      if (token) {
-        const userInfo = jwtDecode(token);
-        const userId = userInfo.UserId;
-        const templateId = localStorage.getItem("scantemplateId");
-        const res = await getTotalExcellRow(templateId, userId);
-        const totalRow = res?.totalRows;
-        if (totalRow) {
-          const startRow = +totalRow - 100;
-          const endRow = +totalRow + 1;
-          const response = await getDataByRowRange(
-            startRow,
-            endRow,
-            templateId,
-            userId
-          );
-          if (response) {
-            const filterData = response.map((item) => {
-              return item.data;
-            });
-            const newDataKeys = Object.keys(filterData[0]).map((key) => {
-              return key.endsWith(".") ? key.slice(0, -1) : key;
-            });
-            setHeadData([...newDataKeys]);
-            setProcessedData(filterData);
-          }
-        }
-      }
+      setProcessedData([]);
     } catch (error) {
       toast.error("Could not get data");
       console.log(error);
@@ -621,13 +592,14 @@ const AdminScanJob = () => {
   const onRowSelected = (args) => {
     const rowData = args.data;
     setIsViewerOpen(true);
-    setCurrentImage(rowData.FileName);
+    setCurrentImage(rowData?.FileName);
   };
 
   const closeImageViewer = () => {
     setIsViewerOpen(false);
     console.log("Image viewer closed");
   };
+
   return (
     <>
       <NormalHeader />
@@ -768,7 +740,7 @@ const AdminScanJob = () => {
               disabled={isRefreshing}
               onClick={handleRefreshData}
             >
-              {isRefreshing ? " Refreshing Old Data" : "Refresh Old Data"}
+              Refreshing Data
             </Button>
             <Button
               className="mt-2"
@@ -791,8 +763,12 @@ const AdminScanJob = () => {
                 {scanning && "Scanning"}
               </Button>
               {scanning && (
-                <Button color="danger" type="button" onClick={handleStop}>
-                  Cancel Scanning
+                <Button
+                  color={!isPaused ? "warning" : "info"}
+                  type="button"
+                  onClick={handleStop}
+                >
+                  {!isPaused ? "Pause Scanning" : "Resume Scanning"}
                 </Button>
               )}
             </div>
@@ -801,6 +777,37 @@ const AdminScanJob = () => {
         </div>
       </Container>
       {/* {showPrintModal && <PrintModal show={showPrintModal} setData={setData} />} */}
+      <div
+        style={{
+          position: "absolute",
+          top: "105%",
+          right: "40%",
+          padding: "10px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <div
+          style={{
+            marginTop: "auto", // Push to bottom
+            display: "flex",
+            justifyContent: "center", // Center horizontally
+          }}
+        >
+          <RecognizationBtn
+            handleBtnClick={() => {
+              setShowRecognizationModal(true);
+            }}
+          />
+        </div>
+      </div>
+
+      <RecognizationModal
+        show={showRecognizationModal}
+        onClose={() => {
+          setShowRecognizationModal(false);
+        }}
+      />
     </>
   );
 };

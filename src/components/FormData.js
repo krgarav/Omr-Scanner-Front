@@ -222,7 +222,6 @@ const FormData = forwardRef(
                       return copiedData;
                     });
                   }
-
                   setCurrentBoxData((prev) => ({
                     ...prev,
                     fieldValue: e.target.value,

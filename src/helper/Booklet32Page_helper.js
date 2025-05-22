@@ -44,3 +44,13 @@ export const getTotalExcellRow = async (LayoutId, UserId) => {
     `${urls.GET_TOTAL_EXCEL_ROW}?LayoutId=${LayoutId}&UserId=${UserId}`
   );
 };
+
+export const pauseScanning = async () => {
+  const urls = await url.getUrls();
+  return post(`${urls.PAUSE_SCAN}`);
+};
+
+export const resumeScanning = async () => {
+  const urls = await url.getUrls();
+  return post(`${urls.RESUME_SCAN}`);
+};

@@ -23,6 +23,8 @@ const initializeUrls = async () => {
     GET_LAYOUT_DATA: `${baseUrl}api/Template/Single_ImeTem`,
     CREATE_TEMPLATE: `${baseUrl}api/Template/Create_ImeTemp`,
     UPDATE_TEMPLATE: `${baseUrl}api/Template/Update_ImeTemp`,
+    PAUSE_SCAN: `${baseUrl}api/OmrProcessing/pause-processing`,
+    RESUME_SCAN: `${baseUrl}api/OmrProcessing/resume-processing`,
     SEND_FILE: `${baseUrl}SaveLayoutFiles`,
     DELETE_TEMPLATE: `${baseUrl}api/Template/Del_ImeTemp`,
     CHECK_DELETE_TEMPLATE: `${baseUrl}GetJobStatus`,

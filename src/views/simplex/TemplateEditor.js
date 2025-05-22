@@ -296,8 +296,7 @@ const TemplateEditor = () => {
       name: paths.fileName,
       fields: mappedData,
     };
-    console.log(obj);
-    // return;
+
     const jsonString = JSON.stringify(obj);
 
     // Optional: ensure the filename ends with `.json`
@@ -315,9 +314,6 @@ const TemplateEditor = () => {
       toast.success("Template Saved Successfully");
       navigate("/admin/template", { replace: true });
     }
-
-    // console.log(obj);
-    // console.log(paths.fileName);
   };
 
   if (!paths) return;
