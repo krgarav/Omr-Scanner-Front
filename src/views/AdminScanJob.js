@@ -137,7 +137,29 @@ const AdminScanJob = () => {
         // handleSuccess();
       }
     };
+    // ws.onmessage = (event) => {
+    //   const jsonData = JSON.parse(event.data);
+    //   const data = jsonData?.FieldResults;
 
+    //   if (data && gridRef.current?.grid) {
+    //     const grid = gridRef.current.grid;
+
+    //     // Append new row to internal data source
+    //     grid.currentViewData.push(data); // push to current view
+    //     grid.dataSource = [...grid.dataSource, data]; // update underlying data
+
+    //     // Refresh only the row rendering (not full data source reload)
+    //     grid.refresh(); // Optional: try grid.refreshRows() if you want to skip headers
+
+    //     // Auto scroll to bottom
+    //     setTimeout(() => {
+    //       const content = grid.getContent?.();
+    //       if (content) {
+    //         content.scrollTop = content.scrollHeight;
+    //       }
+    //     }, 100);
+    //   }
+    // };
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);
     };
@@ -150,7 +172,7 @@ const AdminScanJob = () => {
       ws.close();
     };
   }, [baseUrl]);
-
+  console.log(gridRef.current);
   useEffect(() => {
     const gridContainer = gridRef.current?.element?.querySelector(".e-content");
 
@@ -332,6 +354,7 @@ const AdminScanJob = () => {
         toast.error("Please select a folder and template");
         return;
       }
+      const token = localStorage.getItem("token");
       const res = await scanFiles(folderName, templateId);
     } catch (error) {
       console.log(error);
