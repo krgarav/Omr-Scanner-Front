@@ -94,10 +94,7 @@ const TemplateEditor = () => {
   useEffect(() => {
     if (containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect();
-      // console.log("Container size:", width, height);
       setContainerSize({ width, height });
-      // You can also save it to state if needed:
-      // setContainerSize({ width, height });
     }
   }, [boxes, trigger]);
 
@@ -191,9 +188,8 @@ const TemplateEditor = () => {
                   style={{
                     aspectRatio: "1",
                     width: `calc((100% - ${(box.totalCol - 1) * box.gap}px) / ${
-                      box.totalRow
+                      box.totalCol
                     })`,
-                    height: "80%",
                     borderRadius: "50%",
                     border: "1px solid black",
                     backgroundColor: "transparent",

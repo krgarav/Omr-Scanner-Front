@@ -100,9 +100,9 @@ const RecognizationModal = ({ show, onClose }) => {
             className="form-control-range"
             id={`bubbleIntensity-${item?.id}`}
             value={item?.bubbleIntensity}
-            min="-30"
-            max="30"
-            step="1"
+            min={-1}
+            max={30}
+            step={0.1}
             onChange={(e) => handleBubbleChange(e, index)}
           />
         </div>

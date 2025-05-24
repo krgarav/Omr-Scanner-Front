@@ -22,11 +22,13 @@ const FormData = forwardRef(
         setCurrentBoxData({});
       }
     }, [isNewBox]);
+
     useEffect(() => {
       if (Array.isArray(currentBoxData?.Custom)) {
         setCustomInput(currentBoxData.Custom.join(", "));
       }
     }, []);
+
     const onSubmitHandler = (e) => {
       e.preventDefault();
       if (!currentBoxData) {
@@ -272,8 +274,8 @@ const FormData = forwardRef(
               </Form.Label>
               <Form.Control
                 type="range"
-                min={-20}
-                max={20}
+                min={0}
+                max={80}
                 step={0.1}
                 value={currentBoxData?.gap}
                 onChange={(e) => {
@@ -298,9 +300,9 @@ const FormData = forwardRef(
               </Form.Label>
               <Form.Control
                 type="range"
-                min={1}
+                min={-1}
                 max={30}
-                step={1}
+                step={0.1}
                 value={currentBoxData?.bubbleIntensity}
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
