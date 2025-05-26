@@ -12,7 +12,11 @@ export const fetchProcessData = async () => {
 export const scanFiles = async (selectedValue, userId) => {
   const urls = await url.getUrls();
   return post(
-    `${urls.SCAN_FILES}?folderPath=${selectedValue}&idTemp=${userId}`
+    `${
+      urls.SCAN_FILES
+    }?folderPath=${selectedValue}&idTemp=${userId}&token=${localStorage.getItem(
+      "token"
+    )}`
   );
 };
 export const printData = async (data) => {

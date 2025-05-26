@@ -188,8 +188,9 @@ const TemplateEditor = () => {
                   style={{
                     aspectRatio: "1",
                     width: `calc((100% - ${(box.totalCol - 1) * box.gap}px) / ${
-                      box.totalCol
+                      box.totalRow
                     })`,
+                    height: "80%",
                     borderRadius: "50%",
                     border: "1px solid black",
                     backgroundColor: "transparent",

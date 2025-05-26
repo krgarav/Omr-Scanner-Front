@@ -40,6 +40,8 @@ import RecognizationBtn from "ui/RecognizationBtn";
 import RecognizationModal from "ui/RecognizationModal";
 import { pauseScanning } from "helper/Booklet32Page_helper";
 import { resumeScanning } from "helper/Booklet32Page_helper";
+import { getLayoutDataById } from "helper/TemplateHelper";
+import ZoomViewer from "components/ZoomView";
 function emptyMessageTemplate() {
   return (
     <div className="text-center">
@@ -87,6 +89,9 @@ const AdminScanJob = () => {
   const [currentImage, setCurrentImage] = useState(null);
   const [showRecognizationModal, setShowRecognizationModal] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [templateData, setTemplateData] = useState([]);
+  const [obj, setObj] = useState({});
+  // const zoomedData =
   const template = emptyMessageTemplate;
 
   const gridRef = useRef();
@@ -113,7 +118,8 @@ const AdminScanJob = () => {
   // Connect to WebSocket on mount
   useEffect(() => {
     if (!baseUrl) return;
-    const ws = new WebSocket(`ws://${baseUrl}/ws`);
+    const token = localStorage.getItem("token");
+    const ws = new WebSocket(`ws://${baseUrl}/ws?token=${token}`);
     // const ws = new WebSocket(`ws://192.168.1.10:5500/ws`);
 
     // console.log(baseUrl)
@@ -172,7 +178,31 @@ const AdminScanJob = () => {
       ws.close();
     };
   }, [baseUrl]);
-  console.log(gridRef.current);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const templateId = localStorage.getItem("templateId");
+      const base = await getBaseUrl();
+      const res = await getLayoutDataById(templateId);
+      if (res) {
+        const jsonPath = res?.data?.jsonPath;
+        const res2 = await axios.get(`${base}${jsonPath}`, {
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        });
+        if (res2?.data && res2?.data?.fields) {
+          setTemplateData(res2.data.fields);
+        }
+      }
+    };
+    if (baseUrl) {
+      fetchData();
+    }
+  }, [baseUrl]);
+
   useEffect(() => {
     const gridContainer = gridRef.current?.element?.querySelector(".e-content");
 
@@ -404,12 +434,13 @@ const AdminScanJob = () => {
             top: gridContent.scrollHeight,
             behavior: "smooth",
           });
-        }, 500); // Delay to ensure the grid is fully rendered before scrolling
+        }, 100); // Delay to ensure the grid is fully rendered before scrolling
       }
     }
     // gridRef.current.refresh();
     // }
   };
+
   const handleToolbarClick = (args) => {
     if (args.item.id.includes("excelexport")) {
       gridRef.current.refresh(); // Ensure the grid data is refreshed
@@ -614,10 +645,36 @@ const AdminScanJob = () => {
   };
   const onRowSelected = (args) => {
     const rowData = args.data;
+    console.log("Row selected:", args);
+    console.log("Row selected:", rowData);
     setIsViewerOpen(true);
     setCurrentImage(rowData?.FileName);
   };
 
+  const onCellSelected = (args) => {
+    const rowData = args.data; // same as args.rowData
+    const columnField = args.currentCell.cellIndex;
+    const obj = Object.keys(rowData);
+    const columnHeader = obj[columnField];
+
+    console.log("Cell selected:", {
+      row: rowData,
+      columnField,
+      columnHeader,
+      fullArgs: args,
+    });
+    const filter = templateData.filter(
+      (item) => item.fieldName === columnHeader
+    );
+    if (filter && filter[0]) {
+      const { x, y, width, height } = filter[0];
+      setObj({ x, y, width, height });
+    }
+
+    // console.log("Row data:", templateData);
+    setIsViewerOpen(true);
+    setCurrentImage(rowData?.FileName);
+  };
   const closeImageViewer = () => {
     setIsViewerOpen(false);
     console.log("Image viewer closed");
@@ -686,8 +743,14 @@ const AdminScanJob = () => {
             allowPdfExport={false}
             allowEditing={false}
             emptyRecordTemplate={template.bind(this)}
+            selectionSettings={{
+              mode: "Cell",
+              type: "Single",
+              cellSelectionMode: "Box",
+            }}
             // rowDataBound={rowDataBound}
             rowSelected={onRowSelected}
+            cellSelected={onCellSelected}
           >
             <ColumnsDirective>{columnsDirective}</ColumnsDirective>
             <Inject services={[VirtualScroll]} />
@@ -740,7 +803,7 @@ const AdminScanJob = () => {
                   ✖
                 </button>
 
-                <TransformWrapper>
+                {/* <TransformWrapper>
                   <TransformComponent>
                     <img
                       src={`http://${baseUrl}/${currentImage}`}
@@ -752,7 +815,13 @@ const AdminScanJob = () => {
                       }}
                     />
                   </TransformComponent>
-                </TransformWrapper>
+                </TransformWrapper> */}
+
+                <ZoomViewer
+                  currentImage={currentImage}
+                  baseUrl={baseUrl}
+                  focusBox={obj}
+                />
               </div>
             </Rnd>
           )}
@@ -763,15 +832,15 @@ const AdminScanJob = () => {
               disabled={isRefreshing}
               onClick={handleRefreshData}
             >
-              Refreshing Data
+              Refresh Data
             </Button>
-            <Button
+            {/* <Button
               className="mt-2"
               color={"warning"}
               onClick={handleOldRefreshData}
             >
               Refresh Latest Data
-            </Button>
+            </Button> */}
 
             <div className="m-2" style={{ float: "right" }}>
               <Button
