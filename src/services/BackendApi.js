@@ -22,9 +22,9 @@ const getBaseUrl = () => {
       return "https://localhost:81/";
     }
   };
-  return fetchDetails();
+  // return fetchDetails();
   // return "http://localhost:81/";
   // return "https://85djxdzn-5000.inc1.devtunnels.ms/";
-  //  return "https://3s47rfjz-7257.inc1.devtunnels.ms/"
+  return "https://7xv33rdv-5001.inc1.devtunnels.ms/";
 };
 export default getBaseUrl;
