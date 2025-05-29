@@ -736,7 +736,7 @@ const AdminScanJob = () => {
             editSettings={editSettings}
             allowFiltering={false}
             filterSettings={filterSettings}
-            // toolbar={toolbar}
+            toolbar={toolbar}
             enableVirtualization={isAutoScrollEnabled}
             toolbarClick={handleToolbarClick}
             allowExcelExport={true}
@@ -753,7 +753,7 @@ const AdminScanJob = () => {
             cellSelected={onCellSelected}
           >
             <ColumnsDirective>{columnsDirective}</ColumnsDirective>
-            <Inject services={[VirtualScroll]} />
+            <Inject services={services} />
           </GridComponent>
 
           {isViewerOpen && (
@@ -872,7 +872,7 @@ const AdminScanJob = () => {
       <div
         style={{
           position: "absolute",
-          top: "105%",
+          top: "100%",
           right: "40%",
           padding: "10px",
           display: "flex",

@@ -32,10 +32,10 @@ const ZoomViewer = ({ currentImage, baseUrl, focusBox }) => {
     const scaleY = displayedHeight / naturalHeight;
 
     setScaledBox({
-      top: focusBox.y * scaleY,
-      left: focusBox.x * scaleX,
-      width: focusBox.width * scaleX,
-      height: focusBox.height * scaleY,
+      top: focusBox.y,
+      left: focusBox.x,
+      width: focusBox.width,
+      height: focusBox.height,
     });
   };
 
@@ -76,7 +76,30 @@ const ZoomViewer = ({ currentImage, baseUrl, focusBox }) => {
           }}
         /> */}
 
-        <div style={{ position: "relative", width: "100%", maxHeight: "70vh" }}>
+        <div
+          style={{
+            position: "relative",
+            display: "inline-block",
+            border: "1px solid #ccc",
+            // scale: zoomScale,
+            overflow: "hidden",
+            transformOrigin: "top left", // Zoom from top-left
+          }}
+        >
+          <img
+            ref={imgRef}
+            src={`http://${baseUrl}/${currentImage}`}
+            alt="to crop"
+            style={{
+              display: "block",
+              maxWidth: "100%",
+              height: "80vh",
+            }}
+          />
+
+          {/* {selectedFields} */}
+        </div>
+        {/* <div style={{ position: "relative", width: "100%", maxHeight: "70vh" }}>
           <img
             ref={imgRef}
             src={`http://${baseUrl}/${currentImage}`}
@@ -102,7 +125,7 @@ const ZoomViewer = ({ currentImage, baseUrl, focusBox }) => {
               }}
             ></div>
           )}
-        </div>
+        </div> */}
       </TransformComponent>
     </TransformWrapper>
   );
