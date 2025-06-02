@@ -759,10 +759,10 @@ const AdminScanJob = () => {
           {isViewerOpen && (
             <Rnd
               default={{
-                x: window.innerWidth / 2 - 200,
-                y: window.innerHeight / 2 - 150,
-                width: 400,
-                height: "auto",
+                x: window.innerWidth / 2 - 250,
+                y: window.innerHeight / 2 - 450,
+                width: "auto",
+                height: 600,
               }}
               bounds="window"
               dragHandleClassName="modal-drag-handle"
@@ -776,6 +776,9 @@ const AdminScanJob = () => {
                   boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
                   borderRadius: "8px",
                   height: "100%",
+                  width: "100%",
+                  overflow: "auto",
+                  maxHeight: "90vh",
                 }}
               >
                 {/* Drag handle (no buttons here) */}
@@ -803,28 +806,23 @@ const AdminScanJob = () => {
                   ✖
                 </button>
 
-                {/* <TransformWrapper>
-                  <TransformComponent>
-                    <img
-                      src={`http://${baseUrl}/${currentImage}`}
-                      alt="Selected"
-                      style={{
-                        width: "100%",
-                        maxHeight: "70vh",
-                        display: "block",
-                      }}
-                    />
-                  </TransformComponent>
-                </TransformWrapper> */}
-
                 <ZoomViewer
                   currentImage={currentImage}
                   baseUrl={baseUrl}
                   focusBox={obj}
+                  templateData={templateData}
                 />
               </div>
             </Rnd>
           )}
+          {/* {isViewerOpen && (
+            <ZoomViewer
+              currentImage={currentImage}
+              baseUrl={baseUrl}
+              focusBox={obj}
+              templateData={templateData}
+            />
+          )} */}
           <div>
             <Button
               className="mt-2"
