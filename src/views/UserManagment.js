@@ -34,14 +34,23 @@ import { updateUser } from "helper/userManagment_helper";
 import { removeUser } from "helper/userManagment_helper";
 import Placeholder from "ui/Placeholder";
 
+const roles = [
+  { roleName: "admin" },
+  { roleName: "moderator" },
+  { roleName: "operator" },
+];
 const UserManagment = () => {
   const [modalShow, setModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [selectecdRole, setSelectedRole] = useState({});
-  const [roles, setRoles] = useState([]);
+  const [selectecdRole, setSelectedRole] = useState(null);
+  // const [roles, setRoles] = useState([
+  //   { roleName: "admin" },
+  //   { roleName: "moderator" },
+  //   { roleName: "operator" },
+  // ]);
   const [password, setPassword] = useState("");
   const [ConfirmPassword, setConfirmPassword] = useState("");
   const [spanDisplay, setSpanDisplay] = useState("none");
@@ -51,19 +60,7 @@ const UserManagment = () => {
   const [loading, setLoading] = useState(false);
   const emailRef = useRef(null); // Reference to the input element
   const confirmRef = useRef(null);
-  const fetchRoles = async () => {
-    try {
-      const data = await getUserRoles();
-      console.log(data);
-      if (data?.success) {
-        console.log(roles.result);
-        setRoles(data?.result);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
-    }
-  };
+
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -79,11 +76,9 @@ const UserManagment = () => {
     }
   };
   useEffect(() => {
-    // fetchRoles();
     fetchUsers();
   }, [toggle]);
   const handleSelectRole = (selectedValue) => {
-    // console.log(selectedValue);
     setSelectedRole(selectedValue);
   };
 
@@ -146,15 +141,14 @@ const UserManagment = () => {
         let userRole = selectecdRole.roleName;
         const userName = name;
         const data = await createUser({
-          userName: userName.trim(),
+          name: userName.trim(),
           email: email.trim(),
-          phoneNumber: phoneNumber.trim(),
-          userRole: userRole.trim(),
-          password: password.trim(),
-          ConfirmPassword: ConfirmPassword.trim(),
+          cont: phoneNumber.trim(),
+          role: userRole.trim(),
+          pwd: password.trim(),
         });
-
-        if (data?.success) {
+        console.log(data);
+        if (data?.status) {
           console.log(data.message);
           toast.success(data?.message);
           setName("");
@@ -182,8 +176,9 @@ const UserManagment = () => {
     }
 
     try {
-      const data = await removeUser(d.id);
-      if (data?.success) {
+      const data = await removeUser(d.empId);
+      console.log(data);
+      if (data?.status) {
         setToggle((prev) => !prev);
         toast.success(data.message);
         // fetchUsers();
@@ -474,7 +469,7 @@ const UserManagment = () => {
                 onChange={handleSelectRole}
                 options={roles}
                 getOptionLabel={(option) => option?.roleName || ""}
-                getOptionValue={(option) => option?.id?.toString() || ""}
+                getOptionValue={(option) => option?.roleName?.toString() || ""}
               />
               {!selectecdRole && (
                 <span style={{ color: "red", display: spanDisplay }}>
@@ -594,11 +589,11 @@ const UserManagment = () => {
                 onChange={(e) => {
                   setPhoneNumber(e.target.value);
                 }}
-                onBlur={() => {
-                  if (phoneNumber.length < 10) {
-                    alert("Phone number must be at least 10 digits long");
-                  }
-                }}
+                // onBlur={() => {
+                //   if (phoneNumber.length < 10) {
+                //     alert("Phone number must be at least 10 digits long");
+                //   }
+                // }}
               />
 
               {!phoneNumber && (
@@ -622,7 +617,7 @@ const UserManagment = () => {
                 onChange={handleSelectRole}
                 options={roles}
                 getOptionLabel={(option) => option?.roleName || ""}
-                getOptionValue={(option) => option?.id?.toString() || ""}
+                getOptionValue={(option) => option?.roleName?.toString() || ""}
               />
               {!selectecdRole && (
                 <span style={{ color: "red", display: spanDisplay }}>

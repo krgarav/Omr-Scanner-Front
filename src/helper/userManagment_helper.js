@@ -4,8 +4,11 @@ import * as url from "./url_helper";
 
 // Create Class
 export const createUser = async (data) => {
+  const { name, email, cont, role, pwd } = data;
   const urls = await url.getUrls();
-  return post(urls.CREATE_USER, data);
+  return post(
+    `${urls.CREATE_USER}?name=${name}&email=${email}&cont=${cont}&role=${role}&pwd=${pwd}`
+  );
 };
 
 export const updateUser = async (data) => {
@@ -15,7 +18,7 @@ export const updateUser = async (data) => {
 
 export const removeUser = async (id) => {
   const urls = await url.getUrls();
-  return del(`${urls.DELETE_USER}?Id=${id}`);
+  return del(`${urls.DELETE_USER}?id=${id}`);
 };
 
 export const fetchAllUsers = async () => {

@@ -10,7 +10,7 @@ const initializeUrls = async () => {
     UPDATE_USER: `${baseUrl}UpdateUser`,
     GET_USERS: `${baseUrl}api/userAuth/GetList`,
     LOGIN: `${baseUrl}api/userAuth/LoginForm`,
-    DELETE_USER: `${baseUrl}DeleteUser?Id=`,
+    DELETE_USER: `${baseUrl}api/userAuth/DeleteEmp`,
     GET_USER_ROLES: `${baseUrl}GetUserRole`,
     GET_PROCESS_DATA: `${baseUrl}ProcessData`,
     SCAN_FILES: `${baseUrl}api/OmrProcessing/process-omr`,
