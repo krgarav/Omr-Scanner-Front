@@ -645,8 +645,8 @@ const AdminScanJob = () => {
   };
   const onRowSelected = (args) => {
     const rowData = args.data;
-    console.log("Row selected:", args);
-    console.log("Row selected:", rowData);
+    // console.log("Row selected:", args);
+    // console.log("Row selected:", rowData);
     setIsViewerOpen(true);
     setCurrentImage(rowData?.FileName);
   };
@@ -657,12 +657,6 @@ const AdminScanJob = () => {
     const obj = Object.keys(rowData);
     const columnHeader = obj[columnField];
 
-    console.log("Cell selected:", {
-      row: rowData,
-      columnField,
-      columnHeader,
-      fullArgs: args,
-    });
     const filter = templateData.filter(
       (item) => item.fieldName === columnHeader
     );
@@ -679,7 +673,6 @@ const AdminScanJob = () => {
     setIsViewerOpen(false);
     console.log("Image viewer closed");
   };
-
   return (
     <>
       <NormalHeader />
@@ -744,7 +737,7 @@ const AdminScanJob = () => {
             allowEditing={false}
             emptyRecordTemplate={template.bind(this)}
             selectionSettings={{
-              mode: "Cell",
+              mode: "Both",
               type: "Single",
               cellSelectionMode: "Box",
             }}
