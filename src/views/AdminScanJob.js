@@ -118,6 +118,7 @@ const AdminScanJob = () => {
   // Connect to WebSocket on mount
   useEffect(() => {
     if (!baseUrl) return;
+    console.log(baseUrl)
     const token = localStorage.getItem("token");
     const ws = new WebSocket(`ws://${baseUrl}/ws?token=${token}`);
     // const ws = new WebSocket(`ws://192.168.1.10:5500/ws`);
@@ -130,6 +131,7 @@ const AdminScanJob = () => {
     ws.onmessage = (event) => {
       console.log("Message received:", event.data);
       const jsonData = JSON.parse(event.data);
+      console.log(jsonData)
       const data = jsonData?.FieldResults;
       if (data) {
         setHeadData(Object.keys(data));
