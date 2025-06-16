@@ -131,8 +131,9 @@ const AdminScanJob = () => {
     ws.onmessage = (event) => {
       console.log("Message received:", event.data);
       const jsonData = JSON.parse(event.data);
-      console.log(jsonData)
+      console.log(jsonData.Success)
       const data = jsonData?.FieldResults;
+
       if (data) {
         setHeadData(Object.keys(data));
         setProcessedData((prev) => {
