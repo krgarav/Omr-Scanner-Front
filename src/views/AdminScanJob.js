@@ -91,6 +91,7 @@ const AdminScanJob = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [templateData, setTemplateData] = useState([]);
   const [obj, setObj] = useState({});
+  const [dbState,setDbState]= useState(true); // State to track if the modal is open
   // const zoomedData =
   const template = emptyMessageTemplate;
 
@@ -388,7 +389,7 @@ const AdminScanJob = () => {
         return;
       }
       const token = localStorage.getItem("token");
-      const res = await scanFiles(folderName, templateId);
+      const res = await scanFiles(folderName, templateId,dbState);
     } catch (error) {
       console.log(error);
       if (error?.response?.data) {
@@ -715,12 +716,32 @@ const AdminScanJob = () => {
       </div>
       <Container className={isSmallScreen ? "mt--6" : "mt--8"} fluid>
         <br />
-
+ <div style={{ position: 'relative' }}>
+      <select
+        className="form-select" // Bootstrap styling
+        onChange={(e) => {
+          const value = e.target.value === 'true'; // Convert string to boolean
+    setDbState(value);
+        }}
+        value={dbState.toString()}
+        style={{
+          position: 'absolute',
+          top: 10,
+          right: 10,
+          zIndex: 999,
+          width: '200px' // optional: to make it look nicer
+        }}
+      >
+        <option value={"true"}>Save To Db</option>
+        <option value={"false"}>Don't Save To DB</option>
+      </select>
+    </div>
         {/* <div className="control-pane"> */}
         <div
           className="w-100  m-1"
           style={{ overflowY: "auto", backgroundColor: "green", zIndex: "999" }}
         ></div>
+        
         <div className="control-section">
           <GridComponent
             ref={gridRef}

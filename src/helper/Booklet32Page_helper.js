@@ -9,14 +9,14 @@ export const fetchProcessData = async () => {
   return get(urls.GET_PROCESS_24_PAGE_DATA);
 };
 
-export const scanFiles = async (selectedValue, userId) => {
+export const scanFiles = async (selectedValue, userId,saveDb=true) => {
   const urls = await url.getUrls();
   return post(
     `${
       urls.SCAN_FILES
     }?folderPath=${selectedValue}&idTemp=${userId}&token=${localStorage.getItem(
       "token"
-    )}`
+    )}&IsSaveDb=${saveDb}` // saveDb is added to control whether to save data in the database or not
   );
 };
 export const printData = async (data) => {

@@ -26,6 +26,13 @@ const TemplateEditor = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [paths, setPaths] = useState(null);
   const [baseUrl, setBaseUrl] = useState(null);
+  const [showReferenceBox, setShowReferenceBox] = useState(false);
+  const [box, setBox] = useState({
+    x: 100,
+    y: 100,
+    width: 200,
+    height: 150,
+  });
   const buttonRef = useRef(null);
   const { Id } = useParams();
   const navigate = useNavigate();
@@ -226,6 +233,44 @@ const TemplateEditor = () => {
     );
   });
 
+  const getCornerCoordinates = (box, imageRef) => {
+    const image = imageRef.current;
+    if (!image) return {};
+
+    // Scale factors: natural image size vs displayed size
+    const scaleX = image.naturalWidth / image.clientWidth;
+    const scaleY = image.naturalHeight / image.clientHeight;
+
+    const { x, y, width, height } = box;
+
+    return {
+      topLeft: {
+        x: x * scaleX,
+        y: y * scaleY,
+        width: 40,
+        height: 40,
+      },
+      topRight: {
+        x: (x + width) * scaleX,
+        y: y * scaleY,
+        width: 40,
+        height: 40,
+      },
+      bottomLeft: {
+        x: x * scaleX,
+        y: (y + height) * scaleY,
+        width: 40,
+        height: 40,
+      },
+      bottomRight: {
+        x: (x + width) * scaleX,
+        y: (y + height) * scaleY,
+        width: 40,
+        height: 40,
+      },
+    };
+  };
+
   const getBubbleCoordinates = (box, imageRef) => {
     const image = imageRef.current;
     if (!image) return [];
@@ -286,14 +331,18 @@ const TemplateEditor = () => {
   };
   const saveTemplate = async () => {
     // console.log(boxes);
+    const corner = getCornerCoordinates(box, imageRef);
+   
+    // return
     const mappedData = boxes.map((box, idx) => {
       return { ...box, bubbles: allBubbles[idx] };
     });
     const obj = {
       name: paths.fileName,
       fields: mappedData,
+      referenceFields: [corner],
     };
-
+    console.log(obj);
     const jsonString = JSON.stringify(obj);
 
     // Optional: ensure the filename ends with `.json`
@@ -337,6 +386,28 @@ const TemplateEditor = () => {
             transformOrigin: "top left", // Zoom from top-left
           }}
         >
+          {showReferenceBox && (
+            <Rnd
+              size={{ width: box.width, height: box.height }}
+              position={{ x: box.x, y: box.y }}
+              onDragStop={(e, d) => {
+                setBox((prev) => ({ ...prev, x: d.x, y: d.y }));
+              }}
+              onResizeStop={(e, direction, ref, delta, position) => {
+                setBox({
+                  width: parseInt(ref.style.width, 10),
+                  height: parseInt(ref.style.height, 10),
+                  ...position,
+                });
+              }}
+              bounds="parent"
+              style={{
+                border: "2px solid #007bff",
+                backgroundColor: "transparent",
+                zIndex: 999,
+              }}
+            ></Rnd>
+          )}
           <img
             ref={imageRef}
             src={`${baseUrl}${paths.imgPath}`}
@@ -406,6 +477,15 @@ const TemplateEditor = () => {
       </section>
 
       <div className="d-flex justify-content-center mt-2 z-9999">
+        <button
+          type="button"
+          className="btn btn-primary me-2"
+          onClick={() => {
+            setShowReferenceBox(true);
+          }}
+        >
+          Add Reference Box
+        </button>
         <button
           type="button"
           className="btn btn-primary me-2"
