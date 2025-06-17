@@ -42,6 +42,7 @@ import { pauseScanning } from "helper/Booklet32Page_helper";
 import { resumeScanning } from "helper/Booklet32Page_helper";
 import { getLayoutDataById } from "helper/TemplateHelper";
 import ZoomViewer from "components/ZoomView";
+import { getLastScannedFiles } from "helper/Booklet32Page_helper";
 function emptyMessageTemplate() {
   return (
     <div className="text-center">
@@ -91,7 +92,7 @@ const AdminScanJob = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [templateData, setTemplateData] = useState([]);
   const [obj, setObj] = useState({});
-  const [dbState,setDbState]= useState(true); // State to track if the modal is open
+  const [dbState, setDbState] = useState(false); // State to track if the modal is open
   // const zoomedData =
   const template = emptyMessageTemplate;
 
@@ -101,6 +102,27 @@ const AdminScanJob = () => {
   const navigate = useNavigate();
   const serialRef = useRef();
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const templateId = localStorage.getItem("templateId");
+        const response = await getLastScannedFiles(templateId);
+
+        if (response?.state) {
+          const data = response?.res;
+
+          if (Array.isArray(data) && data.length > 0) {
+            setHeadData(Object.keys(data[0])); // Use first row to get headers
+            setProcessedData(data); // Set the entire array at once
+            console.log("Fetched data:", data);
+          } else {
+            console.log("No data received.");
+          }
+        }
+      } catch (error) {}
+    };
+    fetchData();
+  }, []);
   useEffect(() => {
     const fetchBaseUrl = async () => {
       try {
@@ -119,7 +141,7 @@ const AdminScanJob = () => {
   // Connect to WebSocket on mount
   useEffect(() => {
     if (!baseUrl) return;
-    console.log(baseUrl)
+    console.log(baseUrl);
     const token = localStorage.getItem("token");
     const ws = new WebSocket(`ws://${baseUrl}/ws?token=${token}`);
     // const ws = new WebSocket(`ws://192.168.1.10:5500/ws`);
@@ -132,8 +154,8 @@ const AdminScanJob = () => {
     ws.onmessage = (event) => {
       console.log("Message received:", event.data);
       const jsonData = JSON.parse(event.data);
-      console.log(jsonData.Success)
-      const data = jsonData?.FieldResults;
+      console.log(jsonData);
+      const data = jsonData;
 
       if (data) {
         setHeadData(Object.keys(data));
@@ -389,7 +411,7 @@ const AdminScanJob = () => {
         return;
       }
       const token = localStorage.getItem("token");
-      const res = await scanFiles(folderName, templateId,dbState);
+      const res = await scanFiles(folderName, templateId, dbState);
     } catch (error) {
       console.log(error);
       if (error?.response?.data) {
@@ -567,19 +589,28 @@ const AdminScanJob = () => {
   };
 
   const rowDataBound = (args) => {
-    const cells = args.data; // Access the data for the current row
-    Object.keys(cells).forEach((key) => {
-      if (cells[key] === null || cells[key] === "") {
-        // Apply yellow background color to the cell
+    const rowData = args.data;
+
+    // 1. Highlight entire row red if Success is false
+    if (rowData?.Success === "False") {
+      args.row.style.backgroundColor = "#f8d7da"; // light red
+      args.row.style.color = "#721c24"; // dark red text
+    }
+
+    // 2. Highlight specific cells yellow if null or empty
+    Object.keys(rowData).forEach((key) => {
+      if (rowData[key] === null || rowData[key] === "") {
         const cellIndex = args.row.cells.findIndex(
-          (cell) => cell.column.field === key
+          (cell) => cell.column && cell.column.field === key
         );
+
         if (cellIndex !== -1) {
           args.row.cells[cellIndex].style.backgroundColor = "yellow";
         }
       }
     });
   };
+
   const handleRefreshData = async () => {
     try {
       setIsRefreshing(true);
@@ -716,32 +747,32 @@ const AdminScanJob = () => {
       </div>
       <Container className={isSmallScreen ? "mt--6" : "mt--8"} fluid>
         <br />
- <div style={{ position: 'relative' }}>
-      <select
-        className="form-select" // Bootstrap styling
-        onChange={(e) => {
-          const value = e.target.value === 'true'; // Convert string to boolean
-    setDbState(value);
-        }}
-        value={dbState.toString()}
-        style={{
-          position: 'absolute',
-          top: 10,
-          right: 10,
-          zIndex: 999,
-          width: '200px' // optional: to make it look nicer
-        }}
-      >
-        <option value={"true"}>Save To Db</option>
-        <option value={"false"}>Don't Save To DB</option>
-      </select>
-    </div>
+        <div style={{ position: "relative" }}>
+          <select
+            className="form-select" // Bootstrap styling
+            onChange={(e) => {
+              const value = e.target.value === "true"; // Convert string to boolean
+              setDbState(value);
+            }}
+            value={dbState.toString()}
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              zIndex: 999,
+              width: "200px", // optional: to make it look nicer
+            }}
+          >
+            <option value={"false"}>Don't Save To DB</option>
+            <option value={"true"}>Save To Db</option>
+          </select>
+        </div>
         {/* <div className="control-pane"> */}
         <div
           className="w-100  m-1"
           style={{ overflowY: "auto", backgroundColor: "green", zIndex: "999" }}
         ></div>
-        
+
         <div className="control-section">
           <GridComponent
             ref={gridRef}
@@ -765,7 +796,7 @@ const AdminScanJob = () => {
               type: "Single",
               cellSelectionMode: "Box",
             }}
-            // rowDataBound={rowDataBound}
+            rowDataBound={rowDataBound}
             rowSelected={onRowSelected}
             cellSelected={onCellSelected}
           >

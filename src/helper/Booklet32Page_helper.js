@@ -19,6 +19,18 @@ export const scanFiles = async (selectedValue, userId,saveDb=true) => {
     )}&IsSaveDb=${saveDb}` // saveDb is added to control whether to save data in the database or not
   );
 };
+
+export const getLastScannedFiles = async (tempId) => {
+  const urls = await url.getUrls();
+  return get(
+    `${
+      urls.LAST_RECORDS
+    }?TempId=${tempId}&token=${localStorage.getItem(
+      "token"
+    )}` // saveDb is added to control whether to save data in the database or not
+  );
+};
+
 export const printData = async (data) => {
   const urls = await url.getUrls();
   const endpoint = urls.PRINT_DATA;

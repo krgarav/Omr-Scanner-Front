@@ -50,6 +50,13 @@ const TemplateEditor = () => {
 
         if (res) {
           const field = res?.data?.fields;
+          const fieldDetails = res?.data?.referenceCoordinate;
+          if (fieldDetails && Object.keys(fieldDetails).length > 0) {
+            setBox(fieldDetails);
+            setShowReferenceBox(true);
+          } else {
+            setShowReferenceBox(false);
+          }
           setBoxes(field);
         }
       } catch (error) {
@@ -332,7 +339,7 @@ const TemplateEditor = () => {
   const saveTemplate = async () => {
     // console.log(boxes);
     const corner = getCornerCoordinates(box, imageRef);
-   
+
     // return
     const mappedData = boxes.map((box, idx) => {
       return { ...box, bubbles: allBubbles[idx] };
@@ -340,7 +347,8 @@ const TemplateEditor = () => {
     const obj = {
       name: paths.fileName,
       fields: mappedData,
-      referenceFields: [corner],
+      referncefield: showReferenceBox ? [corner] : [],
+      referenceCoordinate: showReferenceBox ? box : {},
     };
     console.log(obj);
     const jsonString = JSON.stringify(obj);
@@ -479,12 +487,14 @@ const TemplateEditor = () => {
       <div className="d-flex justify-content-center mt-2 z-9999">
         <button
           type="button"
-          className="btn btn-primary me-2"
+          className={`btn me-2 ${
+            showReferenceBox ? "btn-danger" : "btn-primary"
+          }`}
           onClick={() => {
-            setShowReferenceBox(true);
+            setShowReferenceBox((prev) => !prev);
           }}
         >
-          Add Reference Box
+          {!showReferenceBox ? "Add Reference Box" : "Remove Reference Box"}
         </button>
         <button
           type="button"

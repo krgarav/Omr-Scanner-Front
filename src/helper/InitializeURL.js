@@ -30,6 +30,7 @@ const initializeUrls = async () => {
     CHECK_DELETE_TEMPLATE: `${baseUrl}GetJobStatus`,
     GET_TEMPLATE_IMAGE: `${baseUrl}GetTemplateImage`,
     GET_TEMPLATE_CSV: `${baseUrl}GetTemplateCSV`,
+    LAST_RECORDS: `${baseUrl}api/showRecord/LastRec`,
     CANCEL_SCAN: `${baseUrl}CancelScan`,
     GENERATE_EXCEL: `${baseUrl}GenerateExcelFile`,
     CREATE_JOB: `${baseUrl}CreateJobs`,
