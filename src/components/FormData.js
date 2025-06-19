@@ -213,12 +213,13 @@ const FormData = forwardRef(
            <Form.Group controlId="allowMultiple">
               <Form.Label>Multiple Value:</Form.Label>
               <Form.Control
-                as="select"
-                value={currentBoxData?.allowMultiple ?? ""}
+                as="input"
+                placeholder="Enter multiple value"
+                value={currentBoxData?.multipleBubbleOutput  ?? ""}
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
                     ...prev,
-                    allowMultiple: e.target.value,
+                    multipleBubbleOutput : e.target.value,
                   }))
                 }
               >
@@ -231,12 +232,12 @@ const FormData = forwardRef(
               <Form.Label>Blank Value:</Form.Label>
               <Form.Control
                 as="input"
-                value={currentBoxData?.allowMultiple ?? ""}
+                value={currentBoxData?.blankOuputSymbol  ?? ""}
                 placeholder="Enter blank value"
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
                     ...prev,
-                    allowMultiple: e.target.value,
+                    blankOuputSymbol : e.target.value,
                   }))
                 }
               >
