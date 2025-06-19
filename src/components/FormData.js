@@ -208,6 +208,43 @@ const FormData = forwardRef(
             </Form.Group>
           </Col>
         </Row>
+        <Row>
+          <Col md={6}>
+           <Form.Group controlId="allowMultiple">
+              <Form.Label>Multiple Value:</Form.Label>
+              <Form.Control
+                as="select"
+                value={currentBoxData?.allowMultiple ?? ""}
+                onChange={(e) =>
+                  setCurrentBoxData((prev) => ({
+                    ...prev,
+                    allowMultiple: e.target.value,
+                  }))
+                }
+              >
+                
+              </Form.Control>
+            </Form.Group>
+          </Col>
+          <Col md={6}>
+           <Form.Group controlId="allowMultiple">
+              <Form.Label>Blank Value:</Form.Label>
+              <Form.Control
+                as="input"
+                value={currentBoxData?.allowMultiple ?? ""}
+                placeholder="Enter blank value"
+                onChange={(e) =>
+                  setCurrentBoxData((prev) => ({
+                    ...prev,
+                    allowMultiple: e.target.value,
+                  }))
+                }
+              >
+               
+              </Form.Control>
+            </Form.Group>
+          </Col>
+        </Row>
 
         <Row>
           <Col md={12}>
