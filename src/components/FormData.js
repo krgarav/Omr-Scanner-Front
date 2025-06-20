@@ -209,40 +209,40 @@ const FormData = forwardRef(
           </Col>
         </Row>
         <Row>
-          <Col md={6}>
-           <Form.Group controlId="allowMultiple">
-              <Form.Label>Multiple Value:</Form.Label>
-              <Form.Control
-                as="input"
-                placeholder="Enter multiple value"
-                value={currentBoxData?.multipleBubbleOutput  ?? ""}
-                onChange={(e) =>
-                  setCurrentBoxData((prev) => ({
-                    ...prev,
-                    multipleBubbleOutput : e.target.value,
-                  }))
-                }
-              >
-                
-              </Form.Control>
-            </Form.Group>
-          </Col>
-          <Col md={6}>
-           <Form.Group controlId="allowMultiple">
+          {currentBoxData?.allowMultiple === "false" && (
+            <Col md={6}>
+              <Form.Group controlId="allowMultiple">
+                <Form.Label>Multiple Value:</Form.Label>
+                <Form.Control
+                  as="input"
+                    maxLength={1}
+                  placeholder="Enter multiple value"
+                  value={currentBoxData?.multipleBubbleOutput ?? ""}
+                  onChange={(e) =>
+                    setCurrentBoxData((prev) => ({
+                      ...prev,
+                      multipleBubbleOutput: e.target.value,
+                    }))
+                  }
+                ></Form.Control>
+              </Form.Group>
+            </Col>
+          )}
+          <Col md={ currentBoxData?.allowMultiple === "false"?6:12}>
+            <Form.Group controlId="allowMultiple">
               <Form.Label>Blank Value:</Form.Label>
               <Form.Control
                 as="input"
-                value={currentBoxData?.blankOuputSymbol  ?? ""}
+                maxLength={1}
+                value={currentBoxData?.blankOuputSymbol ?? ""}
                 placeholder="Enter blank value"
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
                     ...prev,
-                    blankOuputSymbol : e.target.value,
+                    blankOuputSymbol: e.target.value,
                   }))
                 }
-              >
-               
-              </Form.Control>
+              ></Form.Control>
             </Form.Group>
           </Col>
         </Row>
