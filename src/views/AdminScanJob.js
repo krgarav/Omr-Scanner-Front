@@ -144,6 +144,7 @@ const AdminScanJob = () => {
     console.log(baseUrl);
     const token = localStorage.getItem("token");
     const ws = new WebSocket(`ws://${baseUrl}/ws?token=${token}`);
+    let isHeadSet = false;
     // const ws = new WebSocket(`ws://192.168.1.10:5500/ws`);
 
     // console.log(baseUrl)
@@ -153,15 +154,25 @@ const AdminScanJob = () => {
 
     ws.onmessage = (event) => {
       console.log("Message received:", event.data);
-      const jsonData = JSON.parse(event.data);
-      console.log(jsonData);
-      const data = jsonData;
+      try {
+        const jsonData = JSON.parse(event.data);
+        const data = jsonData;
 
-      if (data) {
-        setHeadData(Object.keys(data));
-        setProcessedData((prev) => {
-          return [...prev, data];
-        });
+        if (data) {
+          // Set header only once
+          if (!isHeadSet) {
+            setHeadData(Object.keys(data));
+            isHeadSet = true;
+          }
+
+          // Maintain only the latest 200 entries
+          setProcessedData((prev) => {
+            const updated = [...prev, data];
+            return updated.length > 200 ? updated.slice(-200) : updated;
+          });
+        }
+      } catch (err) {
+        console.error("Failed to parse message:", event.data, err);
       }
       // Example: when receiving "success", hide print
       if (event.data === "success") {
@@ -207,21 +218,26 @@ const AdminScanJob = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const templateId = localStorage.getItem("templateId");
-      const base = await getBaseUrl();
-      const res = await getLayoutDataById(templateId);
-      if (res) {
-        const jsonPath = res?.data?.jsonPath;
-        const res2 = await axios.get(`${base}${jsonPath}`, {
-          headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-            Expires: "0",
-          },
-        });
-        if (res2?.data && res2?.data?.fields) {
-          setTemplateData(res2.data.fields);
+      try {
+        const templateId = localStorage.getItem("templateId");
+        const base = await getBaseUrl();
+        const res = await getLayoutDataById(templateId);
+        if (res) {
+          const jsonPath = res?.data?.jsonPath;
+          const res2 = await axios.get(`${base}${jsonPath}`, {
+            headers: {
+              "Cache-Control": "no-cache",
+              Pragma: "no-cache",
+              Expires: "0",
+            },
+          });
+          if (res2?.data && res2?.data?.fields) {
+            setTemplateData(res2.data.fields);
+          }
         }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Error fetching data");
       }
     };
     if (baseUrl) {

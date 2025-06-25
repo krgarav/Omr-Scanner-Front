@@ -1,5 +1,7 @@
 // reactstrap components
-import { getJobCount } from "helper/job_helper";
+import { totalScanning } from "helper/Dashboard_helper";
+import { fetchAllTemplate } from "helper/TemplateHelper";
+
 import { fetchAllUsers } from "helper/userManagment_helper";
 import { useEffect, useState } from "react";
 import { Card, CardBody, CardTitle, Container, Row, Col } from "reactstrap";
@@ -7,19 +9,24 @@ import { Card, CardBody, CardTitle, Container, Row, Col } from "reactstrap";
 const Header = () => {
   const [jobCount, setJobCount] = useState(0);
   const [allUserCount, setAllUserCount] = useState(0);
+  const [allScanning,setAllScanning] = useState(0)
   useEffect(() => {
     const fetchDetails = async () => {
-      const res = await getJobCount();
+      const resAllTemplate = await fetchAllTemplate();
       const allUsers = await fetchAllUsers();
+      const resScanning = await totalScanning()
 
-      if (res !== undefined) {
-        setJobCount(res);
+      if (resAllTemplate !== undefined &&resAllTemplate?.body?.length) {
+        setJobCount(resAllTemplate?.body?.length);
       }
-      if (allUsers !== undefined) {
-        setAllUserCount(allUsers.result.length);
+      if (allUsers !== undefined&&allUsers?.length) {
+        setAllUserCount(allUsers?.length);
+      }
+      if(resScanning!==undefined){
+        setAllScanning(resScanning)
       }
     };
-    // fetchDetails();
+    fetchDetails();
   }, []);
   return (
     <>
@@ -37,10 +44,10 @@ const Header = () => {
                           tag="h5"
                           className="text-uppercase text-muted mb-0"
                         >
-                          Total Scanning
+                          Total Sheets Scanned
                         </CardTitle>
                         <span className="h2 font-weight-bold mb-0">
-                          350,600
+                         {allScanning}
                         </span>
                       </div>
                       <Col className="col-auto">
@@ -97,7 +104,7 @@ const Header = () => {
                           tag="h5"
                           className="text-uppercase text-muted mb-0"
                         >
-                          Job
+                          Total Templates
                         </CardTitle>
                         <span className="h2 font-weight-bold mb-0">
                           {jobCount}

@@ -48,6 +48,7 @@ const initializeUrls = async () => {
     PRINT_DATA: `${baseUrl}PrintSetting`,
     GET_ROW_DATA: `${baseUrl}GetDataByRowRange`,
     GET_TOTAL_EXCEL_ROW: `${baseUrl}GetTotalExcelRow`,
+    TOTAL_SCANNING : `${baseUrl}api/showRecord/Dash_AllRec`,
     MAIN_URL: baseUrl,
   };
 };
