@@ -9,3 +9,8 @@ export const totalScanning = async () => {
   const endpoint = urls.TOTAL_SCANNING;
   return await get(endpoint);
 };
+export const accuracyPercentage = async () => {
+  const urls = await url.getUrls();
+  const endpoint = urls.ACCURACY_RATE;
+  return await get(endpoint);
+};

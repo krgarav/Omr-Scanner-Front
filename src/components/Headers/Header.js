@@ -1,4 +1,5 @@
 // reactstrap components
+import { accuracyPercentage } from "helper/Dashboard_helper";
 import { totalScanning } from "helper/Dashboard_helper";
 import { fetchAllTemplate } from "helper/TemplateHelper";
 
@@ -10,17 +11,24 @@ const Header = () => {
   const [jobCount, setJobCount] = useState(0);
   const [allUserCount, setAllUserCount] = useState(0);
   const [allScanning,setAllScanning] = useState(0)
+   const [accuracy,setAccuracy] = useState(0)
   useEffect(() => {
     const fetchDetails = async () => {
       const resAllTemplate = await fetchAllTemplate();
       const allUsers = await fetchAllUsers();
       const resScanning = await totalScanning()
+      const resAccuracy = await accuracyPercentage()
+      
 
       if (resAllTemplate !== undefined &&resAllTemplate?.body?.length) {
         setJobCount(resAllTemplate?.body?.length);
       }
       if (allUsers !== undefined&&allUsers?.length) {
+       
         setAllUserCount(allUsers?.length);
+      }
+      if (resAccuracy !== undefined&&resAccuracy?.average_success) {
+        setAccuracy(resAccuracy?.average_success);
       }
       if(resScanning!==undefined){
         setAllScanning(resScanning)
@@ -134,9 +142,9 @@ const Header = () => {
                           tag="h5"
                           className="text-uppercase text-muted mb-0"
                         >
-                          Performance
+                         Accuracy Rate
                         </CardTitle>
-                        <span className="h2 font-weight-bold mb-0">49,65%</span>
+                        <span className="h2 font-weight-bold mb-0">{accuracy}</span>
                       </div>
                       <Col className="col-auto">
                         <div className="icon icon-shape bg-info text-white rounded-circle shadow">

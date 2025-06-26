@@ -201,9 +201,8 @@ const TemplateEditor = () => {
                   key={colIdx}
                   style={{
                     aspectRatio: "1",
-                    width: `calc((100% - ${(box.totalCol - 1) * box.gap}px) / ${
-                      box.totalRow
-                    })`,
+                    width: `calc((100% - ${(box.totalCol - 1) * box.gap}px) / ${box.totalCol})`,
+
                     height: "80%",
                     borderRadius: "50%",
                     border: "1px solid black",
@@ -412,7 +411,7 @@ const TemplateEditor = () => {
               style={{
                 border: "2px solid #007bff",
                 backgroundColor: "transparent",
-                zIndex: 999,
+                // zIndex: 999,
               }}
             ></Rnd>
           )}
