@@ -253,26 +253,26 @@ const TemplateEditor = () => {
       topLeft: {
         x: x * scaleX,
         y: y * scaleY,
-        width: 40,
-        height: 40,
+        width: 60,
+        height: 60,
       },
       topRight: {
         x: (x + width) * scaleX,
         y: y * scaleY,
-        width: 40,
-        height: 40,
+        width: 60,
+        height: 60,
       },
       bottomLeft: {
         x: x * scaleX,
         y: (y + height) * scaleY,
-        width: 40,
-        height: 40,
+        width: 60,
+        height: 60,
       },
       bottomRight: {
         x: (x + width) * scaleX,
         y: (y + height) * scaleY,
-        width: 40,
-        height: 40,
+        width: 60,
+        height: 60,
       },
     };
   };
