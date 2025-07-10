@@ -25,6 +25,6 @@ const getBaseUrl = () => {
   // return fetchDetails();
   // return "https://192.168.1.27/swagger/index.html";
   // return "https://85djxdzn-5000.inc1.devtunnels.ms/";
-  return "https://7xv33rdv-5001.inc1.devtunnels.ms/";
+  return "https://sb02kkq1-44388.inc1.devtunnels.ms/";
 };
 export default getBaseUrl;
