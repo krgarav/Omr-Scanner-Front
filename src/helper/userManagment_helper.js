@@ -32,6 +32,11 @@ export const getUserRoles = async () => {
 };
 
 export const login = async (uname, pwd) => {
+  const token = localStorage.getItem("token")
   const urls = await url.getUrls();
-  return get(`${urls.LOGIN}?uname=${uname}&pwd=${pwd}`);
+  return get(`${urls.LOGIN}?uname=${uname}&pwd=${pwd}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
 };

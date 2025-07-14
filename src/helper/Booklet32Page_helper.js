@@ -11,23 +11,35 @@ export const fetchProcessData = async () => {
 
 export const scanFiles = async (selectedValue, userId,saveDb=true) => {
   const urls = await url.getUrls();
+  const token = localStorage.getItem("token")
   return post(
     `${
       urls.SCAN_FILES
     }?folderPath=${selectedValue}&idTemp=${userId}&token=${localStorage.getItem(
       "token"
-    )}&IsSaveDb=${saveDb}` // saveDb is added to control whether to save data in the database or not
+    )}&IsSaveDb=${saveDb}`, // saveDb is added to control whether to save data in the database or not
+   {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
   );
 };
 
 export const getLastScannedFiles = async (tempId) => {
   const urls = await url.getUrls();
+  const token = localStorage.getItem("token")
   return get(
     `${
       urls.LAST_RECORDS
     }?TempId=${tempId}&token=${localStorage.getItem(
       "token"
-    )}` // saveDb is added to control whether to save data in the database or not
+    )}`, // saveDb is added to control whether to save data in the database or not
+   {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
   );
 };
 

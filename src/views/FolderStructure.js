@@ -1,39 +1,53 @@
-import { FileManagerComponent, Inject, NavigationPane, DetailsView, Toolbar } from '@syncfusion/ej2-react-filemanager';
-import * as React from 'react';
-import '@syncfusion/ej2-base/styles/bootstrap5.css';
-import '@syncfusion/ej2-icons/styles/bootstrap5.css';
-import '@syncfusion/ej2-inputs/styles/bootstrap5.css';
-import '@syncfusion/ej2-popups/styles/bootstrap5.css';
-import '@syncfusion/ej2-buttons/styles/bootstrap5.css';
-import '@syncfusion/ej2-splitbuttons/styles/bootstrap5.css';
-import '@syncfusion/ej2-navigations/styles/bootstrap5.css';
-import '@syncfusion/ej2-layouts/styles/bootstrap5.css';
-import '@syncfusion/ej2-grids/styles/bootstrap5.css';
-import '@syncfusion/ej2-react-filemanager/styles/bootstrap5.css';
-import SmallHeader from 'components/Headers/SmallHeader';
+import {
+  FileManagerComponent,
+  Inject,
+  NavigationPane,
+  DetailsView,
+  Toolbar,
+} from "@syncfusion/ej2-react-filemanager";
+import * as React from "react";
+import "@syncfusion/ej2-base/styles/bootstrap5.css";
+import "@syncfusion/ej2-icons/styles/bootstrap5.css";
+import "@syncfusion/ej2-inputs/styles/bootstrap5.css";
+import "@syncfusion/ej2-popups/styles/bootstrap5.css";
+import "@syncfusion/ej2-buttons/styles/bootstrap5.css";
+import "@syncfusion/ej2-splitbuttons/styles/bootstrap5.css";
+import "@syncfusion/ej2-navigations/styles/bootstrap5.css";
+import "@syncfusion/ej2-layouts/styles/bootstrap5.css";
+import "@syncfusion/ej2-grids/styles/bootstrap5.css";
+import "@syncfusion/ej2-react-filemanager/styles/bootstrap5.css";
+import SmallHeader from "components/Headers/SmallHeader";
 import { Container } from "reactstrap";
-import "../App.css"
-import { MAIN_URL } from 'helper/url_helper';
-import { getUrls } from 'helper/url_helper';
-import ErrorBoundary from 'services/ErrorWrap';
-import axios from 'axios';
+import "../App.css";
+import { MAIN_URL } from "helper/url_helper";
+import { getUrls } from "helper/url_helper";
+import ErrorBoundary from "services/ErrorWrap";
+import axios from "axios";
+import { Ajax } from "@syncfusion/ej2-base";
 const Overview = () => {
   const [hostUrl, setHostUrl] = React.useState("");
   const [loading, setLoading] = React.useState(true);
+  const token = localStorage.getItem("token");
+  const fileManagerRef = React.useRef(null);
 
   React.useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = localStorage.getItem("token");
         const response = await getUrls();
         const GetDataURL = response.MAIN_URL;
-        const res = await axios.get(GetDataURL + "api/FileManager/folders");
+        const res = await axios.get(GetDataURL + "api/FileManager/folders", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (res) {
           setHostUrl(GetDataURL);
         }
-        console.log(GetDataURL)
+        console.log(GetDataURL);
         // setHostUrl(GetDataURL);
       } catch (error) {
-        console.error('Error fetching URLs:', error);
+        console.error("Error fetching URLs:", error);
         // Handle the error appropriately (e.g., show an error message)
       } finally {
         setLoading(false);
@@ -43,7 +57,13 @@ const Overview = () => {
     fetchData();
   }, []);
 
-  console.log(hostUrl === "")
+  const onFileManagerCreated = () => {
+    if (fileManagerRef.current) {
+      fileManagerRef.current.ajaxSettings.beforeSend = (args) => {
+        args.httpRequest.setRequestHeader("Authorization", `Bearer ${token}`);
+      };
+    }
+  };
 
   if (loading) {
     return (
@@ -57,30 +77,76 @@ const Overview = () => {
     console.error("File Manager Error: ", args);
     alert("Failed to connect to the server. Please try again later.");
   };
+  const handleBeforeSend = (args) => {
+    const token = localStorage.getItem("token");
+
+    if (args && args.ajaxSettings) {
+      if (!args.ajaxSettings.headers) args.ajaxSettings.headers = {};
+      args.ajaxSettings.headers["Authorization"] = `Bearer ${token}`;
+
+      // Optional, depending on your backend setup
+      args.ajaxSettings.withCredentials = true;
+
+      console.log("✅ Header set:", args.ajaxSettings.headers);
+    }
+  };
+
   return (
     <>
       <div className="full-height-container">
         <SmallHeader />
-        {hostUrl !== "" &&
+        {hostUrl !== "" && (
           <div style={{ height: "200px" }}>
             <FileManagerComponent
               id="overview_file"
               height={500}
+              // ref={fileManagerRef}
+              // created={onFileManagerCreated}
               ajaxSettings={{
                 url: hostUrl + "api/FileManager/FileOperations",
                 getImageUrl: hostUrl + "api/FileManager/GetImage",
-                uploadUrl: hostUrl + 'api/FileManager/Upload',
-                downloadUrl: hostUrl + 'api/FileManager/Download'
+                uploadUrl: hostUrl + "api/FileManager/Upload",
+                downloadUrl: hostUrl + "api/FileManager/Download",
               }}
-              toolbarSettings={{ items: ['NewFolder', 'SortBy', 'Cut', 'Copy', 'Paste', 'Delete', 'Refresh', 'Download', 'Rename', 'Selection', 'View', 'Details'] }}
-              contextMenuSettings={{ layout: ['SortBy', 'View', 'Refresh', '|', 'Paste', '|', 'NewFolder', '|', 'Details', '|', 'SelectAll'] }}
+              beforeSend={handleBeforeSend}
+              toolbarSettings={{
+                items: [
+                  "NewFolder",
+                  "SortBy",
+                  "Cut",
+                  "Copy",
+                  "Paste",
+                  "Delete",
+                  "Refresh",
+                  "Download",
+                  "Rename",
+                  "Selection",
+                  "View",
+                  "Details",
+                ],
+              }}
+              contextMenuSettings={{
+                layout: [
+                  "SortBy",
+                  "View",
+                  "Refresh",
+                  "|",
+                  "Paste",
+                  "|",
+                  "NewFolder",
+                  "|",
+                  "Details",
+                  "|",
+                  "SelectAll",
+                ],
+              }}
               view={"Details"}
               failure={handleFailure}
             >
               <Inject services={[NavigationPane, DetailsView, Toolbar]} />
             </FileManagerComponent>
           </div>
-        }
+        )}
       </div>
     </>
   );

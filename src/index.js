@@ -28,7 +28,6 @@ import "../node_modules/@syncfusion/ej2-splitbuttons/styles/material.css";
 import "../node_modules/@syncfusion/ej2-notifications/styles/material.css";
 import "../node_modules/@syncfusion/ej2-react-grids/styles/material.css";
 import App from "App";
-
 registerLicense(
   "Ngo9BigBOggjHTQxAR8/V1NCaF5cXmZCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdnWXhdcHRVQmVeV0F3Wks="
 );
