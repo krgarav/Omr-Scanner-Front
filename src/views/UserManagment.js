@@ -46,11 +46,7 @@ const UserManagment = () => {
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectecdRole, setSelectedRole] = useState(null);
-  // const [roles, setRoles] = useState([
-  //   { roleName: "admin" },
-  //   { roleName: "moderator" },
-  //   { roleName: "operator" },
-  // ]);
+
   const [password, setPassword] = useState("");
   const [ConfirmPassword, setConfirmPassword] = useState("");
   const [spanDisplay, setSpanDisplay] = useState("none");
@@ -193,12 +189,12 @@ const UserManagment = () => {
   const handleRowClick = (d) => {
     // e.preventDefault();
     console.log(d);
-    setName(d.userName);
-    setEmail(d.email);
-    setPhoneNumber(d.phoneNumber);
-    setSelectedRole(d?.userRoleList[0]);
+    setName(d.empName);
+    setEmail(d.empEmail);
+    setPhoneNumber(d.contact);
+    setSelectedRole(d?.role);
     setModalShow(true);
-    setId(d.id);
+    setId(d.empId);
   };
   // Function to validate the email format
   const validateEmail = (email) => {

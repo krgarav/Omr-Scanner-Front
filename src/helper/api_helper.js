@@ -63,12 +63,13 @@ export async function put(url, data, config = {}) {
     });
 }
 
-export async function del(url, id, config = {}) {
+export async function del(url, config = {}) {
   console.log("from the del --->", url);
-  return await axiosApi
-    .delete(url, { ...config })
-    .then((response) => response.data)
-    .catch((error) => {
-      toast.error(error?.response?.data?.message);
-    });
+  try {
+    const response = await axiosApi.delete(url, config);
+    return response.data;
+  } catch (error) {
+    toast.error(error?.response?.data?.message || "Delete failed");
+    throw error;
+  }
 }

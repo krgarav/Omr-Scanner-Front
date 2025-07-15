@@ -40,11 +40,13 @@ const TemplateEditor = () => {
   useEffect(() => {
     const fetchJsonData = async () => {
       try {
+        const token = localStorage.getItem("token");
         const res = await axios.get(`${baseUrl}${paths.jsonPath}`, {
           headers: {
             "Cache-Control": "no-cache",
             Pragma: "no-cache",
             Expires: "0",
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -201,7 +203,9 @@ const TemplateEditor = () => {
                   key={colIdx}
                   style={{
                     aspectRatio: "1",
-                    width: `calc((100% - ${(box.totalCol - 1) * box.gap}px) / ${box.totalCol})`,
+                    width: `calc((100% - ${(box.totalCol - 1) * box.gap}px) / ${
+                      box.totalCol
+                    })`,
 
                     height: "80%",
                     borderRadius: "50%",

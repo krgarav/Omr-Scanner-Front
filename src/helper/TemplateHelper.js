@@ -1,20 +1,27 @@
 import axios from "axios";
-import { post, del, get, put, postWithFormData, putWithFormData } from "./api_helper";
+import {
+  post,
+  del,
+  get,
+  put,
+  postWithFormData,
+  putWithFormData,
+} from "./api_helper";
 import * as url from "./url_helper";
 
 // Create Class
 export const fetchAllTemplate = async () => {
-    const token = localStorage.getItem("token")
+  const token = localStorage.getItem("token");
   const urls = await url.getUrls();
   const endpoint = urls.GET_ALL_TEMPLATE;
   return await get(endpoint, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };
 export const createTemplate = async (templateName, image) => {
-   const token = localStorage.getItem("token")
+  const token = localStorage.getItem("token");
   const urls = await url.getUrls();
   const endpoint = `${urls.CREATE_TEMPLATE}?TempName=${templateName}`;
 
@@ -24,7 +31,7 @@ export const createTemplate = async (templateName, image) => {
   const config = {
     headers: {
       "Content-Type": "multipart/form-data",
-       "Authorization": `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     },
   };
 
@@ -34,31 +41,42 @@ export const createTemplate = async (templateName, image) => {
 export const updateTemplate = async (FileName, image) => {
   const urls = await url.getUrls();
   const endpoint = `${urls.UPDATE_TEMPLATE}?FileName=${FileName}`;
-   const token = localStorage.getItem("token")
+  const token = localStorage.getItem("token");
   const formData = new FormData();
   formData.append("tempName", image);
 
   const config = {
     headers: {
       "Content-Type": "multipart/form-data",
-      "Authorization": `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     },
   };
 
   return await putWithFormData(endpoint, formData, config);
 };
 
-
 export const deleteTemplate = async (id) => {
   const urls = await url.getUrls();
   const endpoint = `${urls.DELETE_TEMPLATE}?id=${id}`;
-  return await del(endpoint);
+  const token = localStorage.getItem("token");
+
+  return await del(endpoint, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };
 
+
 export const getLayoutDataById = async (id) => {
+  const token = localStorage.getItem("token");
   const urls = await url.getUrls();
   const endpoint = `${urls.GET_LAYOUT_DATA}?id=${id}`;
-  return await get(endpoint);
+  return await get(endpoint, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };
 
 export const sendFile = async (data) => {
