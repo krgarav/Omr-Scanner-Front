@@ -70,6 +70,8 @@ const UserManagment = () => {
       setLoading(false);
     }
   };
+
+  
   useEffect(() => {
     fetchUsers();
   }, [toggle]);

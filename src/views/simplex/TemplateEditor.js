@@ -29,6 +29,7 @@ const TemplateEditor = () => {
   const [baseUrl, setBaseUrl] = useState(null);
   const [showReferenceBox, setShowReferenceBox] = useState(false);
   const [referenceBoxes, setReferenceBoxes] = useState([]);
+  const [currentReferenceBox, setCurrentReferenceBox] = useState(null);
   const [box, setBox] = useState({
     x: 100,
     y: 100,
@@ -38,7 +39,7 @@ const TemplateEditor = () => {
   const buttonRef = useRef(null);
   const { Id } = useParams();
   const navigate = useNavigate();
-
+  console.log(currentReferenceBox);
   useEffect(() => {
     const fetchJsonData = async () => {
       try {
@@ -281,22 +282,20 @@ const TemplateEditor = () => {
     };
   };
 
-
-
   const getRefCoordinates = (boxes, imageRef) => {
-  const image = imageRef.current;
-  if (!image) return [];
+    const image = imageRef.current;
+    if (!image) return [];
 
-  const scaleX = image.naturalWidth / image.clientWidth;
-  const scaleY = image.naturalHeight / image.clientHeight;
+    const scaleX = image.naturalWidth / image.clientWidth;
+    const scaleY = image.naturalHeight / image.clientHeight;
 
-  return boxes.map((box) => ({
-    x: box.x * scaleX,
-    y: box.y * scaleY,
-    width: box.width * scaleX,
-    height: box.height * scaleY,
-  }));
-};
+    return boxes.map((box) => ({
+      x: Math.round(box.x * scaleX),
+      y: Math.round(box.y * scaleY),
+      width: Math.round(box.width * scaleX),
+      height: Math.round(box.height * scaleY),
+    }));
+  };
 
   const getBubbleCoordinates = (box, imageRef) => {
     const image = imageRef.current;
@@ -360,8 +359,18 @@ const TemplateEditor = () => {
     // console.log(boxes);
     const corner = getCornerCoordinates(box, imageRef);
     const coordinates = getRefCoordinates(referenceBoxes, imageRef);
-    console.log("gugiuk");
-    console.log(coordinates);
+    if (coordinates.length <= 3) {
+      toast.error("Please select all the reference boxes before saving.");
+      return;
+    }
+    const refBoxed = {
+      topLeft: coordinates[0],
+      topRight: coordinates[1],
+      bottomRight: coordinates[2],
+      bottomLeft: coordinates[3],
+    };
+
+    console.log(refBoxed);
     return;
     const mappedData = boxes.map((box, idx) => {
       return { ...box, bubbles: allBubbles[idx] };
@@ -422,6 +431,9 @@ const TemplateEditor = () => {
               size={{ width: box.width, height: box.height }}
               position={{ x: box.x, y: box.y }}
               tabIndex={0} // Make the div focusable
+              onClick={() => {
+                setCurrentReferenceBox(index);
+              }}
               onKeyDown={(e) => {
                 e.preventDefault(); // prevent page scroll
                 const step = 5; // pixels to move
@@ -468,7 +480,10 @@ const TemplateEditor = () => {
               }}
               bounds="parent"
               style={{
-                border: "2px solid #007bff",
+                border:
+                  currentReferenceBox !== index
+                    ? "2px solid #007bff"
+                    : "2px solid red",
                 backgroundColor: "transparent",
               }}
             />
@@ -567,21 +582,46 @@ const TemplateEditor = () => {
       </section>
 
       <div className="d-flex justify-content-center mt-2 z-9999">
-        <button
-          type="button"
-          className={`btn me-2 ${
-            showReferenceBox ? "btn-danger" : "btn-primary"
-          }`}
-          onClick={() => {
-            setReferenceBoxes((prev) => [
-              ...prev,
-              { width: 100, height: 100, x: 20, y: 30 }, // More visible size
-            ]);
-          }}
-        >
-          Add Reference Box
-          {/* {!showReferenceBox ? "Add Reference Box" : "Remove Reference Box"} */}
-        </button>
+        <div className="custom-control custom-switch">
+          <input
+            type="checkbox"
+            className="custom-control-input"
+            id="exampleCheck"
+            onChange={(e) => {
+              if (e.target.checked) {
+                setShowReferenceBox(true);
+              } else {
+                setShowReferenceBox(false);
+              }
+            }}
+          />
+          <label
+            className="custom-control-label text-dark"
+            htmlFor="exampleCheck"
+          >
+            {!showReferenceBox ? "Add Skew Marks" : "Remove Skew Marks"}
+          </label>
+        </div>
+        {showReferenceBox && (
+          <button
+            type="button"
+            className={`btn me-2 btn-primary`}
+            onClick={() => {
+              if (referenceBoxes.length > 4) {
+                toast.error("You can only add 4 reference boxes.");
+                return;
+              }
+              setReferenceBoxes((prev) => [
+                ...prev,
+                { width: 100, height: 100, x: 20, y: 30 }, // More visible size
+              ]);
+            }}
+          >
+            Add
+            {/* {!showReferenceBox ? "Add Reference Box" : "Remove Reference Box"} */}
+          </button>
+        )}
+
         <button
           type="button"
           className="btn btn-primary me-2"
