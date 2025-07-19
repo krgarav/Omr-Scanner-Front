@@ -22,11 +22,15 @@ const getBaseUrl = () => {
       return "https://localhost:82/";
     }
   };
-  return fetchDetails();
+  // return fetchDetails();
+
+
+ 
   // return "https://192.168.1.27/swagger/index.html";
-  // return "https://85djxdzn-5000.inc1.devtunnels.ms/";
+  return "https://rqjvqjq1-44388.inc1.devtunnels.ms/";
   // return "https://sb02kkq1-44388.inc1.devtunnels.ms/";
 
-  // return "https://sb02kkq1-44388.inc1.devtunnels.ms/";
+  // https://sb02kkq1-44388.inc1.devtunnels.ms/
+  // return "https://j1x5zj0t-44388.inc1.devtunnels.ms/";
 };
 export default getBaseUrl;

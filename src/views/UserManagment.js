@@ -62,9 +62,8 @@ const UserManagment = () => {
       setLoading(true);
       const data = await fetchAllUsers();
       setLoading(false);
-      console.log(data);
 
-      setAllUsers(data);
+      setAllUsers(data?.result || []);
     } catch (error) {
       console.log(error);
       toast.error("Something went wrong");
@@ -187,8 +186,6 @@ const UserManagment = () => {
   };
 
   const handleRowClick = (d) => {
-    // e.preventDefault();
-    console.log(d);
     setName(d.empName);
     setEmail(d.empEmail);
     setPhoneNumber(d.contact);

@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import { replace } from "lodash";
 import axios from "axios";
 import stripJsonComments from "strip-json-comments";
+import Moveable from "react-moveable";
 const TemplateEditor = () => {
   const [boxes, setBoxes] = useState([]);
   const [activeBox, setActiveBox] = useState(null);
@@ -27,6 +28,7 @@ const TemplateEditor = () => {
   const [paths, setPaths] = useState(null);
   const [baseUrl, setBaseUrl] = useState(null);
   const [showReferenceBox, setShowReferenceBox] = useState(false);
+  const [referenceBoxes, setReferenceBoxes] = useState([]);
   const [box, setBox] = useState({
     x: 100,
     y: 100,
@@ -80,8 +82,6 @@ const TemplateEditor = () => {
   useEffect(() => {
     const fetchTemplateData = async () => {
       const res = await getLayoutDataById(Id);
-      console.log(res.data);
-
       if (res) {
         setPaths(res.data);
       }
@@ -281,6 +281,23 @@ const TemplateEditor = () => {
     };
   };
 
+
+
+  const getRefCoordinates = (boxes, imageRef) => {
+  const image = imageRef.current;
+  if (!image) return [];
+
+  const scaleX = image.naturalWidth / image.clientWidth;
+  const scaleY = image.naturalHeight / image.clientHeight;
+
+  return boxes.map((box) => ({
+    x: box.x * scaleX,
+    y: box.y * scaleY,
+    width: box.width * scaleX,
+    height: box.height * scaleY,
+  }));
+};
+
   const getBubbleCoordinates = (box, imageRef) => {
     const image = imageRef.current;
     if (!image) return [];
@@ -342,8 +359,10 @@ const TemplateEditor = () => {
   const saveTemplate = async () => {
     // console.log(boxes);
     const corner = getCornerCoordinates(box, imageRef);
-
-    // return
+    const coordinates = getRefCoordinates(referenceBoxes, imageRef);
+    console.log("gugiuk");
+    console.log(coordinates);
+    return;
     const mappedData = boxes.map((box, idx) => {
       return { ...box, bubbles: allBubbles[idx] };
     });
@@ -373,7 +392,7 @@ const TemplateEditor = () => {
     }
   };
 
-  if (!paths) return;
+  // if (!paths) return;
 
   return (
     <div
@@ -397,7 +416,65 @@ const TemplateEditor = () => {
             transformOrigin: "top left", // Zoom from top-left
           }}
         >
-          {showReferenceBox && (
+          {referenceBoxes.map((box, index) => (
+            <Rnd
+              key={index}
+              size={{ width: box.width, height: box.height }}
+              position={{ x: box.x, y: box.y }}
+              tabIndex={0} // Make the div focusable
+              onKeyDown={(e) => {
+                e.preventDefault(); // prevent page scroll
+                const step = 5; // pixels to move
+                setReferenceBoxes((prev) => {
+                  const updated = [...prev];
+                  const current = updated[index];
+                  switch (e.key) {
+                    case "ArrowUp":
+                      updated[index] = { ...current, y: current.y - step };
+                      break;
+                    case "ArrowDown":
+                      updated[index] = { ...current, y: current.y + step };
+                      break;
+                    case "ArrowLeft":
+                      updated[index] = { ...current, x: current.x - step };
+                      break;
+                    case "ArrowRight":
+                      updated[index] = { ...current, x: current.x + step };
+                      break;
+                    default:
+                      return prev;
+                  }
+                  return updated;
+                });
+              }}
+              onDragStop={(e, d) => {
+                setReferenceBoxes((prev) => {
+                  const updated = [...prev];
+                  updated[index] = { ...updated[index], x: d.x, y: d.y };
+                  return updated;
+                });
+              }}
+              onResizeStop={(e, direction, ref, delta, position) => {
+                setReferenceBoxes((prev) => {
+                  const updated = [...prev];
+                  updated[index] = {
+                    ...updated[index],
+                    width: parseInt(ref.style.width, 10),
+                    height: parseInt(ref.style.height, 10),
+                    ...position,
+                  };
+                  return updated;
+                });
+              }}
+              bounds="parent"
+              style={{
+                border: "2px solid #007bff",
+                backgroundColor: "transparent",
+              }}
+            />
+          ))}
+
+          {/* {showReferenceBox && (
             <Rnd
               size={{ width: box.width, height: box.height }}
               position={{ x: box.x, y: box.y }}
@@ -418,10 +495,12 @@ const TemplateEditor = () => {
                 // zIndex: 999,
               }}
             ></Rnd>
-          )}
+          )} */}
           <img
             ref={imageRef}
-            src={`${baseUrl}${paths.imgPath}`}
+            // src={`${baseUrl}${paths.imgPath}`}
+            src="/1.jpg"
+            // src="https://res.cloudinary.com/dje269eh5/image/upload/v1722256788/omrimages/sjrna0xxsjzpdcrolyeb.jpg"
             alt="to crop"
             style={{
               display: "block",
@@ -494,10 +573,14 @@ const TemplateEditor = () => {
             showReferenceBox ? "btn-danger" : "btn-primary"
           }`}
           onClick={() => {
-            setShowReferenceBox((prev) => !prev);
+            setReferenceBoxes((prev) => [
+              ...prev,
+              { width: 100, height: 100, x: 20, y: 30 }, // More visible size
+            ]);
           }}
         >
-          {!showReferenceBox ? "Add Reference Box" : "Remove Reference Box"}
+          Add Reference Box
+          {/* {!showReferenceBox ? "Add Reference Box" : "Remove Reference Box"} */}
         </button>
         <button
           type="button"

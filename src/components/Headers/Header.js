@@ -10,28 +10,28 @@ import { Card, CardBody, CardTitle, Container, Row, Col } from "reactstrap";
 const Header = () => {
   const [jobCount, setJobCount] = useState(0);
   const [allUserCount, setAllUserCount] = useState(0);
-  const [allScanning,setAllScanning] = useState(0)
-   const [accuracy,setAccuracy] = useState(0)
+  const [allScanning, setAllScanning] = useState(0);
+  const [accuracy, setAccuracy] = useState(0);
   useEffect(() => {
     const fetchDetails = async () => {
       const resAllTemplate = await fetchAllTemplate();
       const allUsers = await fetchAllUsers();
-      const resScanning = await totalScanning()
-      const resAccuracy = await accuracyPercentage()
-      
+      const resScanning = await totalScanning();
+      const resAccuracy = await accuracyPercentage();
+      console.log(resScanning?.record);
 
-      if (resAllTemplate !== undefined &&resAllTemplate?.body?.length) {
+      if (resAllTemplate !== undefined && resAllTemplate?.body?.length) {
         setJobCount(resAllTemplate?.body?.length);
       }
-      if (allUsers !== undefined&&allUsers?.length) {
-       
-        setAllUserCount(allUsers?.length);
+      if (allUsers !== undefined && allUsers?.result?.length) {
+        setAllUserCount(allUsers?.result?.length || 0);
       }
-      if (resAccuracy !== undefined&&resAccuracy?.average_success) {
+      if (resAccuracy !== undefined && resAccuracy?.average_success) {
         setAccuracy(resAccuracy?.average_success);
       }
-      if(resScanning!==undefined){
-        setAllScanning(resScanning)
+      console.log(resAccuracy?.average_success);
+      if (resScanning !== undefined) {
+        setAllScanning(resScanning?.record);
       }
     };
     fetchDetails();
@@ -55,7 +55,7 @@ const Header = () => {
                           Total Sheets Scanned
                         </CardTitle>
                         <span className="h2 font-weight-bold mb-0">
-                         {allScanning}
+                          {allScanning}
                         </span>
                       </div>
                       <Col className="col-auto">
@@ -142,9 +142,11 @@ const Header = () => {
                           tag="h5"
                           className="text-uppercase text-muted mb-0"
                         >
-                         Accuracy Rate
+                          Accuracy Rate
                         </CardTitle>
-                        <span className="h2 font-weight-bold mb-0">{accuracy}</span>
+                        <span className="h2 font-weight-bold mb-0">
+                          {accuracy}
+                        </span>
                       </div>
                       <Col className="col-auto">
                         <div className="icon icon-shape bg-info text-white rounded-circle shadow">

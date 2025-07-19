@@ -195,8 +195,8 @@ const Template = () => {
     >
       <td>{i + 1}</td>
       <td>{d.fileName}</td>
-      {/* <td>{d.imgPath}</td>
-      <td>{d.jsonPath}</td>
+      <td>{d.createAt}</td>
+      {/* <td>{d.jsonPath}</td>
       <td>{"Omr Template"}</td> */}
       <td className="text-right">
         <UncontrolledDropdown>
@@ -212,9 +212,9 @@ const Template = () => {
           </DropdownToggle>
           <DropdownMenu className="dropdown-menu-arrow" right>
             <DropdownItem onClick={() => editHandler(d, i)}>Edit</DropdownItem>
-            <DropdownItem onClick={() => duplicateHandler(d)}>
+            {/* <DropdownItem onClick={() => duplicateHandler(d)}>
               Duplicate
-            </DropdownItem>
+            </DropdownItem> */}
             <DropdownItem
               style={{ color: "red" }}
               onClick={() => deleteHandler(d, i)}
@@ -305,8 +305,8 @@ const Template = () => {
                     <tr>
                       <th scope="col">SL no.</th>
                       <th scope="col">Template Name</th>
-                      {/* <th scope="col">Row</th>
-                      <th scope="col">Col</th>
+                      <th scope="col">Creation Date</th>
+                      {/* <th scope="col">Col</th>
                       <th scope="col">Bubble Type</th> */}
                       <th scope="col"></th>
                     </tr>
