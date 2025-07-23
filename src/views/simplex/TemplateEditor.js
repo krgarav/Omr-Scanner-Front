@@ -15,6 +15,13 @@ import { replace } from "lodash";
 import axios from "axios";
 import stripJsonComments from "strip-json-comments";
 import Moveable from "react-moveable";
+import ReferenceFieldModal from "modals/ReferenceFieldModal";
+const referenceOptions = [
+  { id: "topLeft", label: "Top Left" },
+  { id: "bottomLeft", label: "Bottom Left" },
+  { id: "topRight", label: "Top Right" },
+  { id: "bottomRight", label: "Bottom Right" },
+];
 const TemplateEditor = () => {
   const [boxes, setBoxes] = useState([]);
   const [activeBox, setActiveBox] = useState(null);
@@ -30,6 +37,8 @@ const TemplateEditor = () => {
   const [showReferenceBox, setShowReferenceBox] = useState(false);
   const [referenceBoxes, setReferenceBoxes] = useState([]);
   const [currentReferenceBox, setCurrentReferenceBox] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [options, setOptions] = useState(referenceOptions);
   const [box, setBox] = useState({
     x: 100,
     y: 100,
@@ -39,7 +48,7 @@ const TemplateEditor = () => {
   const buttonRef = useRef(null);
   const { Id } = useParams();
   const navigate = useNavigate();
-  console.log(currentReferenceBox);
+
   useEffect(() => {
     const fetchJsonData = async () => {
       try {
@@ -58,6 +67,7 @@ const TemplateEditor = () => {
           const fieldDetails = res?.data?.referenceCoordinate;
           if (fieldDetails && Object.keys(fieldDetails).length > 0) {
             setBox(fieldDetails);
+            setReferenceBoxes(fieldDetails);
             setShowReferenceBox(true);
           } else {
             setShowReferenceBox(false);
@@ -101,12 +111,32 @@ const TemplateEditor = () => {
           setActiveBox(null);
         }
       }
+      if (e.key === "Delete" && currentReferenceBox !== null) {
+        const res = window.confirm(
+          "Are you sure you want to delete this reference box?"
+        );
+        if (res) {
+          const refField = referenceBoxes[currentReferenceBox];
+          const selectedOption = refField?.position;
+
+          const removedOption = referenceOptions.find(
+            (option) => option.id === selectedOption
+          );
+
+          setOptions((prev) => [...prev, removedOption]);
+          setReferenceBoxes((prev) =>
+            prev.filter((_, i) => i !== currentReferenceBox)
+          );
+
+          setCurrentReferenceBox(null);
+        }
+      }
     };
     window.addEventListener("keydown", handledeleteKey);
     return () => {
       window.removeEventListener("keydown", handledeleteKey);
     };
-  }, [activeBox]);
+  }, [activeBox, currentReferenceBox]);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -290,6 +320,7 @@ const TemplateEditor = () => {
     const scaleY = image.naturalHeight / image.clientHeight;
 
     return boxes.map((box) => ({
+      position: box.position,
       x: Math.round(box.x * scaleX),
       y: Math.round(box.y * scaleY),
       width: Math.round(box.width * scaleX),
@@ -347,6 +378,22 @@ const TemplateEditor = () => {
     return bubbles;
   };
 
+  function transformPositions(arr) {
+    const result = {};
+
+    arr.forEach((item) => {
+      const key = item.position;
+      result[key] = {
+        x: item.x,
+        y: item.y,
+        width: item.width,
+        height: item.height,
+      };
+    });
+
+    return result;
+  }
+
   const allBubbles = boxes.map((box) => getBubbleCoordinates(box, imageRef));
 
   const zoomOut = () => {
@@ -356,32 +403,29 @@ const TemplateEditor = () => {
     setZoomScale((prev) => prev + 0.1);
   };
   const saveTemplate = async () => {
-    // console.log(boxes);
-    const corner = getCornerCoordinates(box, imageRef);
-    const coordinates = getRefCoordinates(referenceBoxes, imageRef);
-    if (coordinates.length <= 3) {
-      toast.error("Please select all the reference boxes before saving.");
-      return;
+    // const corner = getCornerCoordinates(box, imageRef);
+    let referenceField = [];
+    if (showReferenceBox) {
+      const coordinates = getRefCoordinates(referenceBoxes, imageRef);
+      if (coordinates.length <= 3) {
+        toast.error("Please select all the reference boxes before saving.");
+        return;
+      }
+      const refBoxed = transformPositions(coordinates);
+      referenceField = refBoxed;
+      console.log([refBoxed])
     }
-    const refBoxed = {
-      topLeft: coordinates[0],
-      topRight: coordinates[1],
-      bottomRight: coordinates[2],
-      bottomLeft: coordinates[3],
-    };
 
-    console.log(refBoxed);
-    return;
     const mappedData = boxes.map((box, idx) => {
       return { ...box, bubbles: allBubbles[idx] };
     });
     const obj = {
       name: paths.fileName,
       fields: mappedData,
-      referncefield: showReferenceBox ? [corner] : [],
-      referenceCoordinate: showReferenceBox ? box : {},
+      referncefield: showReferenceBox ? [referenceField] : [],
+      referenceCoordinate: showReferenceBox ? referenceBoxes : {},
     };
-    console.log(obj);
+   
     const jsonString = JSON.stringify(obj);
 
     // Optional: ensure the filename ends with `.json`
@@ -611,10 +655,12 @@ const TemplateEditor = () => {
                 toast.error("You can only add 4 reference boxes.");
                 return;
               }
-              setReferenceBoxes((prev) => [
-                ...prev,
-                { width: 100, height: 100, x: 20, y: 30 }, // More visible size
-              ]);
+
+              setModalOpen(true);
+              // setReferenceBoxes((prev) => [
+              //   ...prev,
+              //   { width: 100, height: 100, x: 20, y: 30 }, // More visible size
+              // ]);
             }}
           >
             Add
@@ -692,6 +738,21 @@ const TemplateEditor = () => {
           </Modal.Footer>
         </Modal>
       )}
+
+      <ReferenceFieldModal
+        show={modalOpen}
+        onClose={() => setModalOpen(false)}
+        options={options}
+        onSave={(selectedValue) => {
+          setOptions((prev) =>
+            prev.filter((option) => option.id !== selectedValue)
+          );
+          setReferenceBoxes((prev) => [
+            ...prev,
+            { position: selectedValue, width: 100, height: 100, x: 20, y: 30 }, // More visible size
+          ]);
+        }}
+      />
     </div>
   );
 };
