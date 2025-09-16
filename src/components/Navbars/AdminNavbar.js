@@ -61,7 +61,7 @@ const AdminNavbar = (props) => {
   return (
     <>
       <Navbar
-        className="navbar-top navbar-dark"
+        className="navbar-top navbar-dark position-fixed"
         expand="md"
         id="navbar-main"
         sticky="top"
@@ -70,13 +70,13 @@ const AdminNavbar = (props) => {
           <Form className="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
             {/* Search form content */}
           </Form>
-          <Nav className="align-items-center d-none d-md-flex" navbar>
+          <Nav className="align-items-center d-none d-md-flex " navbar>
             <UncontrolledDropdown nav>
               <DropdownToggle className="pr-0" nav>
-                <Media className="align-items-center">
+                <Media className="align-items-center position-fixed">
                   <i
-                    className="ni ni-single-02"
-                    style={{ fontSize: "2rem" }}
+                    className="ni ni-single-02 "
+                    style={{ fontSize: "1rem" }}
                   ></i>
                   <Media className="ml-2 d-none d-lg-block">
                     <span className="mb-0 text-sm font-weight-bold">
