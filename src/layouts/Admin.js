@@ -85,7 +85,7 @@ const Admin = (props) => {
         }}
       />
       <div className="main-content" ref={mainContent}>
-        <div style={{ position: "sticky", top: 0, zIndex: 999 }}>
+        <div style={{ position: "fixed", top: 0, zIndex: 999 }}>
           <AdminNavbar
             {...props}
             brandText={getBrandText(props?.location?.pathname)}

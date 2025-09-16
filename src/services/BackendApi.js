@@ -27,8 +27,8 @@ const getBaseUrl = () => {
 
  
   // return "https://192.168.1.27/swagger/index.html";
-  return "https://rqjvqjq1-44388.inc1.devtunnels.ms/";
-  // return "https://sb02kkq1-44388.inc1.devtunnels.ms/";
+  return "https://3g40jt7l-44388.inc1.devtunnels.ms/";
+  // return "http://192.168.1.60:4000/";
 
   // https://sb02kkq1-44388.inc1.devtunnels.ms/
   // return "https://j1x5zj0t-44388.inc1.devtunnels.ms/";
