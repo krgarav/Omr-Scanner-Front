@@ -20,13 +20,13 @@ const referenceOptions = [
 ];
 
 const TemplateEditor = () => {
-  // Core states (kept from your original)
+  // Core states
   const [boxes, setBoxes] = useState([]);
   const [activeBox, setActiveBox] = useState(null);
   const [currentBoxData, setCurrentBoxData] = useState(null);
   const imageRef = useRef(null);
   const [trigger, setTrigger] = useState(false);
-  const [zoomScale, setZoomScale] = useState(1); // user-controlled zoom multiplier
+  const [zoomScale, setZoomScale] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
   const [paths, setPaths] = useState(null);
   const [baseUrl, setBaseUrl] = useState(null);
@@ -40,16 +40,14 @@ const TemplateEditor = () => {
   const { Id } = useParams();
   const navigate = useNavigate();
 
-  // NEW: image natural size and base display size
-  // natural = image's real pixel size (image.naturalWidth)
-  // baseDisplay = the displayed size when zoomScale === 1
+  // Image natural size and base display size
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
   const [baseDisplaySize, setBaseDisplaySize] = useState({
     width: 0,
     height: 0,
   });
 
-  // Fetch baseUrl and template paths (unchanged)
+  // Fetch baseUrl and template paths
   useEffect(() => {
     const fetchData = async () => {
       const baseUrl = await getBaseUrl();
@@ -66,7 +64,7 @@ const TemplateEditor = () => {
     if (Id) fetchTemplateData();
   }, [Id]);
 
-  // When we have paths + baseUrl, fetch JSON fields
+  // Fetch JSON fields
   useEffect(() => {
     const fetchJsonData = async () => {
       try {
@@ -84,25 +82,23 @@ const TemplateEditor = () => {
           const field = res?.data?.fields || [];
           const fieldDetails = res?.data?.referenceCoordinate;
           if (fieldDetails && Object.keys(fieldDetails).length > 0) {
-            // fieldDetails should already be in natural px
             setReferenceBoxes(fieldDetails);
             setShowReferenceBox(true);
           } else {
             setShowReferenceBox(false);
           }
-          // assume `field` array is in natural px coords
           setBoxes(field || []);
         }
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching JSON data:", error);
       }
     };
     if (paths && baseUrl) fetchJsonData();
   }, [paths, baseUrl]);
 
-  // Delete key handling (keeps original logic)
+  // Delete key handling
   useEffect(() => {
-    const handledeleteKey = (e) => {
+    const handleDeleteKey = (e) => {
       if (e.key === "Delete" && activeBox !== null) {
         const res = window.confirm("Are you sure you want to delete this box?");
         if (res) {
@@ -128,67 +124,67 @@ const TemplateEditor = () => {
         }
       }
     };
-    window.addEventListener("keydown", handledeleteKey);
-    return () => window.removeEventListener("keydown", handledeleteKey);
+    window.addEventListener("keydown", handleDeleteKey);
+    return () => window.removeEventListener("keydown", handleDeleteKey);
   }, [activeBox, currentReferenceBox, referenceBoxes]);
 
-  // Update baseDisplaySize when image loads or window resizes.
-  // baseDisplaySize represents the image display width/height at zoomScale === 1
+  // Update baseDisplaySize on image load or window resize
   useEffect(() => {
     const updateBase = () => {
       const img = imageRef.current;
       if (!img || !img.naturalWidth) return;
-      // current clientWidth is the displayed width at current zoom.
-      // baseDisplay = clientWidth / zoomScale
       const clientW = img.clientWidth;
       const clientH = img.clientHeight;
       const baseW = clientW / (zoomScale || 1);
       const baseH = clientH / (zoomScale || 1);
+      console.log(
+        `Updating baseDisplaySize: client=${clientW}x${clientH}, base=${baseW}x${baseH}, zoomScale=${zoomScale}`
+      );
       setBaseDisplaySize({ width: baseW, height: baseH });
     };
 
-    // initial set if already loaded
     updateBase();
     window.addEventListener("resize", updateBase);
     return () => window.removeEventListener("resize", updateBase);
-  }, [zoomScale, paths, baseUrl]); // re-run when zoomScale or image source changes
+  }, [zoomScale, paths, baseUrl]);
 
-  // onLoad handler to capture natural size + base display size
+  // Handle image load to set natural and base display sizes
   const handleImageLoad = (e) => {
     const img = e.target;
     const naturalW = img.naturalWidth || 0;
     const naturalH = img.naturalHeight || 0;
-    // what the image currently displays as (may already be scaled by zoomScale)
     const clientW = img.clientWidth;
     const clientH = img.clientHeight;
-
-    // base display (the display size assuming zoomScale === 1)
     const baseW = clientW / (zoomScale || 1);
     const baseH = clientH / (zoomScale || 1);
-
+    console.log(
+      `Image loaded: natural=${naturalW}x${naturalH}, client=${clientW}x${clientH}, base=${baseW}x${baseH}, zoomScale=${zoomScale}`
+    );
     setNaturalSize({ width: naturalW, height: naturalH });
     setBaseDisplaySize({ width: baseW, height: baseH });
   };
 
-  // Effective scale from natural -> displayed px:
-  // effectiveScale = (baseDisplayWidth / naturalWidth) * zoomScale
-  // (baseDisplayWidth/naturalWidth) is the display / natural ratio at zoomScale 1
+  // Calculate effective scale
   const effectiveScale = useMemo(() => {
     if (!naturalSize.width || !baseDisplaySize.width) return zoomScale;
-    return (baseDisplaySize.width / naturalSize.width) * zoomScale;
+    const scale = (baseDisplaySize.width / naturalSize.width) * zoomScale;
+    console.log(
+      `effectiveScale: ${scale}, naturalSize: ${naturalSize.width}x${naturalSize.height}, baseDisplaySize: ${baseDisplaySize.width}x${baseDisplaySize.height}, zoomScale: ${zoomScale}`
+    );
+    return scale;
   }, [naturalSize, baseDisplaySize, zoomScale]);
 
-  // Helper: updateBox in natural px (unchanged)
+  // Update box in natural pixels
   const updateBox = (index, newProps) => {
     setBoxes((prev) => {
       const copy = [...prev];
       copy[index] = { ...copy[index], ...newProps };
+      console.log(`Updated box ${index}:`, copy[index]);
       return copy;
     });
   };
 
   const addBox = () => {
-    // Add in natural px (choose sizes that make sense for your natural image)
     setBoxes((prev) => [
       ...prev,
       {
@@ -207,9 +203,7 @@ const TemplateEditor = () => {
     setBoxes((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- Helpers that now assume `boxes` & `referenceBoxes` are in NATURAL px ---
-
-  // getCornerCoordinates: returns four corner boxes in NATURAL px
+  // Get corner coordinates in natural pixels
   const getCornerCoordinates = (box) => {
     const { x, y, width, height } = box;
     return {
@@ -220,7 +214,7 @@ const TemplateEditor = () => {
     };
   };
 
-  // getRefCoordinates: simply sanitize/round referenceBoxes (NATURAL px)
+  // Sanitize reference box coordinates
   const getRefCoordinates = (boxes) => {
     if (!boxes || boxes.length === 0) return [];
     return boxes.map((box) => ({
@@ -232,40 +226,45 @@ const TemplateEditor = () => {
     }));
   };
 
-  // getBubbleCoordinates: returns bubble positions in NATURAL px
+  // Calculate bubble coordinates using center + radius → bounding box
   const getBubbleCoordinates = (box) => {
     if (!box) return [];
-    const rows = box.totalRow;
-    const cols = box.totalCol;
-    if (!rows || !cols || rows <= 0 || cols <= 0) return [];
+    const { x, y, width, height, totalRow, totalCol } = box;
+    if (!totalRow || !totalCol || totalRow <= 0 || totalCol <= 0) return [];
 
-    const scaledInnerX = box.x; // NATURAL px
-    const scaledInnerY = box.y; // NATURAL px
-    const cellWidth = box.width / cols; // NATURAL px per grid cell
-    const cellHeight = box.height / rows; // NATURAL px per grid cell
-
-    // Bubble diameter should fit inside the smaller of cellWidth/cellHeight
-    const diameter = Math.min(cellWidth, cellHeight) * 0.8; // 80% of the cell for padding
-    const radius = diameter / 2;
+    const cellWidth = width / totalCol;
+    const cellHeight = height / totalRow;
+    const radius = Math.min(cellWidth, cellHeight) * 0.3; // radius = 30% of smaller dimension
 
     const bubbles = [];
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        // center of each cell
-        const centerX = scaledInnerX + col * cellWidth + cellWidth / 2;
-        const centerY = scaledInnerY + row * cellHeight + cellHeight / 2;
+    for (let row = 0; row < totalRow; row++) {
+      for (let col = 0; col < totalCol; col++) {
+        // Bubble center (cx, cy)
+        const cx = x + col * cellWidth + cellWidth / 2;
+        const cy = y + row * cellHeight + cellHeight / 2;
 
-        // bounding box of the bubble (circle fits inside)
-        bubbles.push({
-          x: Math.round(centerX - radius),
-          y: Math.round(centerY - radius),
-          width: Math.round(diameter),
-          height: Math.round(diameter),
+        // Bounding box from center and radius
+        const bubble = {
+          x: Math.round(cx - radius), // top-left x
+          y: Math.round(cy - radius), // top-left y
+          width: Math.round(radius * 2),
+          height: Math.round(radius * 2),
           row,
           col,
-        });
+        };
+
+        bubbles.push(bubble);
+
+        // console.log(
+        //   `Bubble (${row}, ${col}): center=(${bubble.cx}, ${bubble.cy}), r=${bubble.r}, box=(${bubble.x}, ${bubble.y}, ${bubble.width}x${bubble.height})`
+        // );
       }
     }
+
+    // console.log(
+    //   `Box at (${x}, ${y}), size: ${width}x${height}, grid: ${totalCol}x${totalRow}, cell: ${cellWidth}x${cellHeight}, radius: ${radius}`
+    // );
+
     return bubbles;
   };
 
@@ -292,7 +291,7 @@ const TemplateEditor = () => {
     setZoomScale((prev) => +(prev + 0.1).toFixed(2));
   };
 
-  // Save template (boxes & referenceBoxes are already NATURAL px)
+  // Save template
   const saveTemplate = async () => {
     let referenceField = [];
     if (showReferenceBox) {
@@ -304,9 +303,12 @@ const TemplateEditor = () => {
       const refBoxed = transformPositions(coordinates);
       referenceField = refBoxed;
     }
+    
 
     const mappedData = boxes.map((box, idx) => {
-      return { ...box, bubbles: allBubbles[idx] || [] };
+      const bubbles = getBubbleCoordinates(box);
+      console.log(`Saving box ${idx}:`, { ...box, bubbles });
+      return { ...box, bubbles };
     });
 
     const obj = {
@@ -332,8 +334,7 @@ const TemplateEditor = () => {
     }
   };
 
-  // Render logic
-  // Compute container dimensions for display: baseDisplay * zoomScale
+  // Compute container dimensions
   const containerDisplayWidth = baseDisplaySize.width
     ? Math.round(baseDisplaySize.width * zoomScale)
     : undefined;
@@ -368,7 +369,7 @@ const TemplateEditor = () => {
             marginBottom: "100px",
           }}
         >
-          {/* Reference Boxes (rendered in DISPLAY px) */}
+          {/* Reference Boxes */}
           {referenceBoxes.map((box, index) => {
             const displayX = Math.round(box.x * effectiveScale);
             const displayY = Math.round(box.y * effectiveScale);
@@ -384,7 +385,7 @@ const TemplateEditor = () => {
                 onClick={() => setCurrentReferenceBox(index)}
                 onKeyDown={(e) => {
                   e.preventDefault();
-                  const stepNatural = 5; // natural px step
+                  const stepNatural = 5;
                   setReferenceBoxes((prev) => {
                     const updated = [...prev];
                     const current = updated[index];
@@ -416,33 +417,49 @@ const TemplateEditor = () => {
                       default:
                         return prev;
                     }
+                    console.log(
+                      `Reference box ${index} moved to:`,
+                      updated[index]
+                    );
                     return updated;
                   });
                 }}
                 onDragStop={(e, d) => {
+                  const naturalX = Math.round(d.x / effectiveScale);
+                  const naturalY = Math.round(d.y / effectiveScale);
+                  console.log(
+                    `Reference box ${index} dragged to display: (${d.x}, ${d.y}), natural: (${naturalX}, ${naturalY}), effectiveScale: ${effectiveScale}`
+                  );
                   setReferenceBoxes((prev) => {
                     const updated = [...prev];
                     updated[index] = {
                       ...updated[index],
-                      x: Math.round(d.x / effectiveScale),
-                      y: Math.round(d.y / effectiveScale),
+                      x: naturalX,
+                      y: naturalY,
                     };
                     return updated;
                   });
                 }}
                 onResizeStop={(e, direction, ref, delta, position) => {
+                  const naturalW = Math.round(
+                    parseInt(ref.style.width, 10) / effectiveScale
+                  );
+                  const naturalH = Math.round(
+                    parseInt(ref.style.height, 10) / effectiveScale
+                  );
+                  const naturalX = Math.round(position.x / effectiveScale);
+                  const naturalY = Math.round(position.y / effectiveScale);
+                  console.log(
+                    `Reference box ${index} resized to natural: (${naturalX}, ${naturalY}, ${naturalW}, ${naturalH}), effectiveScale: ${effectiveScale}`
+                  );
                   setReferenceBoxes((prev) => {
                     const updated = [...prev];
                     updated[index] = {
                       ...updated[index],
-                      width: Math.round(
-                        parseInt(ref.style.width, 10) / effectiveScale
-                      ),
-                      height: Math.round(
-                        parseInt(ref.style.height, 10) / effectiveScale
-                      ),
-                      x: Math.round(position.x / effectiveScale),
-                      y: Math.round(position.y / effectiveScale),
+                      width: naturalW,
+                      height: naturalH,
+                      x: naturalX,
+                      y: naturalY,
                     };
                     return updated;
                   });
@@ -459,7 +476,7 @@ const TemplateEditor = () => {
             );
           })}
 
-          {/* Image (rendered at baseDisplay * zoomScale) */}
+          {/* Image */}
           <img
             ref={imageRef}
             src={`${baseUrl}${paths?.imgPath}`}
@@ -478,12 +495,16 @@ const TemplateEditor = () => {
             }}
           />
 
-          {/* Field boxes (rendered in DISPLAY px using effectiveScale) */}
+          {/* Field Boxes */}
           {boxes.map((box, index) => {
             const displayX = Math.round(box.x * effectiveScale);
             const displayY = Math.round(box.y * effectiveScale);
             const displayW = Math.round(box.width * effectiveScale);
             const displayH = Math.round(box.height * effectiveScale);
+            const cellDisplayWidth = displayW / box.totalCol;
+            const cellDisplayHeight = displayH / box.totalRow;
+            const bubbleDisplaySize =
+              Math.min(cellDisplayWidth, cellDisplayHeight) * 0.8;
 
             return (
               <Rnd
@@ -491,21 +512,52 @@ const TemplateEditor = () => {
                 size={{ width: displayW, height: displayH }}
                 position={{ x: displayX, y: displayY }}
                 onDragStop={(e, d) => {
+                  const naturalX = Math.round(d.x / effectiveScale);
+                  const naturalY = Math.round(d.y / effectiveScale);
+                  console.log(
+                    `Box ${index} dragged to display: (${d.x}, ${d.y}), natural: (${naturalX}, ${naturalY}), effectiveScale: ${effectiveScale}`
+                  );
                   updateBox(index, {
-                    x: Math.round(d.x / effectiveScale),
-                    y: Math.round(d.y / effectiveScale),
+                    x: naturalX,
+                    y: naturalY,
+                  });
+                }}
+                onResize={(e, direction, ref, delta, position) => {
+                  const naturalW = Math.round(
+                    parseInt(ref.style.width, 10) / effectiveScale
+                  );
+                  const naturalH = Math.round(
+                    parseInt(ref.style.height, 10) / effectiveScale
+                  );
+                  const naturalX = Math.round(position.x / effectiveScale);
+                  const naturalY = Math.round(position.y / effectiveScale);
+                  console.log(
+                    `Box ${index} resizing to natural: (${naturalX}, ${naturalY}, ${naturalW}, ${naturalH}), effectiveScale: ${effectiveScale}`
+                  );
+                  updateBox(index, {
+                    width: naturalW,
+                    height: naturalH,
+                    x: naturalX,
+                    y: naturalY,
                   });
                 }}
                 onResizeStop={(e, direction, ref, delta, position) => {
+                  const naturalW = Math.round(
+                    parseInt(ref.style.width, 10) / effectiveScale
+                  );
+                  const naturalH = Math.round(
+                    parseInt(ref.style.height, 10) / effectiveScale
+                  );
+                  const naturalX = Math.round(position.x / effectiveScale);
+                  const naturalY = Math.round(position.y / effectiveScale);
+                  console.log(
+                    `Box ${index} resized to natural: (${naturalX}, ${naturalY}, ${naturalW}, ${naturalH}), effectiveScale: ${effectiveScale}`
+                  );
                   updateBox(index, {
-                    width: Math.round(
-                      parseInt(ref.style.width, 10) / effectiveScale
-                    ),
-                    height: Math.round(
-                      parseInt(ref.style.height, 10) / effectiveScale
-                    ),
-                    x: Math.round(position.x / effectiveScale),
-                    y: Math.round(position.y / effectiveScale),
+                    width: naturalW,
+                    height: naturalH,
+                    x: naturalX,
+                    y: naturalY,
                   });
                 }}
                 bounds="parent"
@@ -526,36 +578,42 @@ const TemplateEditor = () => {
                     position: "relative",
                   }}
                 >
-                  {Array.from({ length: box.totalRow }).map((_, rowIdx) => (
-                    <div
-                      key={rowIdx}
-                      style={{
-                        display: "flex",
-                        gap: `${box.gap}px`,
-                        alignItems: "center",
-                        width: "100%",
-                        height: `${100 / box.totalRow}%`,
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      {Array.from({ length: box.totalCol }).map((_, colIdx) => (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: `repeat(${box.totalCol}, ${cellDisplayWidth}px)`,
+                      gridTemplateRows: `repeat(${box.totalRow}, ${cellDisplayHeight}px)`,
+                      width: `${displayW}px`,
+                      height: `${displayH}px`,
+                      border: "1px solid black",
+                    }}
+                  >
+                    {Array.from({ length: box.totalRow * box.totalCol }).map(
+                      (_, idx) => (
                         <div
-                          key={colIdx}
+                          key={idx}
                           style={{
-                            aspectRatio: "1",
-                            width: `calc((100% - ${
-                              (box.totalCol - 1) * box.gap
-                            }px) / ${box.totalCol})`,
-                            height: "80%",
-                            borderRadius: "50%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                             border: "1px solid black",
-                            backgroundColor: "transparent",
-                            boxSizing: "border-box",
+                            minWidth: 0,
+                            minHeight: 0,
                           }}
-                        />
-                      ))}
-                    </div>
-                  ))}
+                        >
+                          <div
+                            style={{
+                              width: `${bubbleDisplaySize}px`,
+                              height: `${bubbleDisplaySize}px`,
+                              borderRadius: "50%",
+                              border: "1px solid black",
+                              backgroundColor: "transparent",
+                            }}
+                          />
+                        </div>
+                      )
+                    )}
+                  </div>
 
                   <button
                     onClick={() => removeBox(index)}
@@ -585,7 +643,7 @@ const TemplateEditor = () => {
           })}
         </div>
 
-        {/* Right-side floating form editor for activeBox */}
+        {/* Form Editor */}
         <div>
           {activeBox !== null && (
             <Rnd
@@ -636,8 +694,8 @@ const TemplateEditor = () => {
 
       {/* Controls */}
       <div className="d-flex w-100 position-fixed bottom-0 bg-white z-9999">
-        <div className="d-flex justify-content-around p-2 bg-white  w-75 bottom-0">
-          <div className="custom-control custom-switch ">
+        <div className="d-flex justify-content-around p-2 bg-white w-75 bottom-0">
+          <div className="custom-control custom-switch">
             <input
               type="checkbox"
               className="custom-control-input"
@@ -653,12 +711,12 @@ const TemplateEditor = () => {
             </label>
           </div>
 
-          {showReferenceBox && (
+          {showReferenceBox && referenceBoxes.length <= 4 && (
             <button
               type="button"
               className="btn me-2 btn-primary"
               onClick={() => {
-                if (referenceBoxes.length > 4) {
+                if (referenceBoxes.length >= 4) {
                   toast.error("You can only add 4 reference boxes.");
                   return;
                 }
@@ -702,7 +760,7 @@ const TemplateEditor = () => {
         </div>
       </div>
 
-      {/* Add Box modal (draggable) */}
+      {/* Add Box Modal */}
       {isOpen && (
         <Rnd
           default={{ x: 100, y: 100, width: 400, height: "auto" }}
@@ -759,7 +817,6 @@ const TemplateEditor = () => {
           setOptions((prev) =>
             prev.filter((option) => option.id !== selectedValue)
           );
-          // Added in NATURAL px coordinates (choose sensible defaults)
           setReferenceBoxes((prev) => [
             ...prev,
             { position: selectedValue, width: 100, height: 100, x: 20, y: 30 },
