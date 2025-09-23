@@ -43,6 +43,7 @@ import { resumeScanning } from "helper/Booklet32Page_helper";
 import { getLayoutDataById } from "helper/TemplateHelper";
 import ZoomViewer from "components/ZoomView";
 import { getLastScannedFiles } from "helper/Booklet32Page_helper";
+import { useScan } from "context/ScanningContext";
 function emptyMessageTemplate() {
   return (
     <div className="text-center">
@@ -59,6 +60,14 @@ function emptyMessageTemplate() {
 }
 let num = JSON.parse(localStorage.getItem("lastSerialNo"), 10) || 1;
 const AdminScanJob = () => {
+  const {
+    isScanning,
+    isPausedContext,
+    isStarting,
+    setIsScanning,
+    setIsPausedContext,
+    setIsStarting,
+  } = useScan();
   const [count, setCount] = useState(true);
   const [processedData, setProcessedData] = useState([]);
   const [scanning, setScanning] = useState(false);
@@ -101,6 +110,20 @@ const AdminScanJob = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const serialRef = useRef();
+  const isStartingRef = useRef(false);
+  const isTogglingRef = useRef(false);
+
+  //debounce function
+
+  function debounce(func, delay = 500) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -482,6 +505,26 @@ const AdminScanJob = () => {
     // gridRef.current.refresh();
     // }
   };
+  const handlePause = async () => {
+    try {
+      await pauseScanning();
+      setIsPaused(true);
+      toast.warning("Scanning paused");
+    } catch (error) {
+      console.error("Error pausing scan:", error);
+      toast.error("Failed to pause scanning");
+    }
+  };
+  const handleResume = async () => {
+    try {
+      await resumeScanning();
+      setIsPaused(false);
+      toast.info("Scanning resumed");
+    } catch (error) {
+      console.error("Error resuming scan:", error);
+      toast.error("Failed to resume scanning");
+    }
+  };
 
   const handleToolbarClick = (args) => {
     if (args.item.id.includes("excelexport")) {
@@ -513,6 +556,10 @@ const AdminScanJob = () => {
       toast.error("Failed to toggle scanning state");
     }
   };
+  const debouncedStart = useRef(debounce(handleStart, 500)).current;
+  const debouncedResume = useRef(debounce(handleResume, 500)).current;
+  const debouncedPause = useRef(debounce(handlePause, 500)).current;
+  // const debouncedStop = useRef(debounce(handleStop, 500)).current;
   const columnsDirective = headData.map((item, index) => {
     return (
       <ColumnDirective
@@ -724,6 +771,9 @@ const AdminScanJob = () => {
     setIsViewerOpen(false);
     console.log("Image viewer closed");
   };
+
+  setIsScanning(scanning)
+  setIsPausedContext(isPaused)
   return (
     <>
       <NormalHeader />
@@ -736,7 +786,8 @@ const AdminScanJob = () => {
         }}
       >
         <nav
-          style={{ "--bs-breadcrumb-divider": "'>'" }}
+          style={{ "--bs-breadcrumb-divider": "'>'",pointerEvents: scanning? "none" : "auto",
+            opacity: scanning ? 0.5:1 }}
           aria-label="breadcrumb"
         >
           <ol className="breadcrumb" style={{ fontSize: "0.8rem" }}>
@@ -757,10 +808,15 @@ const AdminScanJob = () => {
           zIndex: "999",
         }}
       >
-        <Button variant="primary" onClick={completeJobHandler}>
+        <Button
+          variant="primary"
+          disabled={scanning}
+          onClick={completeJobHandler}
+        >
           Complete Job
         </Button>
       </div>
+
       <Container className={isSmallScreen ? "mt--6" : "mt--8"} fluid>
         <br />
         <div style={{ position: "relative" }}>
@@ -775,7 +831,7 @@ const AdminScanJob = () => {
               position: "absolute",
               top: 10,
               right: 10,
-              zIndex: 999,
+              zIndex: 99,
               width: "200px", // optional: to make it look nicer
             }}
           >
@@ -853,7 +909,6 @@ const AdminScanJob = () => {
                   <h5 style={{ margin: 0 }}>Image Viewer</h5>
                 </div>
 
-                {/* Close button OUTSIDE of drag handle */}
                 <button
                   onClick={closeImageViewer}
                   style={{
@@ -891,7 +946,7 @@ const AdminScanJob = () => {
             <Button
               className="mt-2"
               color={"info"}
-              disabled={isRefreshing}
+              disabled={isRefreshing || scanning}
               onClick={handleRefreshData}
             >
               Refresh Data
@@ -906,23 +961,22 @@ const AdminScanJob = () => {
 
             <div className="m-2" style={{ float: "right" }}>
               <Button
-                className=""
-                color={"success"}
-                type="button"
-                onClick={handleStart}
-                disabled={scanning || starting ? true : false}
+                color="success"
+                onClick={debouncedStart}
+                disabled={starting || scanning}
               >
-                {starting && !scanning && "Starting"}
-                {!starting && !scanning && "Start"}
-                {scanning && "Scanning"}
+                {starting ? "Starting…" : scanning ? "Scanning" : "Start"}
               </Button>
-              {scanning && (
-                <Button
-                  color={!isPaused ? "warning" : "info"}
-                  type="button"
-                  onClick={handleStop}
-                >
-                  {!isPaused ? "Pause Scanning" : "Resume Scanning"}
+
+              {scanning && !isPaused && (
+                <Button color="warning" onClick={debouncedPause}>
+                  Pause
+                </Button>
+              )}
+
+              {scanning && isPaused && (
+                <Button color="info" onClick={debouncedResume}>
+                  Resume
                 </Button>
               )}
             </div>
@@ -946,6 +1000,8 @@ const AdminScanJob = () => {
             marginTop: "auto", // Push to bottom
             display: "flex",
             justifyContent: "center", // Center horizontally
+            pointerEvents: scanning? "none" : "auto",
+            opacity: scanning ? 0.5:1
           }}
         >
           <RecognizationBtn

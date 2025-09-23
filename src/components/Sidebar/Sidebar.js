@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink as NavLinkRRD, Link, useLocation } from "react-router-dom";
 // nodejs library to set properties for components
 import { PropTypes } from "prop-types";
+import { toast } from "react-toastify";
+import { useScan } from "context/ScanningContext";
 
 // reactstrap components
 import {
@@ -38,6 +40,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 var ps;
 
 const Sidebar = (props) => {
+  const {isScanning,isPausedContext} = useScan()
   const [collapseOpen, setCollapseOpen] = useState();
   const sidebarRef = useRef(null);
   // verifies if routeName is the one active (in browser input)
@@ -54,22 +57,33 @@ const Sidebar = (props) => {
     setCollapseOpen(false);
   };
   // creates the links that appear in the left menu / Sidebar
-  const createLinks = (routes) => {
-    return routes.map((prop, key) => {
-      return (
-        <NavItem key={key}>
-          <NavLink
-            to={prop.layout + prop.path}
-            tag={NavLinkRRD}
-            onClick={closeCollapse}
-          >
-            <i className={prop.icon} />
-            {prop.name}
-          </NavLink>
-        </NavItem>
-      );
-    });
-  };
+ const createLinks = (routes) => {
+  return routes.map((prop, key) => {
+    return (
+      <NavItem key={key}>
+        <NavLink
+          to={isScanning ? "#" : prop.layout + prop.path} // ✅ block navigation if scanning
+          tag={NavLinkRRD}
+          onClick={(e) => {
+            if (isScanning&&!isPausedContext) {
+              e.preventDefault(); // prevent routing
+              toast.info("Pasue the scanning to navigate")
+            }
+            closeCollapse();
+          }}
+          style={{
+            opacity: isScanning&&!isPausedContext ? 0.5 : 1,        // visually dim
+            cursor: isScanning&&!isPausedContext ? "not-allowed" : "pointer",
+            // pointerEvents: isScanning&&!isPausedContext ? "none" : "auto", // block clicks
+          }}
+        >
+          <i className={prop.icon} />
+          {prop.name}
+        </NavLink>
+      </NavItem>
+    );
+  });
+};
 
   const { bgColor, routes, logo } = props;
   let navbarBrandProps;
