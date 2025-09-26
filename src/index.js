@@ -28,6 +28,7 @@ import "../node_modules/@syncfusion/ej2-splitbuttons/styles/material.css";
 import "../node_modules/@syncfusion/ej2-notifications/styles/material.css";
 import "../node_modules/@syncfusion/ej2-react-grids/styles/material.css";
 import App from "App";
+import {ScanProvider} from './context/ScanningContext'
 registerLicense(
   "Ngo9BigBOggjHTQxAR8/V1NCaF5cXmZCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdnWXhdcHRVQmVeV0F3Wks="
 );
@@ -36,9 +37,12 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
   <BrowserRouter>
+  <ScanProvider>
     <DataProvider>
       <App />
       <ToastContainer />
     </DataProvider>
+    
+   </ScanProvider>
   </BrowserRouter>
 );

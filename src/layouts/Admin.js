@@ -38,8 +38,13 @@ import AdminScanJob from "views/AdminScanJob";
 import DesignTemplate from "views/simplex/DesignTemplate";
 import EditDesignTemplate from "views/simplex/EditDesignTemplate";
 import TemplateEditor from "views/simplex/TemplateEditor";
+import { useScan } from "context/ScanningContext";
 
 const Admin = (props) => {
+  const {
+    isScanning,
+    
+  } = useScan();
   const mainContent = React.useRef(null);
   const location = useLocation();
  
@@ -48,7 +53,7 @@ const Admin = (props) => {
     document.scrollingElement.scrollTop = 0;
     mainContent.current.scrollTop = 0;
   }, [location]);
-
+console.log(isScanning)
   const getRoutes = (routes) => {
     return routes.map((prop, key) => {
       if (prop.layout === "/admin") {
@@ -56,7 +61,7 @@ const Admin = (props) => {
           <Route path={prop.path} element={prop.component} key={key} exact />
         );
       } else {
-        return null;
+        return null
       }
     });
   };

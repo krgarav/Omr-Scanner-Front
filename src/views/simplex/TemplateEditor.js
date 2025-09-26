@@ -98,35 +98,42 @@ const TemplateEditor = () => {
 
   // Delete key handling
   useEffect(() => {
-    const handleDeleteKey = (e) => {
-      if (e.key === "Delete" && activeBox !== null) {
-        const res = window.confirm("Are you sure you want to delete this box?");
-        if (res) {
-          setBoxes((prev) => prev.filter((_, i) => i !== activeBox));
-          setActiveBox(null);
-        }
+  const handleDeleteKey = (e) => {
+    // Delete Field Box
+    if (e.key === "Delete" && activeBox !== null) {
+      const res = window.confirm("Are you sure you want to delete this box?");
+      if (res) {
+        setBoxes((prev) => prev.filter((_, i) => i !== activeBox));
+        setActiveBox(null);
       }
-      if (e.key === "Delete" && currentReferenceBox !== null) {
-        const res = window.confirm(
-          "Are you sure you want to delete this reference box?"
+    }
+
+    // Delete Reference Box
+    if (e.key === "Delete" && currentReferenceBox !== null) {
+      const res = window.confirm(
+        "Are you sure you want to delete this reference box?"
+      );
+      if (res) {
+        // Remove the selected reference box
+        const updatedBoxes = referenceBoxes.filter(
+          (_, i) => i !== currentReferenceBox
         );
-        if (res) {
-          const refField = referenceBoxes[currentReferenceBox];
-          const selectedOption = refField?.position;
-          const removedOption = referenceOptions.find(
-            (option) => option.id === selectedOption
-          );
-          setOptions((prev) => [...prev, removedOption]);
-          setReferenceBoxes((prev) =>
-            prev.filter((_, i) => i !== currentReferenceBox)
-          );
-          setCurrentReferenceBox(null);
-        }
+        setReferenceBoxes(updatedBoxes);
+        setCurrentReferenceBox(null);
+
+        // ✅ Recalculate available options (avoid duplicates)
+        const usedPositions = updatedBoxes.map((b) => b.position);
+        const availableOptions = referenceOptions.filter(
+          (opt) => !usedPositions.includes(opt.id)
+        );
+        setOptions(availableOptions);
       }
-    };
-    window.addEventListener("keydown", handleDeleteKey);
-    return () => window.removeEventListener("keydown", handleDeleteKey);
-  }, [activeBox, currentReferenceBox, referenceBoxes]);
+    }
+  };
+
+  window.addEventListener("keydown", handleDeleteKey);
+  return () => window.removeEventListener("keydown", handleDeleteKey);
+}, [activeBox, currentReferenceBox, referenceBoxes]);
 
   // Update baseDisplaySize on image load or window resize
   useEffect(() => {
