@@ -36,6 +36,7 @@ const TemplateEditor = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [options, setOptions] = useState(referenceOptions);
   const buttonRef = useRef(null);
+  const [Radius, setRadius] = useState(0.38);
 
   const { Id } = useParams();
   const navigate = useNavigate();
@@ -98,42 +99,42 @@ const TemplateEditor = () => {
 
   // Delete key handling
   useEffect(() => {
-  const handleDeleteKey = (e) => {
-    // Delete Field Box
-    if (e.key === "Delete" && activeBox !== null) {
-      const res = window.confirm("Are you sure you want to delete this box?");
-      if (res) {
-        setBoxes((prev) => prev.filter((_, i) => i !== activeBox));
-        setActiveBox(null);
+    const handleDeleteKey = (e) => {
+      // Delete Field Box
+      if (e.key === "Delete" && activeBox !== null) {
+        const res = window.confirm("Are you sure you want to delete this box?");
+        if (res) {
+          setBoxes((prev) => prev.filter((_, i) => i !== activeBox));
+          setActiveBox(null);
+        }
       }
-    }
 
-    // Delete Reference Box
-    if (e.key === "Delete" && currentReferenceBox !== null) {
-      const res = window.confirm(
-        "Are you sure you want to delete this reference box?"
-      );
-      if (res) {
-        // Remove the selected reference box
-        const updatedBoxes = referenceBoxes.filter(
-          (_, i) => i !== currentReferenceBox
+      // Delete Reference Box
+      if (e.key === "Delete" && currentReferenceBox !== null) {
+        const res = window.confirm(
+          "Are you sure you want to delete this reference box?"
         );
-        setReferenceBoxes(updatedBoxes);
-        setCurrentReferenceBox(null);
+        if (res) {
+          // Remove the selected reference box
+          const updatedBoxes = referenceBoxes.filter(
+            (_, i) => i !== currentReferenceBox
+          );
+          setReferenceBoxes(updatedBoxes);
+          setCurrentReferenceBox(null);
 
-        // ✅ Recalculate available options (avoid duplicates)
-        const usedPositions = updatedBoxes.map((b) => b.position);
-        const availableOptions = referenceOptions.filter(
-          (opt) => !usedPositions.includes(opt.id)
-        );
-        setOptions(availableOptions);
+          // ✅ Recalculate available options (avoid duplicates)
+          const usedPositions = updatedBoxes.map((b) => b.position);
+          const availableOptions = referenceOptions.filter(
+            (opt) => !usedPositions.includes(opt.id)
+          );
+          setOptions(availableOptions);
+        }
       }
-    }
-  };
+    };
 
-  window.addEventListener("keydown", handleDeleteKey);
-  return () => window.removeEventListener("keydown", handleDeleteKey);
-}, [activeBox, currentReferenceBox, referenceBoxes]);
+    window.addEventListener("keydown", handleDeleteKey);
+    return () => window.removeEventListener("keydown", handleDeleteKey);
+  }, [activeBox, currentReferenceBox, referenceBoxes]);
 
   // Update baseDisplaySize on image load or window resize
   useEffect(() => {
@@ -235,13 +236,15 @@ const TemplateEditor = () => {
 
   // Calculate bubble coordinates using center + radius → bounding box
   const getBubbleCoordinates = (box) => {
+    console.log(box)
     if (!box) return [];
     const { x, y, width, height, totalRow, totalCol } = box;
     if (!totalRow || !totalCol || totalRow <= 0 || totalCol <= 0) return [];
 
     const cellWidth = width / totalCol;
     const cellHeight = height / totalRow;
-    const radius = Math.min(cellWidth, cellHeight) * 0.3; // radius = 30% of smaller dimension
+    const rScale = box?.radius || 0.4;
+    const radius = Math.min(cellWidth, cellHeight) * (rScale );
 
     const bubbles = [];
     for (let row = 0; row < totalRow; row++) {
@@ -252,8 +255,8 @@ const TemplateEditor = () => {
 
         // Bounding box from center and radius
         const bubble = {
-          x: Math.round(cx - radius), // top-left x
-          y: Math.round(cy - radius), // top-left y
+          x: Math.round(cx - radius+1.7), // top-left x
+          y: Math.round(cy - radius+1.7), // top-left y
           width: Math.round(radius * 2),
           height: Math.round(radius * 2),
           row,
@@ -274,6 +277,8 @@ const TemplateEditor = () => {
 
     return bubbles;
   };
+
+  console.log(currentBoxData?.fieldType)
 
   function transformPositions(arr) {
     const result = {};
@@ -310,7 +315,6 @@ const TemplateEditor = () => {
       const refBoxed = transformPositions(coordinates);
       referenceField = refBoxed;
     }
-    
 
     const mappedData = boxes.map((box, idx) => {
       const bubbles = getBubbleCoordinates(box);
@@ -511,8 +515,8 @@ const TemplateEditor = () => {
             const cellDisplayWidth = displayW / box.totalCol;
             const cellDisplayHeight = displayH / box.totalRow;
             const bubbleDisplaySize =
-              Math.min(cellDisplayWidth, cellDisplayHeight) * 0.8;
-
+              Math.min(cellDisplayWidth, cellDisplayHeight) * box.radius * 2 ??
+              0.38;
             return (
               <Rnd
                 key={index}
@@ -603,7 +607,7 @@ const TemplateEditor = () => {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            border: "1px solid black",
+                            // border: "1px solid black",
                             minWidth: 0,
                             minHeight: 0,
                           }}
@@ -612,7 +616,7 @@ const TemplateEditor = () => {
                             style={{
                               width: `${bubbleDisplaySize}px`,
                               height: `${bubbleDisplaySize}px`,
-                              borderRadius: "50%",
+                              // borderRadius: "50%",
                               border: "1px solid black",
                               backgroundColor: "transparent",
                             }}
@@ -691,6 +695,8 @@ const TemplateEditor = () => {
                     allBubbles={allBubbles}
                     isNewBox={false}
                     setActiveBox={setActiveBox}
+                    setRadius={setRadius}
+                    Radius={Radius}
                   />
                 </div>
               </div>

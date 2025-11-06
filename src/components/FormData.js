@@ -12,10 +12,13 @@ const FormData = forwardRef(
       isNewBox,
       setIsOpen,
       setActiveBox,
+      // setRadius,
+      // Radius,
     },
     ref
   ) => {
     const [customInput, setCustomInput] = useState("");
+    console.log(currentBoxData);
 
     useEffect(() => {
       if (isNewBox) {
@@ -47,13 +50,13 @@ const FormData = forwardRef(
       } = currentBoxData;
 
       if (
-        !totalRow ||
-        !totalCol ||
+        // !totalRow ||
+        // !totalCol ||
         !fieldName ||
         !fieldType ||
         !ReadingDirection ||
         !allowMultiple ||
-        !fieldValue ||
+        // !fieldValue ||
         !bubbleIntensity
       ) {
         alert("Please complete all required fields.");
@@ -74,6 +77,7 @@ const FormData = forwardRef(
             y: 100,
             width: 150,
             height: 100,
+            radius:currentBoxData?.radius
           },
         ]);
         setCurrentBoxData({});
@@ -95,7 +99,7 @@ const FormData = forwardRef(
       >
         <h2 className="text-center mb-4">Box Settings</h2>
 
-        <Row>
+       {currentBoxData?.fieldType!=="barcode" && <Row>
           <Col md={6}>
             <Form.Group controlId="totalCol">
               <Form.Label>Row:</Form.Label>
@@ -127,7 +131,7 @@ const FormData = forwardRef(
               />
             </Form.Group>
           </Col>
-        </Row>
+        </Row>}
 
         <Row>
           <Col md={6}>
@@ -162,6 +166,7 @@ const FormData = forwardRef(
                 <option value="">Select direction</option>
                 <option value="formfield">Form Field</option>
                 <option value="questionfield">Question Field</option>
+                <option value="barcode">Barcode</option>
               </Form.Control>
             </Form.Group>
           </Col>
@@ -215,7 +220,7 @@ const FormData = forwardRef(
                 <Form.Label>Multiple Value:</Form.Label>
                 <Form.Control
                   as="input"
-                    maxLength={1}
+                  maxLength={1}
                   placeholder="Enter multiple value"
                   value={currentBoxData?.multipleBubbleOutput ?? ""}
                   onChange={(e) =>
@@ -228,7 +233,7 @@ const FormData = forwardRef(
               </Form.Group>
             </Col>
           )}
-          <Col md={ currentBoxData?.allowMultiple === "false"?6:12}>
+          <Col md={currentBoxData?.allowMultiple === "false" ? 6 : 12}>
             <Form.Group controlId="allowMultiple">
               <Form.Label>Blank Value:</Form.Label>
               <Form.Control
@@ -247,7 +252,7 @@ const FormData = forwardRef(
           </Col>
         </Row>
 
-        <Row>
+        {currentBoxData?.fieldType!=="barcode"&&<Row>
           <Col md={12}>
             <Form.Group controlId="readingDirection">
               <Form.Label>Field Value:</Form.Label>
@@ -275,7 +280,7 @@ const FormData = forwardRef(
               </Form.Control>
             </Form.Group>
           </Col>
-        </Row>
+        </Row>}
         {currentBoxData?.fieldValue === "Custom" && (
           <Row>
             <Col md={12}>
@@ -352,6 +357,34 @@ const FormData = forwardRef(
             </Form.Group>
           </Col>
         </Row>
+
+        {currentBoxData?.fieldType!=="barcode"&&<Row>
+          <Col md={6}>
+            <Form.Group controlId="radius">
+              <Form.Label>
+                Radius: <strong>{currentBoxData?.radius}</strong>
+              </Form.Label>
+
+              <Form.Control
+                type="range"
+                min={0.01}
+                max={0.7}
+                step={0.001}
+                value={currentBoxData?.radius}
+                onChange={(e) => {
+                  // setRadius(Number(e.target.value));
+                  const val = Number(e.target.value);
+                  setCurrentBoxData((p) => ({ ...p, radius: val }));
+                  setBoxes((prev) =>
+                    prev.map((b, i) =>
+                      i === activeBox ? { ...b, radius: val } : b
+                    )
+                  );
+                }}
+              />
+            </Form.Group>
+          </Col>
+        </Row>}
 
         <div className="text-right mt-4">
           <Button
