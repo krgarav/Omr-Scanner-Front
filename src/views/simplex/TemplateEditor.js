@@ -255,8 +255,8 @@ const TemplateEditor = () => {
 
         // Bounding box from center and radius
         const bubble = {
-          x: Math.round(cx - radius+1.7), // top-left x
-          y: Math.round(cy - radius+1.7), // top-left y
+          x: Math.round(cx - radius+1.7), // top-left x <- addition of error correction factor
+          y: Math.round(cy - radius+1.7), // top-left y <- addition of error correction factor
           width: Math.round(radius * 2),
           height: Math.round(radius * 2),
           row,
@@ -575,6 +575,7 @@ const TemplateEditor = () => {
                 onClick={() => {
                   setActiveBox(index);
                   setCurrentBoxData(box);
+                  console.log(box)
                 }}
               >
                 <div
@@ -658,7 +659,7 @@ const TemplateEditor = () => {
         <div>
           {activeBox !== null && (
             <Rnd
-              default={{ x: -40, y: 0, width: 400, height: "auto" }}
+              default={{ x: -800, y: 0, width: 400, height: "auto" }}
               bounds="window"
               enableResizing={false}
               dragHandleClassName="drag-handle"

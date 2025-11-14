@@ -77,7 +77,7 @@ const FormData = forwardRef(
             y: 100,
             width: 150,
             height: 100,
-            radius:currentBoxData?.radius
+            radius: currentBoxData?.radius,
           },
         ]);
         setCurrentBoxData({});
@@ -99,39 +99,41 @@ const FormData = forwardRef(
       >
         <h2 className="text-center mb-4">Box Settings</h2>
 
-       {currentBoxData?.fieldType!=="barcode" && <Row>
-          <Col md={6}>
-            <Form.Group controlId="totalCol">
-              <Form.Label>Row:</Form.Label>
-              <Form.Control
-                type="number"
-                value={currentBoxData?.totalRow}
-                onChange={(e) =>
-                  setCurrentBoxData((prev) => ({
-                    ...prev,
-                    totalRow: e.target.value,
-                  }))
-                }
-              />
-            </Form.Group>
-          </Col>
+        {currentBoxData?.fieldType !== "barcode" && (
+          <Row>
+            <Col md={6}>
+              <Form.Group controlId="totalCol">
+                <Form.Label>Row:</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={currentBoxData?.totalRow}
+                  onChange={(e) =>
+                    setCurrentBoxData((prev) => ({
+                      ...prev,
+                      totalRow: e.target.value,
+                    }))
+                  }
+                />
+              </Form.Group>
+            </Col>
 
-          <Col md={6}>
-            <Form.Group controlId="totalRow">
-              <Form.Label>Col:</Form.Label>
-              <Form.Control
-                type="number"
-                value={currentBoxData?.totalCol}
-                onChange={(e) =>
-                  setCurrentBoxData((prev) => ({
-                    ...prev,
-                    totalCol: e.target.value,
-                  }))
-                }
-              />
-            </Form.Group>
-          </Col>
-        </Row>}
+            <Col md={6}>
+              <Form.Group controlId="totalRow">
+                <Form.Label>Col:</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={currentBoxData?.totalCol}
+                  onChange={(e) =>
+                    setCurrentBoxData((prev) => ({
+                      ...prev,
+                      totalCol: e.target.value,
+                    }))
+                  }
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+        )}
 
         <Row>
           <Col md={6}>
@@ -167,6 +169,7 @@ const FormData = forwardRef(
                 <option value="formfield">Form Field</option>
                 <option value="questionfield">Question Field</option>
                 <option value="barcode">Barcode</option>
+                <option value="lithocode">lithocode</option>
               </Form.Control>
             </Form.Group>
           </Col>
@@ -252,35 +255,37 @@ const FormData = forwardRef(
           </Col>
         </Row>
 
-        {currentBoxData?.fieldType!=="barcode"&&<Row>
-          <Col md={12}>
-            <Form.Group controlId="readingDirection">
-              <Form.Label>Field Value:</Form.Label>
-              <Form.Control
-                as="select"
-                value={currentBoxData?.fieldValue ?? ""}
-                onChange={(e) => {
-                  if (e.target.value !== "Custom") {
-                    setCurrentBoxData((prev) => {
-                      const copiedData = { ...prev };
-                      delete copiedData.Custom; // remove Custom property
-                      return copiedData;
-                    });
-                  }
-                  setCurrentBoxData((prev) => ({
-                    ...prev,
-                    fieldValue: e.target.value,
-                  }));
-                }}
-              >
-                <option value="">Select field value</option>
-                <option value="Integer">Integer</option>
-                <option value="Alphabet">Alphabet</option>
-                <option value="Custom">Custom</option>
-              </Form.Control>
-            </Form.Group>
-          </Col>
-        </Row>}
+        {currentBoxData?.fieldType !== "barcode" && (
+          <Row>
+            <Col md={12}>
+              <Form.Group controlId="readingDirection">
+                <Form.Label>Field Value:</Form.Label>
+                <Form.Control
+                  as="select"
+                  value={currentBoxData?.fieldValue ?? ""}
+                  onChange={(e) => {
+                    if (e.target.value !== "Custom") {
+                      setCurrentBoxData((prev) => {
+                        const copiedData = { ...prev };
+                        delete copiedData.Custom; // remove Custom property
+                        return copiedData;
+                      });
+                    }
+                    setCurrentBoxData((prev) => ({
+                      ...prev,
+                      fieldValue: e.target.value,
+                    }));
+                  }}
+                >
+                  <option value="">Select field value</option>
+                  <option value="Integer">Integer</option>
+                  <option value="Alphabet">Alphabet</option>
+                  <option value="Custom">Custom</option>
+                </Form.Control>
+              </Form.Group>
+            </Col>
+          </Row>
+        )}
         {currentBoxData?.fieldValue === "Custom" && (
           <Row>
             <Col md={12}>
@@ -358,33 +363,100 @@ const FormData = forwardRef(
           </Col>
         </Row>
 
-        {currentBoxData?.fieldType!=="barcode"&&<Row>
-          <Col md={6}>
-            <Form.Group controlId="radius">
-              <Form.Label>
-                Radius: <strong>{currentBoxData?.radius}</strong>
-              </Form.Label>
+        {currentBoxData?.fieldType !== "barcode" && (
+          <Row>
+            <Col md={6}>
+              <Form.Group controlId="radius">
+                <Form.Label>
+                  Radius: <strong>{currentBoxData?.radius}</strong>
+                </Form.Label>
 
-              <Form.Control
-                type="range"
-                min={0.01}
-                max={0.7}
-                step={0.001}
-                value={currentBoxData?.radius}
-                onChange={(e) => {
-                  // setRadius(Number(e.target.value));
-                  const val = Number(e.target.value);
-                  setCurrentBoxData((p) => ({ ...p, radius: val }));
-                  setBoxes((prev) =>
-                    prev.map((b, i) =>
-                      i === activeBox ? { ...b, radius: val } : b
-                    )
-                  );
-                }}
-              />
-            </Form.Group>
-          </Col>
-        </Row>}
+                <Form.Control
+                  type="range"
+                  min={0.01}
+                  max={0.7}
+                  step={0.001}
+                  value={currentBoxData?.radius}
+                  onChange={(e) => {
+                    // setRadius(Number(e.target.value));
+                    const val = Number(e.target.value);
+                    setCurrentBoxData((p) => ({ ...p, radius: val }));
+                    setBoxes((prev) =>
+                      prev.map((b, i) =>
+                        i === activeBox ? { ...b, radius: val } : b
+                      )
+                    );
+                  }}
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group controlId="best_bubble">
+                <Form.Label>
+                  Best Bubble : <strong>{currentBoxData?.best_bubble}</strong>
+                </Form.Label>
+
+                <div
+                  className={`btn btn-sm  d-flex align-items-center justify-content-between ${
+                    currentBoxData?.best_bubble
+                      ? "btn-success"
+                      : "btn-outline-secondary"
+                  }`}
+                  onClick={() => {
+                    const newValue = !currentBoxData?.best_bubble;
+                    setCurrentBoxData((p) => ({ ...p, best_bubble: newValue }));
+                    setBoxes((prev) =>
+                      prev.map((b, i) =>
+                        i === activeBox ? { ...b, best_bubble: newValue } : b
+                      )
+                    );
+                    // console.log(currentBoxData?.best_bubble)
+                  }}
+                  style={{
+                    cursor: "pointer",
+                    position: "relative",
+                    transition: "all 0.3s ease",
+                    borderRadius: "60px",
+                    width: "70px",
+                    boxShadow: "0px 0px 4px gray",
+                    backgroundColor:  currentBoxData?.best_bubble ?"##2dce89":"#e3e3e3",
+                  }}
+                >
+                  <span
+                    className={
+                      currentBoxData?.best_bubble ? "fw-bold" : "text-muted"
+                    }
+                  >
+                    OFF
+                  </span>
+
+                  <div
+                    className="bg-white rounded-circle shadow-sm"
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      position: "absolute",
+                      left: currentBoxData?.best_bubble
+                        ? "calc(100% - 24px)"
+                        : "2px",
+                      transition: "left 0.3s ease",
+                      boxShadow: "2px 2px 4px black",
+                    }}
+                  />
+
+                  <span
+                    className={
+                      currentBoxData?.best_bubble ? "fw-bold" : "text-muted"
+                    }
+                    
+                  >
+                    ON
+                  </span>
+                </div>
+              </Form.Group>
+            </Col>
+          </Row>
+        )}
 
         <div className="text-right mt-4">
           <Button
