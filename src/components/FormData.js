@@ -390,74 +390,76 @@ const FormData = forwardRef(
                 />
               </Form.Group>
             </Col>
-            <Col md={6}>
-              <Form.Group controlId="best_bubble">
-                <Form.Label>
-                  Best Bubble : <strong>{currentBoxData?.best_bubble}</strong>
-                </Form.Label>
-
-                <div
-                  className={`btn btn-sm  d-flex align-items-center justify-content-between ${
-                    currentBoxData?.best_bubble
-                      ? "btn-success"
-                      : "btn-outline-secondary"
-                  }`}
-                  onClick={() => {
-                    const newValue = !currentBoxData?.best_bubble;
-                    setCurrentBoxData((p) => ({ ...p, best_bubble: newValue }));
-                    setBoxes((prev) =>
-                      prev.map((b, i) =>
-                        i === activeBox ? { ...b, best_bubble: newValue } : b
-                      )
-                    );
-                    // console.log(currentBoxData?.best_bubble)
-                  }}
-                  style={{
-                    cursor: "pointer",
-                    position: "relative",
-                    transition: "all 0.3s ease",
-                    borderRadius: "60px",
-                    width: "70px",
-                    boxShadow: "0px 0px 4px gray",
-                    backgroundColor:  currentBoxData?.best_bubble ?"##2dce89":"#e3e3e3",
-                  }}
-                >
-                  <span
-                    className={
-                      currentBoxData?.best_bubble ? "fw-bold" : "text-muted"
-                    }
-                  >
-                    OFF
-                  </span>
-
-                  <div
-                    className="bg-white rounded-circle shadow-sm"
-                    style={{
-                      width: "24px",
-                      height: "24px",
-                      position: "absolute",
-                      left: currentBoxData?.best_bubble
-                        ? "calc(100% - 24px)"
-                        : "2px",
-                      transition: "left 0.3s ease",
-                      boxShadow: "2px 2px 4px black",
-                    }}
-                  />
-
-                  <span
-                    className={
-                      currentBoxData?.best_bubble ? "fw-bold" : "text-muted"
-                    }
-                    
-                  >
-                    ON
-                  </span>
-                </div>
-              </Form.Group>
-            </Col>
           </Row>
         )}
+        <Row>
+          <Col md={6}>
+            <Form.Group controlId="best_bubble">
+              <Form.Label>
+                Best Bubble : <strong>{currentBoxData?.best_bubble}</strong>
+              </Form.Label>
 
+              <div
+                className={`btn btn-sm  d-flex align-items-center justify-content-between ${
+                  currentBoxData?.best_bubble
+                    ? "btn-success"
+                    : "btn-outline-secondary"
+                }`}
+                onClick={() => {
+                  const newValue = !currentBoxData?.best_bubble;
+                  setCurrentBoxData((p) => ({ ...p, best_bubble: newValue }));
+                  setBoxes((prev) =>
+                    prev.map((b, i) =>
+                      i === activeBox ? { ...b, best_bubble: newValue } : b
+                    )
+                  );
+                  // console.log(currentBoxData?.best_bubble)
+                }}
+                style={{
+                  cursor: "pointer",
+                  position: "relative",
+                  transition: "all 0.3s ease",
+                  borderRadius: "60px",
+                  width: "70px",
+                  boxShadow: "0px 0px 4px gray",
+                  backgroundColor: currentBoxData?.best_bubble
+                    ? "##2dce89"
+                    : "#e3e3e3",
+                }}
+              >
+                <span
+                  className={
+                    currentBoxData?.best_bubble ? "fw-bold" : "text-muted"
+                  }
+                >
+                  OFF
+                </span>
+
+                <div
+                  className="bg-white rounded-circle shadow-sm"
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    position: "absolute",
+                    left: currentBoxData?.best_bubble
+                      ? "calc(100% - 24px)"
+                      : "2px",
+                    transition: "left 0.3s ease",
+                    boxShadow: "2px 2px 4px black",
+                  }}
+                />
+
+                <span
+                  className={
+                    currentBoxData?.best_bubble ? "fw-bold" : "text-muted"
+                  }
+                >
+                  ON
+                </span>
+              </div>
+            </Form.Group>
+          </Col>
+        </Row>
         <div className="text-right mt-4">
           <Button
             style={{ display: isNewBox ? "none" : "" }}
