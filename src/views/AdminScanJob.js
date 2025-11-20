@@ -18,6 +18,7 @@ import {
   Toolbar,
   ExcelExport,
   Filter,
+  Resize
 } from "@syncfusion/ej2-react-grids";
 import { Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -83,7 +84,7 @@ const AdminScanJob = () => {
   const [items, setItems] = useState([]);
   const [selectedValue, setSelectedValue] = useState();
   const [toolbar, setToolbar] = useState(["ExcelExport", "CsvExport"]);
-  const [services, setServices] = useState([Sort, Toolbar, Filter]);
+  const [services, setServices] = useState([Sort, Toolbar, Filter, ExcelExport, Resize]);
   const [gridHeight, setGridHeight] = useState("850px");
   const [starting, setStarting] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 576);
@@ -527,16 +528,17 @@ const AdminScanJob = () => {
   };
 
   const handleToolbarClick = (args) => {
-    if (args.item.id.includes("excelexport")) {
-      gridRef.current.refresh(); // Ensure the grid data is refreshed
+     const id = args.item.id.toLowerCase();
+    if (id.includes("excelexport")) {
+      // gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.excelExport();
     }
-    if (args.item.id.includes("pdfexport")) {
-      gridRef.current.refresh(); // Ensure the grid data is refreshed
+    if (id.includes("pdfexport")) {
+      // gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.pdfExport();
     }
-    if (args.item.id.includes("csvexport")) {
-      gridRef.current.refresh(); // Ensure the grid data is refreshed
+    if (id.includes("csvexport")) {
+      // gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.csvExport();
     }
   };
@@ -560,6 +562,7 @@ const AdminScanJob = () => {
   const debouncedResume = useRef(debounce(handleResume, 500)).current;
   const debouncedPause = useRef(debounce(handlePause, 500)).current;
   // const debouncedStop = useRef(debounce(handleStop, 500)).current;
+  console.log(headData)
   const columnsDirective = headData.map((item, index) => {
     return (
       <ColumnDirective
@@ -774,6 +777,8 @@ const AdminScanJob = () => {
 
   setIsScanning(scanning)
   setIsPausedContext(isPaused)
+
+  console.log(processedData)
   return (
     <>
       <NormalHeader />
@@ -862,6 +867,7 @@ const AdminScanJob = () => {
             allowExcelExport={true}
             allowPdfExport={false}
             allowEditing={false}
+            allowResizing={true} 
             emptyRecordTemplate={template.bind(this)}
             selectionSettings={{
               mode: "Both",
