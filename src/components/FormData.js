@@ -95,9 +95,9 @@ const FormData = forwardRef(
     return (
       <Form
         onSubmit={onSubmitHandler}
-        className="p-4 bg-white rounded shadow-sm"
+        className="p-0 bg-white rounded shadow-sm "
       >
-        <h2 className="text-center mb-4">Box Settings</h2>
+        <h2 className="text-center mb-1">Box Settings</h2>
 
         {currentBoxData?.fieldType !== "barcode" && (
           <Row>

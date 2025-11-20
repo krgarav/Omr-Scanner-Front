@@ -61,7 +61,8 @@ const AdminNavbar = (props) => {
   return (
     <>
       <Navbar
-        className="navbar-top navbar-dark position-fixed"
+        className="navbar-top navbar-dark "
+        style={{position:'fixed',top:'0px', left:'0px' , zIndex:'-999'}}
         expand="md"
         id="navbar-main"
         sticky="top"

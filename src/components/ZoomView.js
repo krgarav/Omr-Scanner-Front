@@ -21,6 +21,7 @@ const ZoomViewer = ({ currentImage, baseUrl, focusBox, templateData }) => {
       });
     }
   }, [focusBox]);
+  console.log(boxes)
   const selectedFields = boxes.map((box, index) => {
     const style = classes.notActive;
 
@@ -48,6 +49,7 @@ const ZoomViewer = ({ currentImage, baseUrl, focusBox, templateData }) => {
           // scale: zoomScale,
           overflow: "hidden",
           transformOrigin: "top left", // Zoom from top-left
+        
         }}
       >
         <img

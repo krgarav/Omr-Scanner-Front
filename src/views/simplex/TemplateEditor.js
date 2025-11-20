@@ -659,11 +659,12 @@ const TemplateEditor = () => {
         <div>
           {activeBox !== null && (
             <Rnd
-              default={{ x: -800, y: 0, width: 400, height: "auto" }}
+              default={{ x: -1000, y: 0, width: 400, height: "auto" }}
               bounds="window"
               enableResizing={false}
               dragHandleClassName="drag-handle"
-              className="z-[99] fixed"
+              style={{ position: "fixed" }} 
+              className="z-[9999]"
             >
               <div className="bg-white rounded-lg shadow-lg w-full">
                 <div
@@ -687,7 +688,7 @@ const TemplateEditor = () => {
                   </button>
                 </div>
 
-                <div className="p-4">
+                <div className="p-3 ">
                   <FormData
                     setCurrentBoxData={setCurrentBoxData}
                     currentBoxData={currentBoxData}
@@ -781,11 +782,12 @@ const TemplateEditor = () => {
           bounds="window"
           enableResizing={false}
           dragHandleClassName="drag-handle"
-          className="z-[99] fixed bg-white shadow-lg rounded-lg border"
+          style={{position:'fixed'}}
+          className="z-[9999] bg-white shadow-lg rounded-lg border"
         >
           <div className="flex flex-col w-full" style={{ cursor: "move" }}>
-            <div className="drag-handle cursor-move bg-gray-100 px-4 py-2 rounded-t-lg flex justify-between items-center">
-              <h2 className="font-semibold">Create Template</h2>
+            <div  className="bg-primary text-white px-3 py-2 rounded-top d-flex align-items-center justify-content-between drag-handle">
+              <h2 className="font-semibold text-white">Create Template</h2>
             </div>
 
             <div className="p-4">

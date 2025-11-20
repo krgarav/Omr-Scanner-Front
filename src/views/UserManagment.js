@@ -158,7 +158,8 @@ const UserManagment = () => {
           setToggle((prev) => !prev);
         } else {
           console.log();
-          toast.error(data?.message);
+          toast.success(data?.message);
+          setCreateModalShow(false);
         }
       } catch (error) {
         toast.error("Something went wrong");
