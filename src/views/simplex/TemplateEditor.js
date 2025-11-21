@@ -37,10 +37,12 @@ const TemplateEditor = () => {
   const [options, setOptions] = useState(referenceOptions);
   const buttonRef = useRef(null);
   const [Radius, setRadius] = useState(0.38);
-
+  const [scrollY, setScrollY] = useState(0);
+  const [boxPos, setBoxPos] = useState({ x: -1000, y: 100 });
+const initialPosRef = useRef({ x: -1000, y: 100 });
   const { Id } = useParams();
   const navigate = useNavigate();
-
+  const INITIAL_X = -1000;
   // Image natural size and base display size
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
   const [baseDisplaySize, setBaseDisplaySize] = useState({
@@ -56,6 +58,35 @@ const TemplateEditor = () => {
     };
     fetchData();
   }, []);
+  useEffect(() => {
+  if (activeBox !== null) {
+    // Calculate exactly once when opened
+    const newY = window.scrollY +20;   // 80px from top of current screen
+    const newPos = { x: initialPosRef.current.x, y: newY };
+
+    setBoxPos(newPos);
+    // also store it so next open uses same X until dragged
+    initialPosRef.current = newPos;
+  } else {
+    // when form closes, reset X to your left docked position for next open
+    initialPosRef.current.x = -1000;
+  }
+}, [activeBox]); 
+ useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll);
+
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // 2. When user drags → remember new position + mark as dragged
+  const handleDragStop = (e, d) => {
+  // User dragged → from now on remember exact position forever
+  initialPosRef.current = { x: d.x, y: d.y };
+  setBoxPos({ x: d.x, y: d.y });
+};
+
+  // console.log(scrollY);
 
   useEffect(() => {
     const fetchTemplateData = async () => {
@@ -236,7 +267,7 @@ const TemplateEditor = () => {
 
   // Calculate bubble coordinates using center + radius → bounding box
   const getBubbleCoordinates = (box) => {
-    console.log(box)
+    console.log(box);
     if (!box) return [];
     const { x, y, width, height, totalRow, totalCol } = box;
     if (!totalRow || !totalCol || totalRow <= 0 || totalCol <= 0) return [];
@@ -244,7 +275,7 @@ const TemplateEditor = () => {
     const cellWidth = width / totalCol;
     const cellHeight = height / totalRow;
     const rScale = box?.radius || 0.4;
-    const radius = Math.min(cellWidth, cellHeight) * (rScale );
+    const radius = Math.min(cellWidth, cellHeight) * rScale;
 
     const bubbles = [];
     for (let row = 0; row < totalRow; row++) {
@@ -255,8 +286,8 @@ const TemplateEditor = () => {
 
         // Bounding box from center and radius
         const bubble = {
-          x: Math.round(cx - radius+1.7), // top-left x <- addition of error correction factor
-          y: Math.round(cy - radius+1.7), // top-left y <- addition of error correction factor
+          x: Math.round(cx - radius + 1.7), // top-left x <- addition of error correction factor
+          y: Math.round(cy - radius + 1.7), // top-left y <- addition of error correction factor
           width: Math.round(radius * 2),
           height: Math.round(radius * 2),
           row,
@@ -278,7 +309,7 @@ const TemplateEditor = () => {
     return bubbles;
   };
 
-  console.log(currentBoxData?.fieldType)
+  console.log(currentBoxData?.fieldType);
 
   function transformPositions(arr) {
     const result = {};
@@ -575,7 +606,7 @@ const TemplateEditor = () => {
                 onClick={() => {
                   setActiveBox(index);
                   setCurrentBoxData(box);
-                  console.log(box)
+                  console.log(box);
                 }}
               >
                 <div
@@ -656,14 +687,23 @@ const TemplateEditor = () => {
         </div>
 
         {/* Form Editor */}
+
         <div>
           {activeBox !== null && (
             <Rnd
-              default={{ x: -1000, y: 0, width: 400, height: "auto" }}
+              position={{
+                x: boxPos.x,
+                y: boxPos.y,
+                width: 400,
+                height: "auto",
+              }}
+              onDragStop={handleDragStop}
+              
+              
               bounds="window"
               enableResizing={false}
               dragHandleClassName="drag-handle"
-              style={{ position: "fixed" }} 
+              style={{ position: "absolute" }}
               className="z-[9999]"
             >
               <div className="bg-white rounded-lg shadow-lg w-full">
@@ -778,15 +818,16 @@ const TemplateEditor = () => {
       {/* Add Box Modal */}
       {isOpen && (
         <Rnd
-          default={{ x: 100, y: 100, width: 400, height: "auto" }}
+          default={{ x: 100, y: window.scrollY + 50, width: 400, height: "auto" }}
+          
           bounds="window"
           enableResizing={false}
           dragHandleClassName="drag-handle"
-          style={{position:'fixed'}}
-          className="z-[9999] bg-white shadow-lg rounded-lg border"
+          style={{ position: "absolute"}}
+          className="z-[99] bg-white shadow-lg rounded-lg border"
         >
           <div className="flex flex-col w-full" style={{ cursor: "move" }}>
-            <div  className="bg-primary text-white px-3 py-2 rounded-top d-flex align-items-center justify-content-between drag-handle">
+            <div className="bg-primary text-white px-3 py-2 rounded-top d-flex align-items-center justify-content-between drag-handle">
               <h2 className="font-semibold text-white">Create Template</h2>
             </div>
 

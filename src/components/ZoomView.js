@@ -21,7 +21,7 @@ const ZoomViewer = ({ currentImage, baseUrl, focusBox, templateData }) => {
       });
     }
   }, [focusBox]);
-  console.log(boxes)
+  // console.log(imgRef.current.getBoundingClientRect())
   const selectedFields = boxes.map((box, index) => {
     const style = classes.notActive;
 
