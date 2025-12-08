@@ -1,12 +1,11 @@
-// Function to fetch config.json and get the base URL
 const getBaseUrl = () => {
   const fetchDetails = async () => {
     try {
       // Fetch the config.json file
-      const response = await fetch("/config.json");
+      const response = await fetch('/config.json');
 
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        throw new Error('Network response was not ok');
       }
 
       // Parse the JSON response
@@ -18,16 +17,15 @@ const getBaseUrl = () => {
       // Return the base URL based on the config
       return `http://${backendIP}/`;
     } catch (error) {
-      console.error("Error fetching config:", error);
-      return "https://localhost:82/";
+      console.error('Error fetching config:', error);
+      return 'https://localhost:82/';
     }
   };
   // return fetchDetails();
 
-
- 
   // return "https://192.168.1.27/swagger/index.html";
-  return "http://192.168.1.24:7200/";
+  // return "https://rqjvqjq1-5001.inc1.devtunnels.ms/";
+  return 'https://rqjvqjq1-1000.inc1.devtunnels.ms/';
   // return "http://192.168.1.60:4000/";
 
   // https://sb02kkq1-44388.inc1.devtunnels.ms/

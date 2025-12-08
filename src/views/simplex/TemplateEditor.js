@@ -1,22 +1,22 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Rnd } from "react-rnd";
-import FormData from "components/FormData";
-import classes from "./Template.module.css";
-import { RxDragHandleDots2 } from "react-icons/rx";
-import { Modal, Button } from "react-bootstrap";
-import SmallHeader from "components/Headers/SmallHeader";
-import { useNavigate, useParams } from "react-router-dom";
-import { getLayoutDataById, updateTemplate } from "helper/TemplateHelper";
-import getBaseUrl from "services/BackendApi";
-import { toast } from "react-toastify";
-import axios from "axios";
-import ReferenceFieldModal from "modals/ReferenceFieldModal";
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Rnd } from 'react-rnd';
+import FormData from 'components/FormData';
+import classes from './Template.module.css';
+import { RxDragHandleDots2 } from 'react-icons/rx';
+import { Modal, Button } from 'react-bootstrap';
+import SmallHeader from 'components/Headers/SmallHeader';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getLayoutDataById, updateTemplate } from 'helper/TemplateHelper';
+import getBaseUrl from 'services/BackendApi';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import ReferenceFieldModal from 'modals/ReferenceFieldModal';
 
 const referenceOptions = [
-  { id: "topLeft", label: "Top Left" },
-  { id: "bottomLeft", label: "Bottom Left" },
-  { id: "topRight", label: "Top Right" },
-  { id: "bottomRight", label: "Bottom Right" },
+  { id: 'topLeft', label: 'Top Left' },
+  { id: 'bottomLeft', label: 'Bottom Left' },
+  { id: 'topRight', label: 'Top Right' },
+  { id: 'bottomRight', label: 'Bottom Right' },
 ];
 
 const TemplateEditor = () => {
@@ -39,7 +39,7 @@ const TemplateEditor = () => {
   const [Radius, setRadius] = useState(0.38);
   const [scrollY, setScrollY] = useState(0);
   const [boxPos, setBoxPos] = useState({ x: -1000, y: 100 });
-const initialPosRef = useRef({ x: -1000, y: 100 });
+  const initialPosRef = useRef({ x: -1000, y: 100 });
   const { Id } = useParams();
   const navigate = useNavigate();
   const INITIAL_X = -1000;
@@ -59,32 +59,32 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
     fetchData();
   }, []);
   useEffect(() => {
-  if (activeBox !== null) {
-    // Calculate exactly once when opened
-    const newY = window.scrollY +20;   // 80px from top of current screen
-    const newPos = { x: initialPosRef.current.x, y: newY };
+    if (activeBox !== null) {
+      // Calculate exactly once when opened
+      const newY = window.scrollY + 20; // 80px from top of current screen
+      const newPos = { x: initialPosRef.current.x, y: newY };
 
-    setBoxPos(newPos);
-    // also store it so next open uses same X until dragged
-    initialPosRef.current = newPos;
-  } else {
-    // when form closes, reset X to your left docked position for next open
-    initialPosRef.current.x = -1000;
-  }
-}, [activeBox]); 
- useEffect(() => {
+      setBoxPos(newPos);
+      // also store it so next open uses same X until dragged
+      initialPosRef.current = newPos;
+    } else {
+      // when form closes, reset X to your left docked position for next open
+      initialPosRef.current.x = -1000;
+    }
+  }, [activeBox]);
+  useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", onScroll);
+    window.addEventListener('scroll', onScroll);
 
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   // 2. When user drags → remember new position + mark as dragged
   const handleDragStop = (e, d) => {
-  // User dragged → from now on remember exact position forever
-  initialPosRef.current = { x: d.x, y: d.y };
-  setBoxPos({ x: d.x, y: d.y });
-};
+    // User dragged → from now on remember exact position forever
+    initialPosRef.current = { x: d.x, y: d.y };
+    setBoxPos({ x: d.x, y: d.y });
+  };
 
   // console.log(scrollY);
 
@@ -100,12 +100,12 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
   useEffect(() => {
     const fetchJsonData = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('token');
         const res = await axios.get(`${baseUrl}${paths.jsonPath}`, {
           headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-            Expires: "0",
+            'Cache-Control': 'no-cache',
+            Pragma: 'no-cache',
+            Expires: '0',
             Authorization: `Bearer ${token}`,
           },
         });
@@ -122,7 +122,7 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
           setBoxes(field || []);
         }
       } catch (error) {
-        console.error("Error fetching JSON data:", error);
+        console.error('Error fetching JSON data:', error);
       }
     };
     if (paths && baseUrl) fetchJsonData();
@@ -132,8 +132,8 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
   useEffect(() => {
     const handleDeleteKey = (e) => {
       // Delete Field Box
-      if (e.key === "Delete" && activeBox !== null) {
-        const res = window.confirm("Are you sure you want to delete this box?");
+      if (e.key === 'Delete' && activeBox !== null) {
+        const res = window.confirm('Are you sure you want to delete this box?');
         if (res) {
           setBoxes((prev) => prev.filter((_, i) => i !== activeBox));
           setActiveBox(null);
@@ -141,9 +141,9 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
       }
 
       // Delete Reference Box
-      if (e.key === "Delete" && currentReferenceBox !== null) {
+      if (e.key === 'Delete' && currentReferenceBox !== null) {
         const res = window.confirm(
-          "Are you sure you want to delete this reference box?"
+          'Are you sure you want to delete this reference box?'
         );
         if (res) {
           // Remove the selected reference box
@@ -163,8 +163,8 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
       }
     };
 
-    window.addEventListener("keydown", handleDeleteKey);
-    return () => window.removeEventListener("keydown", handleDeleteKey);
+    window.addEventListener('keydown', handleDeleteKey);
+    return () => window.removeEventListener('keydown', handleDeleteKey);
   }, [activeBox, currentReferenceBox, referenceBoxes]);
 
   // Update baseDisplaySize on image load or window resize
@@ -183,8 +183,8 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
     };
 
     updateBase();
-    window.addEventListener("resize", updateBase);
-    return () => window.removeEventListener("resize", updateBase);
+    window.addEventListener('resize', updateBase);
+    return () => window.removeEventListener('resize', updateBase);
   }, [zoomScale, paths, baseUrl]);
 
   // Handle image load to set natural and base display sizes
@@ -339,8 +339,8 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
     let referenceField = [];
     if (showReferenceBox) {
       const coordinates = getRefCoordinates(referenceBoxes);
-      if (coordinates.length <= 3) {
-        toast.error("Please select all the reference boxes before saving.");
+      if (coordinates.length <= 0) {
+        toast.error('Please select all the reference boxes before saving.');
         return;
       }
       const refBoxed = transformPositions(coordinates);
@@ -361,18 +361,18 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
     };
 
     const jsonString = JSON.stringify(obj);
-    const jsonFileName = paths.fileName.endsWith(".json")
+    const jsonFileName = paths.fileName.endsWith('.json')
       ? paths.fileName
       : `${paths.fileName}.json`;
 
     const jsonFile = new File([jsonString], jsonFileName, {
-      type: "application/json",
+      type: 'application/json',
     });
 
     const res = await updateTemplate(paths.fileName, jsonFile);
     if (res?.state) {
-      toast.success("Template Saved Successfully");
-      navigate("/admin/template", { replace: true });
+      toast.success('Template Saved Successfully');
+      navigate('/admin/template', { replace: true });
     }
   };
 
@@ -387,28 +387,28 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
       }}
     >
       <SmallHeader />
 
-      <section style={{ display: "flex", justifyContent: "center" }}>
+      <section style={{ display: 'flex', justifyContent: 'center' }}>
         <div
           style={{
-            position: "relative",
-            display: "inline-block",
-            border: "1px solid #ccc",
-            overflow: "hidden",
+            position: 'relative',
+            display: 'inline-block',
+            border: '1px solid #ccc',
+            overflow: 'hidden',
             width: containerDisplayWidth
               ? `${containerDisplayWidth}px`
-              : "auto",
+              : 'auto',
             height: containerDisplayHeight
               ? `${containerDisplayHeight}px`
-              : "auto",
-            background: "#fff",
-            marginBottom: "100px",
+              : 'auto',
+            background: '#fff',
+            marginBottom: '100px',
           }}
         >
           {/* Reference Boxes */}
@@ -432,25 +432,25 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
                     const updated = [...prev];
                     const current = updated[index];
                     switch (e.key) {
-                      case "ArrowUp":
+                      case 'ArrowUp':
                         updated[index] = {
                           ...current,
                           y: current.y - stepNatural,
                         };
                         break;
-                      case "ArrowDown":
+                      case 'ArrowDown':
                         updated[index] = {
                           ...current,
                           y: current.y + stepNatural,
                         };
                         break;
-                      case "ArrowLeft":
+                      case 'ArrowLeft':
                         updated[index] = {
                           ...current,
                           x: current.x - stepNatural,
                         };
                         break;
-                      case "ArrowRight":
+                      case 'ArrowRight':
                         updated[index] = {
                           ...current,
                           x: current.x + stepNatural,
@@ -506,13 +506,13 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
                     return updated;
                   });
                 }}
-                bounds="parent"
+                bounds='parent'
                 style={{
                   border:
                     currentReferenceBox !== index
-                      ? "2px solid #007bff"
-                      : "2px solid red",
-                  backgroundColor: "transparent",
+                      ? '2px solid #007bff'
+                      : '2px solid red',
+                  backgroundColor: 'transparent',
                 }}
               />
             );
@@ -522,18 +522,18 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
           <img
             ref={imageRef}
             src={`${baseUrl}${paths?.imgPath}`}
-            alt="to crop"
+            alt='to crop'
             onLoad={handleImageLoad}
             style={{
-              display: "block",
+              display: 'block',
               width: containerDisplayWidth
                 ? `${containerDisplayWidth}px`
-                : "100%",
+                : '100%',
               height: containerDisplayHeight
                 ? `${containerDisplayHeight}px`
-                : "auto",
-              userSelect: "none",
-              pointerEvents: "auto",
+                : 'auto',
+              userSelect: 'none',
+              pointerEvents: 'auto',
             }}
           />
 
@@ -602,7 +602,7 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
                     y: naturalY,
                   });
                 }}
-                bounds="parent"
+                bounds='parent'
                 onClick={() => {
                   setActiveBox(index);
                   setCurrentBoxData(box);
@@ -616,19 +616,19 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
                       : classes.notActive
                   }
                   style={{
-                    width: "100%",
-                    height: "100%",
-                    position: "relative",
+                    width: '100%',
+                    height: '100%',
+                    position: 'relative',
                   }}
                 >
                   <div
                     style={{
-                      display: "grid",
+                      display: 'grid',
                       gridTemplateColumns: `repeat(${box.totalCol}, ${cellDisplayWidth}px)`,
                       gridTemplateRows: `repeat(${box.totalRow}, ${cellDisplayHeight}px)`,
                       width: `${displayW}px`,
                       height: `${displayH}px`,
-                      border: "1px solid black",
+                      border: '1px solid black',
                     }}
                   >
                     {Array.from({ length: box.totalRow * box.totalCol }).map(
@@ -636,9 +636,9 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
                         <div
                           key={idx}
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                             // border: "1px solid black",
                             minWidth: 0,
                             minHeight: 0,
@@ -649,8 +649,8 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
                               width: `${bubbleDisplaySize}px`,
                               height: `${bubbleDisplaySize}px`,
                               // borderRadius: "50%",
-                              border: "1px solid black",
-                              backgroundColor: "transparent",
+                              border: '1px solid black',
+                              backgroundColor: 'transparent',
                             }}
                           />
                         </div>
@@ -661,22 +661,22 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
                   <button
                     onClick={() => removeBox(index)}
                     style={{
-                      position: "absolute",
+                      position: 'absolute',
                       top: -10,
                       right: -10,
-                      background: "#fff",
-                      border: "1px solid red",
-                      borderRadius: "50%",
+                      background: '#fff',
+                      border: '1px solid red',
+                      borderRadius: '50%',
                       width: 20,
                       height: 20,
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      lineHeight: "18px",
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      lineHeight: '18px',
                       padding: 0,
                       zIndex: 9990,
-                      color: "cadetblue",
+                      color: 'cadetblue',
                     }}
-                    title="Remove box"
+                    title='Remove box'
                   >
                     ×
                   </button>
@@ -695,40 +695,38 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
                 x: boxPos.x,
                 y: boxPos.y,
                 width: 400,
-                height: "auto",
+                height: 'auto',
               }}
               onDragStop={handleDragStop}
-              
-              
-              bounds="window"
+              bounds='window'
               enableResizing={false}
-              dragHandleClassName="drag-handle"
-              style={{ position: "absolute" }}
-              className="z-[9999]"
+              dragHandleClassName='drag-handle'
+              style={{ position: 'absolute' }}
+              className='z-[9999]'
             >
-              <div className="bg-white rounded-lg shadow-lg w-full">
+              <div className='bg-white rounded-lg shadow-lg w-full'>
                 <div
-                  className="bg-primary text-white px-3 py-2 rounded-top d-flex align-items-center justify-content-between drag-handle"
-                  style={{ cursor: "move" }}
+                  className='bg-primary text-white px-3 py-2 rounded-top d-flex align-items-center justify-content-between drag-handle'
+                  style={{ cursor: 'move' }}
                 >
-                  <div className="d-flex align-items-center">
-                    <RxDragHandleDots2 className="me-2 fs-5" />
+                  <div className='d-flex align-items-center'>
+                    <RxDragHandleDots2 className='me-2 fs-5' />
                     <span>Move Form</span>
                   </div>
                   <button
-                    type="button"
-                    className="close text-white hover:text-red-200"
-                    aria-label="Close"
+                    type='button'
+                    className='close text-white hover:text-red-200'
+                    aria-label='Close'
                     onClick={(e) => {
                       e.stopPropagation();
                       setActiveBox(null);
                     }}
                   >
-                    <span aria-hidden="true">&times;</span>
+                    <span aria-hidden='true'>&times;</span>
                   </button>
                 </div>
 
-                <div className="p-3 ">
+                <div className='p-3 '>
                   <FormData
                     setCurrentBoxData={setCurrentBoxData}
                     currentBoxData={currentBoxData}
@@ -748,31 +746,31 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
       </section>
 
       {/* Controls */}
-      <div className="d-flex w-100 position-fixed bottom-0 bg-white z-9999">
-        <div className="d-flex justify-content-around p-2 bg-white w-75 bottom-0">
-          <div className="custom-control custom-switch">
+      <div className='d-flex w-100 position-fixed bottom-0 bg-white z-9999'>
+        <div className='d-flex justify-content-around p-2 bg-white w-75 bottom-0'>
+          <div className='custom-control custom-switch'>
             <input
-              type="checkbox"
-              className="custom-control-input"
-              id="exampleCheck"
+              type='checkbox'
+              className='custom-control-input'
+              id='exampleCheck'
               onChange={(e) => setShowReferenceBox(e.target.checked)}
               checked={showReferenceBox}
             />
             <label
-              className="custom-control-label text-dark"
-              htmlFor="exampleCheck"
+              className='custom-control-label text-dark'
+              htmlFor='exampleCheck'
             >
-              {!showReferenceBox ? "Add Skew Marks" : "Remove Skew Marks"}
+              {!showReferenceBox ? 'Add Skew Marks' : 'Remove Skew Marks'}
             </label>
           </div>
 
           {showReferenceBox && referenceBoxes.length <= 4 && (
             <button
-              type="button"
-              className="btn me-2 btn-primary"
+              type='button'
+              className='btn me-2 btn-primary'
               onClick={() => {
                 if (referenceBoxes.length >= 4) {
-                  toast.error("You can only add 4 reference boxes.");
+                  toast.error('You can only add 4 reference boxes.');
                   return;
                 }
                 setModalOpen(true);
@@ -783,8 +781,8 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
           )}
 
           <button
-            type="button"
-            className="btn btn-primary me-2"
+            type='button'
+            className='btn btn-primary me-2'
             onClick={() => {
               setCurrentBoxData({});
               setIsOpen(true);
@@ -794,21 +792,27 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
           </button>
 
           <button
-            type="button"
-            className="btn btn-success"
+            type='button'
+            className='btn btn-success'
             onClick={saveTemplate}
           >
             Save Template
           </button>
 
           <div style={{ marginLeft: 12 }}>
-            <button className="btn btn-sm btn-light me-1" onClick={zoomOut}>
+            <button
+              className='btn btn-sm btn-light me-1'
+              onClick={zoomOut}
+            >
               −
             </button>
-            <span style={{ margin: "0 8px" }}>
+            <span style={{ margin: '0 8px' }}>
               Zoom: {Math.round(zoomScale * 100)}%
             </span>
-            <button className="btn btn-sm btn-light ms-1" onClick={zoomIn}>
+            <button
+              className='btn btn-sm btn-light ms-1'
+              onClick={zoomIn}
+            >
               +
             </button>
           </div>
@@ -818,20 +822,27 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
       {/* Add Box Modal */}
       {isOpen && (
         <Rnd
-          default={{ x: 100, y: window.scrollY + 50, width: 400, height: "auto" }}
-          
-          bounds="window"
+          default={{
+            x: 100,
+            y: window.scrollY + 50,
+            width: 400,
+            height: 'auto',
+          }}
+          bounds='window'
           enableResizing={false}
-          dragHandleClassName="drag-handle"
-          style={{ position: "absolute"}}
-          className="z-[99] bg-white shadow-lg rounded-lg border"
+          dragHandleClassName='drag-handle'
+          style={{ position: 'absolute' }}
+          className='z-[99] bg-white shadow-lg rounded-lg border'
         >
-          <div className="flex flex-col w-full" style={{ cursor: "move" }}>
-            <div className="bg-primary text-white px-3 py-2 rounded-top d-flex align-items-center justify-content-between drag-handle">
-              <h2 className="font-semibold text-white">Create Template</h2>
+          <div
+            className='flex flex-col w-full'
+            style={{ cursor: 'move' }}
+          >
+            <div className='bg-primary text-white px-3 py-2 rounded-top d-flex align-items-center justify-content-between drag-handle'>
+              <h2 className='font-semibold text-white'>Create Template</h2>
             </div>
 
-            <div className="p-4">
+            <div className='p-4'>
               <FormData
                 setCurrentBoxData={setCurrentBoxData}
                 currentBoxData={currentBoxData}
@@ -844,17 +855,17 @@ const initialPosRef = useRef({ x: -1000, y: 100 });
               />
             </div>
 
-            <div className="flex justify-end gap-2 p-3 border-t">
+            <div className='flex justify-end gap-2 p-3 border-t'>
               <Button
-                type="button"
-                variant="warning"
+                type='button'
+                variant='warning'
                 onClick={() => setIsOpen(false)}
               >
                 Close
               </Button>
               <Button
-                type="button"
-                variant="primary"
+                type='button'
+                variant='primary'
                 onClick={() => {
                   if (buttonRef.current) buttonRef.current.click();
                 }}

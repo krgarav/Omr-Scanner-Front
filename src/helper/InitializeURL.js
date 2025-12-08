@@ -1,6 +1,6 @@
 // config/ApiConfig.js
 
-import getBaseUrl from "services/BackendApi";
+import getBaseUrl from 'services/BackendApi';
 
 const initializeUrls = async () => {
   const baseUrl = await getBaseUrl();
@@ -48,8 +48,8 @@ const initializeUrls = async () => {
     PRINT_DATA: `${baseUrl}PrintSetting`,
     GET_ROW_DATA: `${baseUrl}GetDataByRowRange`,
     GET_TOTAL_EXCEL_ROW: `${baseUrl}GetTotalExcelRow`,
-    TOTAL_SCANNING : `${baseUrl}api/showRecord/Dash_AllRec`,
-   ACCURACY_RATE : `${baseUrl}api/showRecord/Dash_Avrage`,
+    TOTAL_SCANNING: `${baseUrl}api/showRecord/Dash_AllRec`,
+    ACCURACY_RATE: `${baseUrl}api/showRecord/Dash_Avrage`,
     MAIN_URL: baseUrl,
   };
 };
