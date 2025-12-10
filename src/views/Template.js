@@ -7,32 +7,32 @@ import {
   DropdownToggle,
   Table,
   Container,
-} from "reactstrap";
+} from 'reactstrap';
 // core components
-import Header from "components/Headers/Header.js";
-import NormalHeader from "components/Headers/NormalHeader";
-import { Modal, Button, Row, Col, Spinner } from "react-bootstrap";
-import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import DataContext from "store/DataContext";
-import axios from "axios";
-import { fetchAllTemplate } from "helper/TemplateHelper";
-import { deleteTemplate } from "helper/TemplateHelper";
-import CryptoJS from "crypto-js";
-import { toast } from "react-toastify";
-import { getTemplateImage } from "helper/TemplateHelper";
-import { getTemplateCsv } from "helper/TemplateHelper";
-import { getLayoutDataById } from "helper/TemplateHelper";
-import Papa from "papaparse";
-import { checkJobStatus } from "helper/TemplateHelper";
-import Placeholder from "ui/Placeholder";
-import CloneTemplateHandler from "services/CloneTemplate";
-import BookletModal from "ui/BookletModal";
-import { createTemplate } from "helper/TemplateHelper";
+import Header from 'components/Headers/Header.js';
+import NormalHeader from 'components/Headers/NormalHeader';
+import { Modal, Button, Row, Col, Spinner } from 'react-bootstrap';
+import { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import DataContext from 'store/DataContext';
+import axios from 'axios';
+import { fetchAllTemplate } from 'helper/TemplateHelper';
+import { deleteTemplate } from 'helper/TemplateHelper';
+import CryptoJS from 'crypto-js';
+import { toast } from 'react-toastify';
+import { getTemplateImage } from 'helper/TemplateHelper';
+import { getTemplateCsv } from 'helper/TemplateHelper';
+import { getLayoutDataById } from 'helper/TemplateHelper';
+import Papa from 'papaparse';
+import { checkJobStatus } from 'helper/TemplateHelper';
+import Placeholder from 'ui/Placeholder';
+import CloneTemplateHandler from 'services/CloneTemplate';
+import BookletModal from 'ui/BookletModal';
+import { createTemplate } from 'helper/TemplateHelper';
 
 const base64ToFile = (base64, filename) => {
-  const byteString = atob(base64.split(",")[1]);
-  const mimeString = base64.split(",")[0].split(":")[1].split(";")[0];
+  const byteString = atob(base64.split(',')[1]);
+  const mimeString = base64.split(',')[0].split(':')[1].split(';')[0];
   const ab = new ArrayBuffer(byteString.length);
   const ia = new Uint8Array(ab);
   for (let i = 0; i < byteString.length; i++) {
@@ -61,7 +61,7 @@ const Template = () => {
       setTemplateLoading(true);
       const templates = await fetchAllTemplate();
       if (templates === undefined) {
-        toast.error("Error fetching templates");
+        toast.error('Error fetching templates');
         setTemplateLoading(false);
         return;
       }
@@ -83,7 +83,7 @@ const Template = () => {
       templateDatail[0].layoutParameters.id
     );
 
-    if (temp === "Template Cloned Successfully") {
+    if (temp === 'Template Cloned Successfully') {
       toast.success(temp);
     } else {
       toast.error(temp);
@@ -97,10 +97,11 @@ const Template = () => {
 
     const templateId = arr.id;
     const res = await getLayoutDataById(templateId);
-    if (res?.data?.jsonPath === "") {
-      toast.warning("Template Not Created Yet!!");
+    if (res?.data?.jsonPath === '') {
+      toast.warning('Template Not Created Yet!!');
     }
     console.log(res);
+    console.log('text here ');
     // return;
     setLoading(false);
     navigate(`/admin/template/create-template/${arr.id}`);
@@ -112,12 +113,12 @@ const Template = () => {
     const apiSecret = process.env.REACT_APP_API_SECRET; // Your Cloudinary API secret
 
     // Extract public ID from URL
-    const urlParts = imageUrl.split("/");
-    const versionIndex = urlParts.findIndex((part) => part.startsWith("v"));
-    const publicIdWithFormat = urlParts.slice(versionIndex + 1).join("/"); // omrimages/dj7va6r3farwpblq6txv.jpg
-    const publicId = publicIdWithFormat.split(".")[0]; // omrimages/dj7va6r3farwpblq6txv
+    const urlParts = imageUrl.split('/');
+    const versionIndex = urlParts.findIndex((part) => part.startsWith('v'));
+    const publicIdWithFormat = urlParts.slice(versionIndex + 1).join('/'); // omrimages/dj7va6r3farwpblq6txv.jpg
+    const publicId = publicIdWithFormat.split('.')[0]; // omrimages/dj7va6r3farwpblq6txv
 
-    console.log("Extracted public ID:", publicId); // Debugging: Log the public ID
+    console.log('Extracted public ID:', publicId); // Debugging: Log the public ID
 
     // Create the timestamp and signature
     const timestamp = Math.floor(new Date().getTime() / 1000);
@@ -126,10 +127,10 @@ const Template = () => {
 
     // Form data for the request
     const formData = new FormData();
-    formData.append("public_id", publicId);
-    formData.append("timestamp", timestamp);
-    formData.append("api_key", apiKey);
-    formData.append("signature", signature);
+    formData.append('public_id', publicId);
+    formData.append('timestamp', timestamp);
+    formData.append('api_key', apiKey);
+    formData.append('signature', signature);
 
     try {
       // Make the API request to delete the image
@@ -138,7 +139,7 @@ const Template = () => {
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            'Content-Type': 'multipart/form-data',
           },
         }
       );
@@ -147,19 +148,19 @@ const Template = () => {
 
       return response.data;
     } catch (error) {
-      console.error("Error deleting image:", error); // Debugging: Log any error
+      console.error('Error deleting image:', error); // Debugging: Log any error
       throw error;
     }
   };
 
   const deleteHandler = async (arr, index) => {
-    const result = window.confirm("Are you sure you want to delete template ?");
+    const result = window.confirm('Are you sure you want to delete template ?');
     if (result) {
       const id = arr.id;
       const res = await deleteTemplate(id);
       if (res?.state) {
         setToggle((prev) => !prev);
-        toast.success("Successfully deleted template");
+        toast.success('Successfully deleted template');
       }
     } else {
       return;
@@ -169,19 +170,34 @@ const Template = () => {
   const placeHolderJobs = new Array(10).fill(null).map((_, index) => (
     <tr key={index}>
       <td>
-        <Placeholder width="20%" height="1.5em" />
+        <Placeholder
+          width='20%'
+          height='1.5em'
+        />
       </td>
       <td>
-        <Placeholder width="60%" height="1.5em" />
+        <Placeholder
+          width='60%'
+          height='1.5em'
+        />
       </td>
       <td>
-        <Placeholder width="60%" height="1.5em" />
+        <Placeholder
+          width='60%'
+          height='1.5em'
+        />
       </td>
       <td>
-        <Placeholder width="60%" height="1.5em" />
+        <Placeholder
+          width='60%'
+          height='1.5em'
+        />
       </td>
       <td>
-        <Placeholder width="60%" height="1.5em" />
+        <Placeholder
+          width='60%'
+          height='1.5em'
+        />
       </td>
       <td></td>
     </tr>
@@ -191,32 +207,35 @@ const Template = () => {
     <tr
       key={i}
       onClick={() => handleRowClick(d, i)}
-      style={{ cursor: "pointer" }} // Adds a pointer cursor on hover
+      style={{ cursor: 'pointer' }} // Adds a pointer cursor on hover
     >
       <td>{i + 1}</td>
       <td>{d.fileName}</td>
       <td>{d.createAt}</td>
       {/* <td>{d.jsonPath}</td>
       <td>{"Omr Template"}</td> */}
-      <td className="text-right">
+      <td className='text-right'>
         <UncontrolledDropdown>
           <DropdownToggle
-            className="btn-icon-only text-light"
-            href="#pablo"
-            role="button"
-            size="sm"
-            color=""
+            className='btn-icon-only text-light'
+            href='#pablo'
+            role='button'
+            size='sm'
+            color=''
             onClick={(e) => e.preventDefault()}
           >
-            <i className="fas fa-ellipsis-v" />
+            <i className='fas fa-ellipsis-v' />
           </DropdownToggle>
-          <DropdownMenu className="dropdown-menu-arrow" right>
+          <DropdownMenu
+            className='dropdown-menu-arrow'
+            right
+          >
             <DropdownItem onClick={() => editHandler(d, i)}>Edit</DropdownItem>
             {/* <DropdownItem onClick={() => duplicateHandler(d)}>
               Duplicate
             </DropdownItem> */}
             <DropdownItem
-              style={{ color: "red" }}
+              style={{ color: 'red' }}
               onClick={() => deleteHandler(d, i)}
             >
               Delete
@@ -229,17 +248,18 @@ const Template = () => {
 
   const handleCreate = async () => {
     if (!templateName || !templateImage) {
-      toast.error("Please provide both template name and image.");
+      toast.error('Please provide both template name and image.');
       return;
     }
 
     try {
+      setLoading(true);
       const res = await createTemplate(templateName, templateImage);
       const id = res.data[0].id;
-      toast.success("Template created successfully!");
+      toast.success('Template created successfully!');
       navigate(`/admin/template/create-template/${id}`);
     } catch (err) {
-      console.error("Error creating template:", err);
+      console.error('Error creating template:', err);
     }
   };
 
@@ -247,19 +267,22 @@ const Template = () => {
     <>
       <NormalHeader />
       {/* Page content */}
-      <Container className="mt--7" fluid>
+      <Container
+        className='mt--7'
+        fluid
+      >
         {/* Table */}
         <Row>
-          <div className="col">
-            <Card className="shadow">
-              <CardHeader className="border-0">
-                <div className="d-flex justify-content-between">
-                  <h3 className="mt-2">All Templates</h3>
+          <div className='col'>
+            <Card className='shadow'>
+              <CardHeader className='border-0'>
+                <div className='d-flex justify-content-between'>
+                  <h3 className='mt-2'>All Templates</h3>
 
                   <Button
-                    className=""
-                    color="primary"
-                    type="button"
+                    className=''
+                    color='primary'
+                    type='button'
                     onClick={() => setModalShow(true)}
                   >
                     Create Template
@@ -267,21 +290,21 @@ const Template = () => {
                 </div>
               </CardHeader>
 
-              <div style={{ height: "70vh", overflow: "auto" }}>
+              <div style={{ height: '70vh', overflow: 'auto' }}>
                 {loading && (
                   <div
                     style={{
-                      position: "absolute",
+                      position: 'absolute',
                       top: 0,
                       left: 0,
-                      width: "100%",
-                      height: "100%",
-                      backgroundColor: "rgba(0, 0, 0, 0.2)", // Slightly opaque background
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
+                      width: '100%',
+                      height: '100%',
+                      backgroundColor: 'rgba(0, 0, 0, 0.2)', // Slightly opaque background
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
                       zIndex: 999,
-                      pointerEvents: "auto", // Make the overlay not clickable
+                      pointerEvents: 'auto', // Make the overlay not clickable
                     }}
                   >
                     <Spinner />
@@ -289,26 +312,26 @@ const Template = () => {
                 )}
 
                 <Table
-                  className="align-items-center table-flush mb-5 table-hover"
+                  className='align-items-center table-flush mb-5 table-hover'
                   // style={{ width: '100%', tableLayout: 'fixed' }}
                   // responsive
                 >
                   <thead
-                    className="thead-light"
+                    className='thead-light'
                     style={{
-                      position: "sticky",
+                      position: 'sticky',
                       top: 0,
                       zIndex: 1,
-                      backgroundColor: "white",
+                      backgroundColor: 'white',
                     }}
                   >
                     <tr>
-                      <th scope="col">SL no.</th>
-                      <th scope="col">Template Name</th>
-                      <th scope="col">Creation Date</th>
+                      <th scope='col'>SL no.</th>
+                      <th scope='col'>Template Name</th>
+                      <th scope='col'>Creation Date</th>
                       {/* <th scope="col">Col</th>
                       <th scope="col">Bubble Type</th> */}
-                      <th scope="col"></th>
+                      <th scope='col'></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -325,78 +348,102 @@ const Template = () => {
         <Modal
           show={showDetailModal}
           onHide={() => setShowDetailModal(false)}
-          size="lg"
-          aria-labelledby="modal-custom-navbar"
+          size='lg'
+          aria-labelledby='modal-custom-navbar'
           centered
         >
           <Modal.Header>
-            <Modal.Title id="modal-custom-navbar">
+            <Modal.Title id='modal-custom-navbar'>
               Template Name : {templateDatail[0].layoutParameters.layoutName}
             </Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <Row className="mb-3">
-              <Col xs={12} md={2}>
+            <Row className='mb-3'>
+              <Col
+                xs={12}
+                md={2}
+              >
                 <label
-                  htmlFor="example-text-input"
-                  style={{ fontSize: ".9rem" }}
+                  htmlFor='example-text-input'
+                  style={{ fontSize: '.9rem' }}
                 >
                   Name:
                 </label>
               </Col>
-              <Col xs={12} md={10}>
+              <Col
+                xs={12}
+                md={10}
+              >
                 <input
-                  type="text"
-                  className="form-control"
+                  type='text'
+                  className='form-control'
                   value={templateDatail[0].layoutParameters.layoutName}
                 />
               </Col>
             </Row>
-            <Row className="mb-3">
-              <Col xs={12} md={2}>
+            <Row className='mb-3'>
+              <Col
+                xs={12}
+                md={2}
+              >
                 <label
-                  htmlFor="example-text-input"
-                  style={{ fontSize: ".9rem" }}
+                  htmlFor='example-text-input'
+                  style={{ fontSize: '.9rem' }}
                 >
                   Total Row:
                 </label>
               </Col>
-              <Col xs={12} md={2}>
+              <Col
+                xs={12}
+                md={2}
+              >
                 <input
-                  type="text"
-                  className="form-control"
+                  type='text'
+                  className='form-control'
                   value={templateDatail[0].layoutParameters.timingMarks}
                   readOnly
                 />
               </Col>
-              <Col xs={12} md={2}>
+              <Col
+                xs={12}
+                md={2}
+              >
                 <label
-                  htmlFor="example-text-input"
-                  style={{ fontSize: ".9rem" }}
+                  htmlFor='example-text-input'
+                  style={{ fontSize: '.9rem' }}
                 >
                   Total Column:
                 </label>
               </Col>
-              <Col xs={12} md={2}>
+              <Col
+                xs={12}
+                md={2}
+              >
                 <input
-                  type="text"
-                  className="form-control"
+                  type='text'
+                  className='form-control'
                   value={templateDatail[0].layoutParameters.totalColumns}
                   readOnly
                 />
               </Col>
-              <Col xs={12} md={2}>
+              <Col
+                xs={12}
+                md={2}
+              >
                 <label
-                  htmlFor="example-text-input"
-                  style={{ fontSize: ".9rem" }}
+                  htmlFor='example-text-input'
+                  style={{ fontSize: '.9rem' }}
                 >
                   Bubble Type:
                 </label>
               </Col>
-              <Col xs={12} md={2}>
+              <Col
+                xs={12}
+                md={2}
+              >
                 <input
-                  type="text"
-                  className="form-control"
+                  type='text'
+                  className='form-control'
                   value={templateDatail[0].layoutParameters.bubbleType}
                   readOnly
                 />
@@ -407,75 +454,93 @@ const Template = () => {
               templateDatail.Regions.map((item, index) => {
                 return (
                   <div key={index}>
-                    <Row className="mb-3">
-                      <Col xs={12} md={2}>
+                    <Row className='mb-3'>
+                      <Col
+                        xs={12}
+                        md={2}
+                      >
                         <label
-                          htmlFor="example-text-input"
-                          style={{ fontSize: ".9rem" }}
+                          htmlFor='example-text-input'
+                          style={{ fontSize: '.9rem' }}
                         >
                           Region Name:
                         </label>
                       </Col>
-                      <Col xs={12} md={10}>
+                      <Col
+                        xs={12}
+                        md={10}
+                      >
                         <input
-                          type="text"
-                          className="form-control"
-                          value={item["Region name"]}
+                          type='text'
+                          className='form-control'
+                          value={item['Region name']}
                           readOnly
                         />
                       </Col>
                     </Row>
 
-                    <Row className="mb-3">
-                      <Col xs={6} md={3}>
+                    <Row className='mb-3'>
+                      <Col
+                        xs={6}
+                        md={3}
+                      >
                         <label
-                          htmlFor="example-text-input"
-                          style={{ fontSize: ".9rem" }}
+                          htmlFor='example-text-input'
+                          style={{ fontSize: '.9rem' }}
                         >
                           Start Row:
                         </label>
                         <input
-                          className="form-control"
-                          value={item["Coordinate"]["Start Row"]}
+                          className='form-control'
+                          value={item['Coordinate']['Start Row']}
                           readOnly
                         />
                       </Col>
-                      <Col xs={6} md={3}>
+                      <Col
+                        xs={6}
+                        md={3}
+                      >
                         <label
-                          htmlFor="example-text-input"
-                          style={{ fontSize: ".9rem" }}
+                          htmlFor='example-text-input'
+                          style={{ fontSize: '.9rem' }}
                         >
                           Start Col:
                         </label>
                         <input
-                          className="form-control"
-                          value={item["Coordinate"]["Start Col"]}
+                          className='form-control'
+                          value={item['Coordinate']['Start Col']}
                           readOnly
                         />
                       </Col>
-                      <Col xs={6} md={3}>
+                      <Col
+                        xs={6}
+                        md={3}
+                      >
                         <label
-                          htmlFor="example-text-input"
-                          style={{ fontSize: ".9rem" }}
+                          htmlFor='example-text-input'
+                          style={{ fontSize: '.9rem' }}
                         >
                           End Row:
                         </label>
                         <input
-                          className="form-control"
-                          value={item["Coordinate"]["End Row"]}
+                          className='form-control'
+                          value={item['Coordinate']['End Row']}
                           readOnly
                         />
                       </Col>
-                      <Col xs={6} md={3}>
+                      <Col
+                        xs={6}
+                        md={3}
+                      >
                         <label
-                          htmlFor="example-text-input"
-                          style={{ fontSize: ".9rem" }}
+                          htmlFor='example-text-input'
+                          style={{ fontSize: '.9rem' }}
                         >
                           End Col:
                         </label>
                         <input
-                          className="form-control"
-                          value={item["Coordinate"]["End Col"]}
+                          className='form-control'
+                          value={item['Coordinate']['End Col']}
                           readOnly
                         />
                       </Col>
@@ -486,12 +551,15 @@ const Template = () => {
           </Modal.Body>
           <Modal.Footer>
             <Button
-              variant="secondary"
+              variant='secondary'
               onClick={() => setShowDetailModal(false)}
             >
               Close
             </Button>
-            <Button variant="success" onClick={cloneHandler}>
+            <Button
+              variant='success'
+              onClick={cloneHandler}
+            >
               Clone Template
             </Button>
           </Modal.Footer>
@@ -502,40 +570,46 @@ const Template = () => {
 
       <Modal
         show={modalShow}
-        size="md"
-        aria-labelledby="contained-modal-title-vcenter"
+        size='md'
+        aria-labelledby='contained-modal-title-vcenter'
         centered
       >
         <Modal.Header>
-          <Modal.Title id="contained-modal-title-vcenter">
+          <Modal.Title id='contained-modal-title-vcenter'>
             Create Template
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Row className="mb-3">
-            <label htmlFor="example-text-input" className="col-md-2 col-label">
+          <Row className='mb-3'>
+            <label
+              htmlFor='example-text-input'
+              className='col-md-2 col-label'
+            >
               Template Name
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <input
-                type="text"
-                className="form-control"
-                placeholder="Enter Template Name"
+                type='text'
+                className='form-control'
+                placeholder='Enter Template Name'
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
               />
             </div>
           </Row>
-          <Row className="mb-3">
-            <label htmlFor="image-upload" className="col-md-2 col-label">
+          <Row className='mb-3'>
+            <label
+              htmlFor='image-upload'
+              className='col-md-2 col-label'
+            >
               Upload Image
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <input
-                type="file"
-                className="form-control"
-                id="image-upload"
-                accept="image/*"
+                type='file'
+                className='form-control'
+                id='image-upload'
+                accept='image/*'
                 onChange={(e) => setTemplateImage(e.target.files[0])}
               />
             </div>
@@ -543,21 +617,28 @@ const Template = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            type="button"
-            color="primary"
+            type='button'
+            color='primary'
             onClick={() => setModalShow(false)}
-            className="waves-effect waves-light"
+            className='waves-effect waves-light'
           >
             Close
-          </Button>{" "}
+          </Button>{' '}
           <Button
-            type="button"
-            color="success"
+            type='button'
+            color='success'
+            disabled={loading}
             onClick={handleCreate}
-            className="waves-effect waves-light"
+            className='waves-effect waves-light'
           >
-            Create
-          </Button>{" "}
+            {loading && (
+              <Spinner
+                animation='border'
+                role='status'
+              />
+            )}
+            {!loading && 'Create'}
+          </Button>{' '}
         </Modal.Footer>
       </Modal>
     </>

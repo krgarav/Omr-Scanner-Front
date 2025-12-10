@@ -1,13 +1,13 @@
-import Header from "components/Headers/Header.js";
-import NormalHeader from "components/Headers/NormalHeader";
-import { Modal } from "react-bootstrap";
-import { useEffect, useRef, useState } from "react";
-import Select from "react-select";
-import { fetchProcessData } from "helper/Booklet32Page_helper";
-import { toast } from "react-toastify";
-import { Button, Card, CardHeader, Container, Row, Table } from "reactstrap";
-import { refreshScanner } from "helper/Booklet32Page_helper";
-import { scanFiles } from "helper/Booklet32Page_helper";
+import Header from 'components/Headers/Header.js';
+import NormalHeader from 'components/Headers/NormalHeader';
+import { Modal } from 'react-bootstrap';
+import { useEffect, useRef, useState } from 'react';
+import Select from 'react-select';
+import { fetchProcessData } from 'helper/Booklet32Page_helper';
+import { toast } from 'react-toastify';
+import { Button, Card, CardHeader, Container, Row, Table } from 'reactstrap';
+import { refreshScanner } from 'helper/Booklet32Page_helper';
+import { scanFiles } from 'helper/Booklet32Page_helper';
 // import { GridComponent, ColumnsDirective, ColumnDirective, Sort, Inject, Toolbar, Page, Filter, Edit } from '@syncfusion/ej2-react-grids';
 import {
   GridComponent,
@@ -24,29 +24,29 @@ import {
   EditSettingsModel,
   Filter,
   Edit,
-} from "@syncfusion/ej2-react-grids";
+} from '@syncfusion/ej2-react-grids';
 
-import { fetchAllTemplate } from "helper/TemplateHelper";
+import { fetchAllTemplate } from 'helper/TemplateHelper';
 // import Select, { components } from "react-select";
-import { jwtDecode } from "jwt-decode";
-import { useLocation, useNavigate } from "react-router-dom";
-import { cancelScan } from "helper/TemplateHelper";
-import { finishJob } from "helper/job_helper";
-import axios from "axios";
-import { GET_PROCESS_32_PAG_DATA } from "helper/url_helper";
-import { GENERATE_EXCEL } from "helper/url_helper";
-import { getUrls } from "helper/url_helper";
-import PrintModal from "ui/PrintModal";
+import { jwtDecode } from 'jwt-decode';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { cancelScan } from 'helper/TemplateHelper';
+import { finishJob } from 'helper/job_helper';
+import axios from 'axios';
+import { GET_PROCESS_32_PAG_DATA } from 'helper/url_helper';
+import { GENERATE_EXCEL } from 'helper/url_helper';
+import { getUrls } from 'helper/url_helper';
+import PrintModal from 'ui/PrintModal';
 
 function emptyMessageTemplate() {
   return (
-    <div className="text-center">
+    <div className='text-center'>
       <img
         src={
-          "https://ej2.syncfusion.com/react/demos/src/grid/images/emptyRecordTemplate_light.svg"
+          'https://ej2.syncfusion.com/react/demos/src/grid/images/emptyRecordTemplate_light.svg'
         }
-        className="d-block mx-auto my-2"
-        alt="No record"
+        className='d-block mx-auto my-2'
+        alt='No record'
       />
       <span>There is no data available to display at the moment.</span>
     </div>
@@ -57,8 +57,8 @@ const ScanJob = () => {
   const [count, setCount] = useState(true);
   const [processedData, setProcessedData] = useState([]);
   const [scanning, setScanning] = useState(false);
-  const [headData, setHeadData] = useState(["OrderID"]);
-  const filterSettings = { type: "Excel" };
+  const [headData, setHeadData] = useState(['OrderID']);
+  const filterSettings = { type: 'Excel' };
   // const toolbar = ['Add', 'Edit', 'Delete', 'Update', 'Cancel', 'ExcelExport', 'CsvExport'];
   const editSettings = {
     allowEditing: true,
@@ -69,7 +69,7 @@ const ScanJob = () => {
   const [items, setItems] = useState([]);
   const [templateOptions, setTemplateOptions] = useState([]);
   const [selectedValue, setSelectedValue] = useState();
-  const [toolbar, setToolbar] = useState(["ExcelExport", "CsvExport"]);
+  const [toolbar, setToolbar] = useState(['ExcelExport', 'CsvExport']);
   const [services, setServices] = useState([
     Sort,
     Toolbar,
@@ -77,10 +77,10 @@ const ScanJob = () => {
     Filter,
   ]);
   const gridRef = useRef();
-  const [gridHeight, setGridHeight] = useState("350px");
+  const [gridHeight, setGridHeight] = useState('350px');
   const [starting, setStarting] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(true);
-  const [proccessUrl, setProcessURL] = useState("");
+  const [proccessUrl, setProcessURL] = useState('');
   const template = emptyMessageTemplate;
   const location = useLocation();
   const navigate = useNavigate();
@@ -94,8 +94,8 @@ const ScanJob = () => {
   }, []);
   useEffect(() => {
     const handleResize = () => setIsSmallScreen(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
   useEffect(() => {
     // Calculate 60% of the viewport height
@@ -108,18 +108,17 @@ const ScanJob = () => {
     handleResize();
 
     // Add event listener to update height on window resize
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
 
     // Cleanup the event listener on component unmount
     return () => {
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
   useEffect(() => {
-
     // const { templateId } = location?.state;
-    const localTemplateId = localStorage.getItem("scantemplateId");
+    const localTemplateId = localStorage.getItem('scantemplateId');
     // if (templateId) {
     //   setSelectedValue(templateId);
     // }
@@ -167,7 +166,7 @@ const ScanJob = () => {
   // }, []);
   const getScanData = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       const userInfo = jwtDecode(token);
       const userId = userInfo.UserId;
 
@@ -179,19 +178,19 @@ const ScanJob = () => {
 
       if (data?.result?.success) {
         const newDataKeys = Object.keys(data.result.data[0]).map((key) => {
-          return key.endsWith(".") ? key.slice(0, -1) : key;
+          return key.endsWith('.') ? key.slice(0, -1) : key;
         });
-        setHeadData(["Serial No", ...newDataKeys]);
+        setHeadData(['Serial No', ...newDataKeys]);
         let splicedData;
         let updatedData = [];
         let num = 1;
         updatedData = data.result.data.map((item) => {
           const newItem = {};
           for (const key in item) {
-            const newKey = key.endsWith(".") ? key.slice(0, -1) : key;
+            const newKey = key.endsWith('.') ? key.slice(0, -1) : key;
             newItem[newKey] = item[key];
           }
-          newItem["Serial No"] = num++;
+          newItem['Serial No'] = num++;
           return newItem;
         });
 
@@ -240,7 +239,7 @@ const ScanJob = () => {
     let scanningTimeoutId;
     try {
       setStarting(true);
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
 
       if (token) {
         const userInfo = jwtDecode(token);
@@ -271,7 +270,7 @@ const ScanJob = () => {
           setScanning(false);
         }
         if (response === undefined) {
-          toast.error("Request Timeout");
+          toast.error('Request Timeout');
           setScanning(false);
         }
       }
@@ -290,7 +289,7 @@ const ScanJob = () => {
       const updatedData = [...processedData];
       console.log(updatedData);
       const index = updatedData.findIndex(
-        (item) => item["Serial No"] == args.data["Serial No"]
+        (item) => item['Serial No'] == args.data['Serial No']
       );
       if (index > -1) {
         updatedData[index] = args.data;
@@ -305,7 +304,7 @@ const ScanJob = () => {
       refreshScanner();
     } catch (error) {
       console.log(error);
-      toast.error("Error in Refresh");
+      toast.error('Error in Refresh');
     }
   };
 
@@ -320,22 +319,22 @@ const ScanJob = () => {
           const gridContent = grid?.getContent()?.firstElementChild;
           gridContent.scrollTo({
             top: gridContent.scrollHeight,
-            behavior: "smooth",
+            behavior: 'smooth',
           });
         }, 500); // Delay to ensure the grid is fully rendered before scrolling
       }
     }
   };
   const handleToolbarClick = (args) => {
-    if (args.item.id.includes("excelexport")) {
+    if (args.item.id.includes('excelexport')) {
       gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.excelExport();
     }
-    if (args.item.id.includes("pdfexport")) {
+    if (args.item.id.includes('pdfexport')) {
       gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.pdfExport();
     }
-    if (args.item.id.includes("csvexport")) {
+    if (args.item.id.includes('csvexport')) {
       gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.csvExport();
     }
@@ -350,30 +349,30 @@ const ScanJob = () => {
     }
   };
   const completeJobHandler = async () => {
-    console.log("called");
-    const result = window.confirm("Are you sure to finish the job ?");
+    console.log('called');
+    const result = window.confirm('Are you sure to finish the job ?');
     if (!result) {
       return;
     }
-    const id = localStorage.getItem("jobId");
-    const templateId = localStorage.getItem("scantemplateId");
+    const id = localStorage.getItem('jobId');
+    const templateId = localStorage.getItem('scantemplateId');
 
     const obj = {
       id: id,
       templateId: templateId,
     };
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     const { Role } = jwtDecode(token);
 
     const res = await finishJob(obj);
     if (res?.success) {
-      toast.success("Completed the job!!!");
+      toast.success('Completed the job!!!');
     }
 
-    if (Role === "Moderator") {
-      navigate("moderator/icons", { replace: true });
+    if (Role === 'Moderator') {
+      navigate('moderator/icons', { replace: true });
     } else {
-      navigate("operator/job-queue", { replace: true });
+      navigate('operator/job-queue', { replace: true });
     }
   };
   const columnsDirective = headData.map((item, index) => {
@@ -382,8 +381,8 @@ const ScanJob = () => {
         field={item}
         key={index}
         headerText={item}
-        width="120"
-        textAlign="Center"
+        width='120'
+        textAlign='Center'
       ></ColumnDirective>
     );
   });
@@ -393,24 +392,27 @@ const ScanJob = () => {
       <NormalHeader />
       <div
         style={{
-          position: "absolute",
-          left: isSmallScreen ? "30%" : "40%",
-          top: isSmallScreen ? "10px" : "20px",
-          zIndex: "999",
+          position: 'absolute',
+          left: isSmallScreen ? '30%' : '40%',
+          top: isSmallScreen ? '10px' : '20px',
+          zIndex: '999',
         }}
       >
         <Button
-          variant="primary"
+          variant='primary'
           onClick={completeJobHandler}
-          style={{ position: "relative" }}
+          style={{ position: 'relative' }}
         >
           Complete Job
         </Button>
       </div>
-      <Container className={isSmallScreen ? "mt--6" : "mt--7"} fluid>
+      <Container
+        className={isSmallScreen ? 'mt--6' : 'mt--7'}
+        fluid
+      >
         <br />
-        <div className="control-pane">
-          <div className="control-section">
+        <div className='control-pane'>
+          <div className='control-section'>
             <GridComponent
               ref={gridRef}
               dataBound={dataBound}
@@ -431,23 +433,26 @@ const ScanJob = () => {
               <ColumnsDirective>{columnsDirective}</ColumnsDirective>
               <Inject services={services} />
             </GridComponent>
-            <div className="m-2" style={{ float: "right" }}>
+            <div
+              className='m-2'
+              style={{ float: 'right' }}
+            >
               <Button
-                className=""
-                color={"success"}
-                type="button"
+                className=''
+                color={'success'}
+                type='button'
                 onClick={handleStart}
                 disabled={scanning || starting ? true : false}
               >
-                {starting && !scanning && "Starting"}
-                {!starting && !scanning && "Start"}
-                {scanning && "Scanning"}
+                {starting && !scanning && 'Starting'}
+                {!starting && !scanning && 'Start'}
+                {scanning && 'Scanning'}
               </Button>
               {scanning && (
                 <Button
-                  className=""
-                  color="danger"
-                  type="button"
+                  className=''
+                  color='danger'
+                  type='button'
                   onClick={handleStop}
                 >
                   Cancel Scanning

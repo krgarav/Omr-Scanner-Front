@@ -1,13 +1,13 @@
-import Header from "components/Headers/Header.js";
-import NormalHeader from "components/Headers/NormalHeader";
-import { Modal } from "react-bootstrap";
-import { useEffect, useRef, useState } from "react";
-import Select from "react-select";
-import { fetchProcessData } from "helper/Booklet32Page_helper";
-import { toast } from "react-toastify";
-import { Button, Card, CardHeader, Container, Row, Table } from "reactstrap";
-import { refreshScanner } from "helper/Booklet32Page_helper";
-import { scanFiles } from "helper/Booklet32Page_helper";
+import Header from 'components/Headers/Header.js';
+import NormalHeader from 'components/Headers/NormalHeader';
+import { Modal } from 'react-bootstrap';
+import { useEffect, useRef, useState } from 'react';
+import Select from 'react-select';
+import { fetchProcessData } from 'helper/Booklet32Page_helper';
+import { toast } from 'react-toastify';
+import { Button, Card, CardHeader, Container, Row, Table } from 'reactstrap';
+import { refreshScanner } from 'helper/Booklet32Page_helper';
+import { scanFiles } from 'helper/Booklet32Page_helper';
 // import { GridComponent, ColumnsDirective, ColumnDirective, Sort, Inject, Toolbar, Page, Filter, Edit } from '@syncfusion/ej2-react-grids';
 import {
   GridComponent,
@@ -18,48 +18,48 @@ import {
   Toolbar,
   ExcelExport,
   Filter,
-  Resize
-} from "@syncfusion/ej2-react-grids";
-import { Link } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
-import { useLocation, useNavigate } from "react-router-dom";
-import { cancelScan } from "helper/TemplateHelper";
-import { finishJob } from "helper/job_helper";
-import axios from "axios";
-import { getUrls } from "helper/url_helper";
-import PrintModal from "ui/PrintModal";
-import jsonData from "data/jsonDataTest";
-import { headerData } from "data/jsonDataTest";
-import { VirtualScroll } from "@syncfusion/ej2-grids";
-import { getTotalExcellRow } from "helper/Booklet32Page_helper";
-import { getDataByRowRange } from "helper/Booklet32Page_helper";
-import getBaseUrl from "services/BackendApi";
-import ImageViewer from "react-simple-image-viewer";
-import { Rnd } from "react-rnd";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import RecognizationBtn from "ui/RecognizationBtn";
-import RecognizationModal from "ui/RecognizationModal";
-import { pauseScanning } from "helper/Booklet32Page_helper";
-import { resumeScanning } from "helper/Booklet32Page_helper";
-import { getLayoutDataById } from "helper/TemplateHelper";
-import ZoomViewer from "components/ZoomView";
-import { getLastScannedFiles } from "helper/Booklet32Page_helper";
-import { useScan } from "context/ScanningContext";
+  Resize,
+} from '@syncfusion/ej2-react-grids';
+import { Link } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { cancelScan } from 'helper/TemplateHelper';
+import { finishJob } from 'helper/job_helper';
+import axios from 'axios';
+import { getUrls } from 'helper/url_helper';
+import PrintModal from 'ui/PrintModal';
+import jsonData from 'data/jsonDataTest';
+import { headerData } from 'data/jsonDataTest';
+import { VirtualScroll } from '@syncfusion/ej2-grids';
+import { getTotalExcellRow } from 'helper/Booklet32Page_helper';
+import { getDataByRowRange } from 'helper/Booklet32Page_helper';
+import getBaseUrl from 'services/BackendApi';
+import ImageViewer from 'react-simple-image-viewer';
+import { Rnd } from 'react-rnd';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import RecognizationBtn from 'ui/RecognizationBtn';
+import RecognizationModal from 'ui/RecognizationModal';
+import { pauseScanning } from 'helper/Booklet32Page_helper';
+import { resumeScanning } from 'helper/Booklet32Page_helper';
+import { getLayoutDataById } from 'helper/TemplateHelper';
+import ZoomViewer from 'components/ZoomView';
+import { getLastScannedFiles } from 'helper/Booklet32Page_helper';
+import { useScan } from 'context/ScanningContext';
 function emptyMessageTemplate() {
   return (
-    <div className="text-center">
+    <div className='text-center'>
       <img
         src={
-          "https://ej2.syncfusion.com/react/demos/src/grid/images/emptyRecordTemplate_light.svg"
+          'https://ej2.syncfusion.com/react/demos/src/grid/images/emptyRecordTemplate_light.svg'
         }
-        className="d-block mx-auto my-2"
-        alt="No record"
+        className='d-block mx-auto my-2'
+        alt='No record'
       />
       <span>There is no data available to display at the moment.</span>
     </div>
   );
 }
-let num = JSON.parse(localStorage.getItem("lastSerialNo"), 10) || 1;
+let num = JSON.parse(localStorage.getItem('lastSerialNo'), 10) || 1;
 const AdminScanJob = () => {
   const {
     isScanning,
@@ -72,9 +72,11 @@ const AdminScanJob = () => {
   const [count, setCount] = useState(true);
   const [processedData, setProcessedData] = useState([]);
   const [scanning, setScanning] = useState(false);
-  const [headData, setHeadData] = useState(["Student Data"]);
+  const [headData, setHeadData] = useState(['Student Data']);
+  const [borderRowId, setBorderRowId] = useState(null);
+
   // const [headData, setHeadData] = useState(Object.keys(jsonData[0]));
-  const filterSettings = { type: "Excel" };
+  const filterSettings = { type: 'Excel' };
   // const toolbar = ['Add', 'Edit', 'Delete', 'Update', 'Cancel', 'ExcelExport', 'CsvExport'];
   const editSettings = {
     allowEditing: true,
@@ -83,14 +85,20 @@ const AdminScanJob = () => {
   };
   const [items, setItems] = useState([]);
   const [selectedValue, setSelectedValue] = useState();
-  const [toolbar, setToolbar] = useState(["ExcelExport", "CsvExport"]);
-  const [services, setServices] = useState([Sort, Toolbar, Filter, ExcelExport, Resize]);
-  const [gridHeight, setGridHeight] = useState("850px");
+  const [toolbar, setToolbar] = useState(['ExcelExport', 'CsvExport']);
+  const [services, setServices] = useState([
+    Sort,
+    Toolbar,
+    Filter,
+    ExcelExport,
+    Resize,
+  ]);
+  const [gridHeight, setGridHeight] = useState('850px');
   const [starting, setStarting] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 576);
-  const [proccessUrl, setProcessURL] = useState("");
+  const [proccessUrl, setProcessURL] = useState('');
   const [showPrintModal, setShowPrintModal] = useState(true);
-  const [templateName, setTemplateName] = useState("");
+  const [templateName, setTemplateName] = useState('');
   const [scrollState, setScrollState] = useState(false);
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -129,7 +137,7 @@ const AdminScanJob = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const templateId = localStorage.getItem("templateId");
+        const templateId = localStorage.getItem('templateId');
         const response = await getLastScannedFiles(templateId);
 
         if (response?.state) {
@@ -138,9 +146,9 @@ const AdminScanJob = () => {
           if (Array.isArray(data) && data.length > 0) {
             setHeadData(Object.keys(data[0])); // Use first row to get headers
             setProcessedData(data); // Set the entire array at once
-            console.log("Fetched data:", data);
+            console.log('Fetched data:', data);
           } else {
-            console.log("No data received.");
+            console.log('No data received.');
           }
         }
       } catch (error) {}
@@ -156,7 +164,7 @@ const AdminScanJob = () => {
           setBaseURL(url.host);
         }
       } catch (error) {
-        console.error("Failed to fetch base URL:", error);
+        console.error('Failed to fetch base URL:', error);
       }
     };
 
@@ -166,18 +174,18 @@ const AdminScanJob = () => {
   useEffect(() => {
     if (!baseUrl) return;
     console.log(baseUrl);
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     const ws = new WebSocket(`ws://${baseUrl}/ws?token=${token}`);
     let isHeadSet = false;
     // const ws = new WebSocket(`ws://192.168.1.10:5500/ws`);
 
     // console.log(baseUrl)
     ws.onopen = () => {
-      console.log("WebSocket connected");
+      console.log('WebSocket connected');
     };
 
     ws.onmessage = (event) => {
-      console.log("Message received:", event.data);
+      console.log('Message received:', event.data);
       try {
         const jsonData = JSON.parse(event.data);
         const data = jsonData;
@@ -196,11 +204,11 @@ const AdminScanJob = () => {
           });
         }
       } catch (err) {
-        console.error("Failed to parse message:", event.data, err);
+        console.error('Failed to parse message:', event.data, err);
       }
       // Example: when receiving "success", hide print
-      if (event.data === "success") {
-        console.log("success");
+      if (event.data === 'success') {
+        console.log('success');
         // handleSuccess();
       }
     };
@@ -228,11 +236,11 @@ const AdminScanJob = () => {
     //   }
     // };
     ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
+      console.error('WebSocket error:', error);
     };
 
     ws.onclose = () => {
-      console.log("WebSocket closed");
+      console.log('WebSocket closed');
     };
 
     return () => {
@@ -243,16 +251,16 @@ const AdminScanJob = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const templateId = localStorage.getItem("templateId");
+        const templateId = localStorage.getItem('templateId');
         const base = await getBaseUrl();
         const res = await getLayoutDataById(templateId);
         if (res) {
           const jsonPath = res?.data?.jsonPath;
           const res2 = await axios.get(`${base}${jsonPath}`, {
             headers: {
-              "Cache-Control": "no-cache",
-              Pragma: "no-cache",
-              Expires: "0",
+              'Cache-Control': 'no-cache',
+              Pragma: 'no-cache',
+              Expires: '0',
             },
           });
           if (res2?.data && res2?.data?.fields) {
@@ -260,8 +268,8 @@ const AdminScanJob = () => {
           }
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Error fetching data");
+        console.error('Error fetching data:', error);
+        toast.error('Error fetching data');
       }
     };
     if (baseUrl) {
@@ -270,13 +278,13 @@ const AdminScanJob = () => {
   }, [baseUrl]);
 
   useEffect(() => {
-    const gridContainer = gridRef.current?.element?.querySelector(".e-content");
+    const gridContainer = gridRef.current?.element?.querySelector('.e-content');
 
-    console.log("Grid container:", gridContainer); // Check if this logs a valid DOM element
+    console.log('Grid container:', gridContainer); // Check if this logs a valid DOM element
     // setIsRunning(prev=>!prev )
     if (gridContainer) {
-      console.log("Attaching scroll listener");
-      gridContainer.addEventListener("scroll", handleScroll);
+      console.log('Attaching scroll listener');
+      gridContainer.addEventListener('scroll', handleScroll);
       console.log(gridContainer);
       // return () => {
       // console.log("Removing scroll listener");
@@ -298,11 +306,11 @@ const AdminScanJob = () => {
     calculateGridHeight();
 
     // Update height when the window is resized
-    window.addEventListener("resize", calculateGridHeight);
+    window.addEventListener('resize', calculateGridHeight);
 
     // Cleanup event listener on component unmount
     return () => {
-      window.removeEventListener("resize", calculateGridHeight);
+      window.removeEventListener('resize', calculateGridHeight);
     };
   }, []); // Empty dependency array to run only once and on resize
   useEffect(() => {
@@ -315,8 +323,8 @@ const AdminScanJob = () => {
   }, []);
   useEffect(() => {
     const handleResize = () => setIsSmallScreen(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
   // useEffect(() => {
   //   // Calculate 60% of the viewport height
@@ -342,8 +350,8 @@ const AdminScanJob = () => {
     //   return;
     // }
     // const { templateId } = location?.state;
-    const localTemplateId = localStorage.getItem("scantemplateId");
-    const templateName = localStorage.getItem("templateName");
+    const localTemplateId = localStorage.getItem('scantemplateId');
+    const templateName = localStorage.getItem('templateName');
     // if (templateId) {
     //   setSelectedValue(templateId);
     // }
@@ -355,24 +363,31 @@ const AdminScanJob = () => {
 
   const handleScroll = async (e) => {
     const scrollTop = e.target.scrollTop;
-    console.log("Scroll event triggered. ScrollTop:", scrollTop);
+
     if (scrollTop === 0) {
-      console.log("Scrolled to top!");
-      const token = localStorage.getItem("token");
-      const userInfo = jwtDecode(token);
-      const userId = userInfo.UserId;
-      const templateId = localStorage.getItem("scantemplateId");
-      const res = await getTotalExcellRow(templateId, userId);
-      const totalRow = res?.totalRows;
-      console.log(totalRow);
-      // Add logic for fetching older data
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const userInfo = jwtDecode(token);
+        const userId = userInfo?.UserId;
+        const templateId = localStorage.getItem('scantemplateId');
+
+        if (!templateId || !userId) return;
+
+        const res = await getTotalExcellRow(templateId, userId);
+        console.log('Total Excel Rows:', res);
+      } catch (error) {
+        // ✅ This line PREVENTS the red runtime crash
+        console.warn('Scroll API not available (404 ignored safely)');
+      }
     }
   };
 
   const getScanData = async () => {
     // Start numbering from the last serial number
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       const userInfo = jwtDecode(token);
       const userId = userInfo.UserId;
 
@@ -383,24 +398,24 @@ const AdminScanJob = () => {
 
       if (data?.result?.success) {
         const newDataKeys = Object.keys(data.result.data[0]).map((key) => {
-          return key.endsWith(".") ? key.slice(0, -1) : key;
+          return key.endsWith('.') ? key.slice(0, -1) : key;
         });
-        setHeadData(["Serial No", ...newDataKeys]);
+        setHeadData(['Serial No', ...newDataKeys]);
 
         let updatedData = data.result.data.map((item) => {
           const newItem = {};
           for (const key in item) {
-            const newKey = key.endsWith(".") ? key.slice(0, -1) : key;
+            const newKey = key.endsWith('.') ? key.slice(0, -1) : key;
             newItem[newKey] = item[key];
           }
-          newItem["Serial No"] = num++;
+          newItem['Serial No'] = num++;
           return newItem;
         });
 
         setProcessedData((prevData) => {
           const combinedData = [...prevData, ...updatedData];
-          const lastSlNo = combinedData[combinedData.length - 1]["Serial No"];
-          localStorage.setItem("lastSerialNo", JSON.stringify(lastSlNo));
+          const lastSlNo = combinedData[combinedData.length - 1]['Serial No'];
+          localStorage.setItem('lastSerialNo', JSON.stringify(lastSlNo));
           if (combinedData.length > 100) {
             return combinedData.slice(-100);
           }
@@ -415,14 +430,14 @@ const AdminScanJob = () => {
       return {
         success: false,
         data: res?.data?.result,
-        message: "The API response did not indicate success.",
+        message: 'The API response did not indicate success.',
       };
     } catch (error) {
       console.error(error);
       setTimeout(() => {
         handleStop();
       }, 1000);
-      toast.error("Unable to fetch data!!!");
+      toast.error('Unable to fetch data!!!');
       return error;
     }
   };
@@ -444,13 +459,13 @@ const AdminScanJob = () => {
   const handleStart = async () => {
     try {
       setScanning(true);
-      const folderName = localStorage.getItem("folderName");
-      const templateId = localStorage.getItem("templateId");
+      const folderName = localStorage.getItem('folderName');
+      const templateId = localStorage.getItem('templateId');
       if (!folderName || !templateId) {
-        toast.error("Please select a folder and template");
+        toast.error('Please select a folder and template');
         return;
       }
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       const res = await scanFiles(folderName, templateId, dbState);
     } catch (error) {
       console.log(error);
@@ -467,7 +482,7 @@ const AdminScanJob = () => {
       const updatedData = [...processedData];
       console.log(updatedData);
       const index = updatedData.findIndex(
-        (item) => item["Serial No"] == args.data["Serial No"]
+        (item) => item['Serial No'] == args.data['Serial No']
       );
       if (index > -1) {
         updatedData[index] = args.data;
@@ -482,62 +497,63 @@ const AdminScanJob = () => {
       refreshScanner();
     } catch (error) {
       console.log(error);
-      toast.error("Error in Refresh");
+      toast.error('Error in Refresh');
     }
   };
 
   const dataBound = () => {
-    // if(!isAutoScrollEnabled){
+    if (!isAutoScrollEnabled || scanning) return; // ✅ STOP auto-scroll during scanning
+
     if (gridRef.current) {
       const grid = gridRef.current;
       const lastIndex = grid.dataSource.length - 1;
 
-      // Ensure data source is not empty
       if (lastIndex >= 0) {
         setTimeout(() => {
           const gridContent = grid?.getContent()?.firstElementChild;
-          gridContent.scrollTo({
-            top: gridContent.scrollHeight,
-            behavior: "smooth",
-          });
-        }, 100); // Delay to ensure the grid is fully rendered before scrolling
+          if (gridContent) {
+            gridContent.scrollTo({
+              top: gridContent.scrollHeight,
+              behavior: 'smooth',
+            });
+          }
+        }, 100);
       }
     }
-    // gridRef.current.refresh();
-    // }
   };
+
   const handlePause = async () => {
     try {
       await pauseScanning();
       setIsPaused(true);
-      toast.warning("Scanning paused");
+      toast.warning('Scanning paused');
     } catch (error) {
-      console.error("Error pausing scan:", error);
-      toast.error("Failed to pause scanning");
+      console.error('Error pausing scan:', error);
+      toast.error('Failed to pause scanning');
     }
   };
   const handleResume = async () => {
     try {
       await resumeScanning();
       setIsPaused(false);
-      toast.info("Scanning resumed");
+      toast.info('Scanning resumed');
     } catch (error) {
-      console.error("Error resuming scan:", error);
-      toast.error("Failed to resume scanning");
+      console.error('Error resuming scan:', error);
+      toast.error('Failed to resume scanning');
     }
   };
 
   const handleToolbarClick = (args) => {
-     const id = args.item.id.toLowerCase();
-    if (id.includes("excelexport")) {
+    const id = args.item.id.toLowerCase();
+    if (id.includes('excelexport')) {
       // gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.excelExport();
     }
-    if (id.includes("pdfexport")) {
+    if (id.includes('pdfexport')) {
       // gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.pdfExport();
     }
-    if (id.includes("csvexport")) {
+    if (id.includes('csvexport')) {
       // gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.csvExport();
     }
@@ -547,30 +563,30 @@ const AdminScanJob = () => {
       if (!isPaused) {
         setIsPaused(true);
         await pauseScanning();
-        toast.warning("Scanning paused");
+        toast.warning('Scanning paused');
       } else {
         setIsPaused(false);
         await resumeScanning();
-        toast.info("Scanning resumed");
+        toast.info('Scanning resumed');
       }
     } catch (error) {
-      console.error("Error toggling scan state:", error);
-      toast.error("Failed to toggle scanning state");
+      console.error('Error toggling scan state:', error);
+      toast.error('Failed to toggle scanning state');
     }
   };
   const debouncedStart = useRef(debounce(handleStart, 500)).current;
   const debouncedResume = useRef(debounce(handleResume, 500)).current;
   const debouncedPause = useRef(debounce(handlePause, 500)).current;
   // const debouncedStop = useRef(debounce(handleStop, 500)).current;
-  console.log(headData)
+  console.log(headData);
   const columnsDirective = headData.map((item, index) => {
     return (
       <ColumnDirective
         field={item}
         key={index}
         headerText={item}
-        width="120"
-        textAlign="Center"
+        width='120'
+        textAlign='Center'
       ></ColumnDirective>
     );
   });
@@ -611,16 +627,21 @@ const AdminScanJob = () => {
 
   const completeJobHandler = async () => {
     try {
-      const result = window.confirm("Are you sure to finish the job?");
+      const result = window.confirm('Are you sure to finish the job?');
       if (!result) {
         return;
       }
 
-      const id = localStorage.getItem("jobId");
-      const templateId = localStorage.getItem("scantemplateId");
+      const id = localStorage.getItem('jobId');
+      const templateId = localStorage.getItem('scantemplateId');
+
+      console.log('jobId:', id);
+      console.log('scantemplateId:', templateId);
 
       if (!id || !templateId) {
-        toast.error("Required data is missing!");
+        toast.error(
+          `Required data is missing! jobId=${id}, templateId=${templateId}`
+        );
         return;
       }
 
@@ -628,7 +649,7 @@ const AdminScanJob = () => {
       const res = await finishJob(obj);
 
       if (res?.success) {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('token');
 
         // if (token) {
         //   // const userInfo = jwtDecode(token);
@@ -645,33 +666,46 @@ const AdminScanJob = () => {
         //   }
         // }
 
-        toast.success("Completed the job!");
-        setTimeout(() => navigate("/admin/job-queue", { replace: true }), 500); // Delay for toast visibility
+        toast.success('Completed the job!');
+        setTimeout(() => navigate('/admin/job-queue', { replace: true }), 500); // Delay for toast visibility
       }
     } catch (err) {
-      console.error("Error occurred", err);
-      toast.error("Error occurred during saving the job!");
+      console.error('Error occurred', err);
+      toast.error('Error occurred during saving the job!');
     }
   };
 
   const rowDataBound = (args) => {
     const rowData = args.data;
 
-    // 1. Highlight entire row red if Success is false
-    if (rowData?.Success === "False") {
-      args.row.style.backgroundColor = "#f8d7da"; // light red
-      args.row.style.color = "#721c24"; // dark red text
+    // ✅ RESET STYLES (important during live updates)
+    args.row.style.border = '';
+    args.row.style.boxShadow = '';
+    args.row.style.borderRadius = '';
+    args.row.style.backgroundColor = '';
+    args.row.style.color = '';
+
+    // ✅ SELECTED ROW — BACKGROUND ONLY
+    if (rowData?.FileName === borderRowId) {
+      args.row.style.backgroundColor = '#d4d4d4'; // Selected row background
+      args.row.style.borderRadius = '10px'; // Optional rounding
     }
 
-    // 2. Highlight specific cells yellow if null or empty
+    // 🔴 FAILED ROW HIGHLIGHT (OVERRIDES NORMAL)
+    if (rowData?.Success === 'False') {
+      args.row.style.backgroundColor = '#f8d7da';
+      args.row.style.color = '#721c24';
+    }
+
+    // 🟡 EMPTY CELL HIGHLIGHT
     Object.keys(rowData).forEach((key) => {
-      if (rowData[key] === null || rowData[key] === "") {
+      if (rowData[key] === null || rowData[key] === '') {
         const cellIndex = args.row.cells.findIndex(
           (cell) => cell.column && cell.column.field === key
         );
 
         if (cellIndex !== -1) {
-          args.row.cells[cellIndex].style.backgroundColor = "yellow";
+          args.row.cells[cellIndex].style.backgroundColor = 'yellow';
         }
       }
     });
@@ -682,7 +716,7 @@ const AdminScanJob = () => {
       setIsRefreshing(true);
       setProcessedData([]);
     } catch (error) {
-      toast.error("Could not get data");
+      toast.error('Could not get data');
       console.log(error);
     } finally {
       setIsRefreshing(false);
@@ -694,17 +728,17 @@ const AdminScanJob = () => {
     setIsAutoScrollEnabled(event.target.checked);
 
     if (event.target.checked) {
-      console.log("Auto Scroll Enabled");
+      console.log('Auto Scroll Enabled');
       gridRef.current.refresh();
       // Add functionality to enable auto-scroll here
     } else {
-      console.log("Auto Scroll Disabled");
+      console.log('Auto Scroll Disabled');
       // Add functionality to disable auto-scroll here
     }
   };
   const handleOldRefreshData = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       const userInfo = jwtDecode(token);
       const userId = userInfo.UserId;
 
@@ -715,24 +749,24 @@ const AdminScanJob = () => {
 
       if (data?.result?.success) {
         const newDataKeys = Object.keys(data.result.data[0]).map((key) => {
-          return key.endsWith(".") ? key.slice(0, -1) : key;
+          return key.endsWith('.') ? key.slice(0, -1) : key;
         });
-        setHeadData(["Serial No", ...newDataKeys]);
+        setHeadData(['Serial No', ...newDataKeys]);
 
         let updatedData = data.result.data.map((item) => {
           const newItem = {};
           for (const key in item) {
-            const newKey = key.endsWith(".") ? key.slice(0, -1) : key;
+            const newKey = key.endsWith('.') ? key.slice(0, -1) : key;
             newItem[newKey] = item[key];
           }
-          newItem["Serial No"] = num++;
+          newItem['Serial No'] = num++;
           return newItem;
         });
 
         setProcessedData((prevData) => {
           const combinedData = [...prevData, ...updatedData];
-          const lastSlNo = combinedData[combinedData.length - 1]["Serial No"];
-          localStorage.setItem("lastSerialNo", JSON.stringify(lastSlNo));
+          const lastSlNo = combinedData[combinedData.length - 1]['Serial No'];
+          localStorage.setItem('lastSerialNo', JSON.stringify(lastSlNo));
           if (combinedData.length > 100) {
             return combinedData.slice(-100);
           }
@@ -746,10 +780,19 @@ const AdminScanJob = () => {
   };
   const onRowSelected = (args) => {
     const rowData = args.data;
+
+    setBorderRowId(rowData?.FileName);
     // console.log("Row selected:", args);
     // console.log("Row selected:", rowData);
     setIsViewerOpen(true);
     setCurrentImage(rowData?.FileName);
+  };
+
+  const handleGridClick = (e) => {
+    if (!e.target.closest('.e-row')) {
+      setBorderRowId(null); // ✅ Remove border on blank area click
+      setIsViewerOpen(false);
+    }
   };
 
   const onCellSelected = (args) => {
@@ -772,34 +815,43 @@ const AdminScanJob = () => {
   };
   const closeImageViewer = () => {
     setIsViewerOpen(false);
-    console.log("Image viewer closed");
+    console.log('Image viewer closed');
   };
 
-  setIsScanning(scanning)
-  setIsPausedContext(isPaused)
+  setIsScanning(scanning);
+  setIsPausedContext(isPaused);
 
-  console.log(processedData)
+  console.log(processedData);
   return (
     <>
       <NormalHeader />
       <div
         style={{
-          position: "absolute",
-          top: "20px",
-          padding: "10px",
-          zIndex: "999",
+          position: 'absolute',
+          top: '20px',
+          padding: '10px',
+          zIndex: '999',
         }}
       >
         <nav
-          style={{ "--bs-breadcrumb-divider": "'>'",pointerEvents: scanning? "none" : "auto",
-            opacity: scanning ? 0.5:1 }}
-          aria-label="breadcrumb"
+          style={{
+            '--bs-breadcrumb-divider': "'>'",
+            pointerEvents: scanning ? 'none' : 'auto',
+            opacity: scanning ? 0.5 : 1,
+          }}
+          aria-label='breadcrumb'
         >
-          <ol className="breadcrumb" style={{ fontSize: "0.8rem" }}>
-            <li className="breadcrumb-item">
-              <Link to="/admin/job-queue">Job queue</Link>
+          <ol
+            className='breadcrumb'
+            style={{ fontSize: '0.8rem' }}
+          >
+            <li className='breadcrumb-item'>
+              <Link to='/admin/job-queue'>Job queue</Link>
             </li>
-            <li className="breadcrumb-item active" aria-current="page">
+            <li
+              className='breadcrumb-item active'
+              aria-current='page'
+            >
               {templateName}
             </li>
           </ol>
@@ -807,14 +859,14 @@ const AdminScanJob = () => {
       </div>
       <div
         style={{
-          position: "absolute",
-          left: isSmallScreen ? "30%" : "40%",
-          top: isSmallScreen ? "10px" : "20px",
-          zIndex: "999",
+          position: 'absolute',
+          left: isSmallScreen ? '30%' : '40%',
+          top: isSmallScreen ? '10px' : '20px',
+          zIndex: '999',
         }}
       >
         <Button
-          variant="primary"
+          variant='primary'
           disabled={scanning}
           onClick={completeJobHandler}
         >
@@ -822,37 +874,41 @@ const AdminScanJob = () => {
         </Button>
       </div>
 
-      <Container className={isSmallScreen ? "mt--6" : "mt--8"} fluid>
+      <Container
+        className={isSmallScreen ? 'mt--6' : 'mt--8'}
+        fluid
+      >
         <br />
-        <div style={{ position: "relative" }}>
+        <div style={{ position: 'relative' }}>
           <select
-            className="form-select" // Bootstrap styling
+            className='form-select' // Bootstrap styling
             onChange={(e) => {
-              const value = e.target.value === "true"; // Convert string to boolean
+              const value = e.target.value === 'true'; // Convert string to boolean
               setDbState(value);
             }}
             value={dbState.toString()}
             style={{
-              position: "absolute",
+              position: 'absolute',
               top: 10,
               right: 10,
               zIndex: 99,
-              width: "200px", // optional: to make it look nicer
+              width: '200px', // optional: to make it look nicer
             }}
           >
-            <option value={"false"}>Don't Save To DB</option>
-            <option value={"true"}>Save To Db</option>
+            <option value={'false'}>Don't Save To DB</option>
+            <option value={'true'}>Save To Db</option>
           </select>
         </div>
         {/* <div className="control-pane"> */}
         <div
-          className="w-100  m-1"
-          style={{ overflowY: "auto", backgroundColor: "green", zIndex: "999" }}
+          className='w-100  m-1'
+          style={{ overflowY: 'auto', backgroundColor: 'green', zIndex: '999' }}
         ></div>
 
-        <div className="control-section">
+        <div className='control-section'>
           <GridComponent
             ref={gridRef}
+            onClick={handleGridClick}
             dataBound={dataBound}
             actionComplete={handleSave}
             dataSource={processedData}
@@ -867,12 +923,11 @@ const AdminScanJob = () => {
             allowExcelExport={true}
             allowPdfExport={false}
             allowEditing={false}
-            allowResizing={true} 
+            allowResizing={true}
             emptyRecordTemplate={template.bind(this)}
             selectionSettings={{
-              mode: "Both",
-              type: "Single",
-              cellSelectionMode: "Box",
+              mode: 'Row',
+              type: 'Single',
             }}
             rowDataBound={rowDataBound}
             rowSelected={onRowSelected}
@@ -887,30 +942,30 @@ const AdminScanJob = () => {
               default={{
                 x: window.innerWidth / 2 - 250,
                 y: window.innerHeight / 2 - 450,
-                width: "auto",
+                width: 'auto',
                 height: 600,
               }}
-              bounds="window"
-              dragHandleClassName="modal-drag-handle"
+              bounds='window'
+              dragHandleClassName='modal-drag-handle'
               enableResizing={true}
               style={{ zIndex: 1000 }}
             >
               <div
                 style={{
-                  background: "#fff",
-                  padding: "1rem",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-                  borderRadius: "8px",
-                  height: "100%",
-                  width: "100%",
-                  overflow: "auto",
-                  maxHeight: "90vh",
+                  background: '#fff',
+                  padding: '1rem',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                  borderRadius: '8px',
+                  height: '100%',
+                  width: '100%',
+                  overflow: 'auto',
+                  maxHeight: '90vh',
                 }}
               >
                 {/* Drag handle (no buttons here) */}
                 <div
-                  className="modal-drag-handle"
-                  style={{ marginBottom: "8px" }}
+                  className='modal-drag-handle'
+                  style={{ marginBottom: '8px' }}
                 >
                   <h5 style={{ margin: 0 }}>Image Viewer</h5>
                 </div>
@@ -918,14 +973,14 @@ const AdminScanJob = () => {
                 <button
                   onClick={closeImageViewer}
                   style={{
-                    position: "absolute",
+                    position: 'absolute',
                     top: 8,
                     right: 8,
                     zIndex: 1001,
-                    border: "none",
-                    background: "transparent",
-                    fontSize: "1.2rem",
-                    cursor: "pointer",
+                    border: 'none',
+                    background: 'transparent',
+                    fontSize: '1.2rem',
+                    cursor: 'pointer',
                   }}
                 >
                   ✖
@@ -950,8 +1005,8 @@ const AdminScanJob = () => {
           )} */}
           <div>
             <Button
-              className="mt-2"
-              color={"info"}
+              className='mt-2'
+              color={'info'}
               disabled={isRefreshing || scanning}
               onClick={handleRefreshData}
             >
@@ -965,23 +1020,32 @@ const AdminScanJob = () => {
               Refresh Latest Data
             </Button> */}
 
-            <div className="m-2" style={{ float: "right" }}>
+            <div
+              className='m-2'
+              style={{ float: 'right' }}
+            >
               <Button
-                color="success"
+                color='success'
                 onClick={debouncedStart}
                 disabled={starting || scanning}
               >
-                {starting ? "Starting…" : scanning ? "Scanning" : "Start"}
+                {starting ? 'Starting…' : scanning ? 'Scanning' : 'Start'}
               </Button>
 
               {scanning && !isPaused && (
-                <Button color="warning" onClick={debouncedPause}>
+                <Button
+                  color='warning'
+                  onClick={debouncedPause}
+                >
                   Pause
                 </Button>
               )}
 
               {scanning && isPaused && (
-                <Button color="info" onClick={debouncedResume}>
+                <Button
+                  color='info'
+                  onClick={debouncedResume}
+                >
                   Resume
                 </Button>
               )}
@@ -993,21 +1057,21 @@ const AdminScanJob = () => {
       {/* {showPrintModal && <PrintModal show={showPrintModal} setData={setData} />} */}
       <div
         style={{
-          position: "absolute",
-          top: "100%",
-          right: "40%",
-          padding: "10px",
-          display: "flex",
-          flexDirection: "column",
+          position: 'absolute',
+          top: '100%',
+          right: '40%',
+          padding: '10px',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <div
           style={{
-            marginTop: "auto", // Push to bottom
-            display: "flex",
-            justifyContent: "center", // Center horizontally
-            pointerEvents: scanning? "none" : "auto",
-            opacity: scanning ? 0.5:1
+            marginTop: 'auto', // Push to bottom
+            display: 'flex',
+            justifyContent: 'center', // Center horizontally
+            pointerEvents: scanning ? 'none' : 'auto',
+            opacity: scanning ? 0.5 : 1,
           }}
         >
           <RecognizationBtn

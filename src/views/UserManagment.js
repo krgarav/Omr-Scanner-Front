@@ -17,74 +17,76 @@ import {
   Row,
   UncontrolledTooltip,
   Button,
-} from "reactstrap";
+} from 'reactstrap';
 // core components
-import Header from "components/Headers/Header.js";
-import NormalHeader from "components/Headers/NormalHeader";
-import { Modal } from "react-bootstrap";
-import { useEffect, useRef, useState } from "react";
-import Select from "react-select";
-import * as url from "../helper/url_helper";
-import { toast } from "react-toastify";
-import axios from "axios";
-import { getUserRoles } from "helper/userManagment_helper";
-import { createUser } from "helper/userManagment_helper";
-import { fetchAllUsers } from "helper/userManagment_helper";
-import { updateUser } from "helper/userManagment_helper";
-import { removeUser } from "helper/userManagment_helper";
-import Placeholder from "ui/Placeholder";
+import Header from 'components/Headers/Header.js';
+import NormalHeader from 'components/Headers/NormalHeader';
+import { Modal } from 'react-bootstrap';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import Spinner from 'react-bootstrap/Spinner';
+import Select from 'react-select';
+import * as url from '../helper/url_helper';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import { getUserRoles } from 'helper/userManagment_helper';
+import { createUser } from 'helper/userManagment_helper';
+import { fetchAllUsers } from 'helper/userManagment_helper';
+import { updateUser } from 'helper/userManagment_helper';
+import { removeUser } from 'helper/userManagment_helper';
+import Placeholder from 'ui/Placeholder';
 
 const roles = [
-  { roleName: "admin" },
-  { roleName: "moderator" },
-  { roleName: "operator" },
+  { roleName: 'admin' },
+  { roleName: 'moderator' },
+  { roleName: 'operator' },
 ];
 const UserManagment = () => {
   const [modalShow, setModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [selectecdRole, setSelectedRole] = useState(null);
+  const [btnLoading, setBtnLoading] = useState(false);
 
-  const [password, setPassword] = useState("");
-  const [ConfirmPassword, setConfirmPassword] = useState("");
-  const [spanDisplay, setSpanDisplay] = useState("none");
+  const [password, setPassword] = useState('');
+  const [ConfirmPassword, setConfirmPassword] = useState('');
+  const [spanDisplay, setSpanDisplay] = useState('none');
   const [allUsers, setAllUsers] = useState([]);
-  const [id, setId] = useState("");
-  const [toggle, setToggle] = useState(false);
+  const [id, setId] = useState('');
+  // const [toggle, setToggle] = useState(false);
   const [loading, setLoading] = useState(false);
   const emailRef = useRef(null); // Reference to the input element
   const confirmRef = useRef(null);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchAllUsers();
-      setLoading(false);
-
       setAllUsers(data?.result || []);
     } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
+      toast.error('Something went wrong');
+    } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  
   useEffect(() => {
+    setAllUsers([]);
     fetchUsers();
-  }, [toggle]);
+  }, [fetchUsers]);
+
   const handleSelectRole = (selectedValue) => {
     setSelectedRole(selectedValue);
   };
 
   const handleUpdate = async () => {
     if (!name || !email || !phoneNumber || !selectecdRole) {
-      setSpanDisplay("inline");
+      setSpanDisplay('inline');
     } else {
       try {
         // const { data } = await axios.post("https://rb5xhrfq-5289.inc1.devtunnels.ms/UserRegistration", { name, email, phoneNumber, role, password, ConfirmPassword });
+        setBtnLoading(true);
         let role = selectecdRole.roleName;
         let userName = name;
         let userRole = role;
@@ -98,26 +100,29 @@ const UserManagment = () => {
         if (data?.success) {
           console.log(data.message);
           toast.success(data?.message);
-          setName("");
-          setEmail("");
-          setPhoneNumber("");
-          setSelectedRole("");
+          setName('');
+          setEmail('');
+          setPhoneNumber('');
+          setSelectedRole(null);
           setCreateModalShow(false);
           fetchAllUsers();
-          setToggle((prev) => !prev);
+          // setToggle((prev) => !prev);
           setModalShow(false);
+          await fetchUsers();
         } else {
           toast.error(data?.message);
         }
       } catch (error) {
-        toast.error("Something went wrong");
+        toast.error('Something went wrong');
+      } finally {
+        setBtnLoading(false); // ✅ Spinner stops here
       }
     }
   };
 
   const handleCreate = async () => {
     if (ConfirmPassword !== password) {
-      alert("Password and confirm password do not match");
+      alert('Password and confirm password do not match');
       return;
     }
     if (
@@ -128,13 +133,14 @@ const UserManagment = () => {
       !password ||
       !ConfirmPassword
     ) {
-      setSpanDisplay("inline");
+      setSpanDisplay('inline');
     } else {
       if (password !== ConfirmPassword) {
-        toast.error("Passwod did not match");
+        toast.error('Passwod did not match');
       }
 
       try {
+        setBtnLoading(true);
         let userRole = selectecdRole.roleName;
         const userName = name;
         const data = await createUser({
@@ -148,27 +154,30 @@ const UserManagment = () => {
         if (data?.status) {
           console.log(data.message);
           toast.success(data?.message);
-          setName("");
-          setEmail("");
-          setPhoneNumber("");
-          setSelectedRole("");
-          setPassword("");
-          setConfirmPassword("");
+          setName('');
+          setEmail('');
+          setPhoneNumber('');
+          setSelectedRole(null);
+          setPassword('');
+          setConfirmPassword('');
           setCreateModalShow(false);
-          setToggle((prev) => !prev);
+          // setToggle((prev) => !prev);
+          await fetchUsers();
         } else {
           console.log();
           toast.success(data?.message);
           setCreateModalShow(false);
         }
       } catch (error) {
-        toast.error("Something went wrong");
+        toast.error('Something went wrong');
+      } finally {
+        setBtnLoading(false); // ✅ Spinner stops here
       }
     }
   };
 
   const deleteUser = async (d) => {
-    const result = window.confirm("Are you sure you want to delete user?");
+    const result = window.confirm('Are you sure you want to delete user?');
     if (!result) {
       return;
     }
@@ -177,14 +186,14 @@ const UserManagment = () => {
       const data = await removeUser(d.empId);
       console.log(data);
       if (data?.status) {
-        setToggle((prev) => !prev);
+        // setToggle((prev) => !prev);
         toast.success(data.message);
-        // fetchUsers();
+        await fetchUsers();
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error("Something went wrong");
+      toast.error('Something went wrong');
     }
   };
 
@@ -205,48 +214,72 @@ const UserManagment = () => {
   const placeHolderUser = new Array(10).fill(null).map((_, index) => (
     <tr key={index}>
       <td>
-        <Placeholder width="60%" height="1.5em" />
+        <Placeholder
+          width='60%'
+          height='1.5em'
+        />
       </td>
       <td>
-        <Placeholder width="60%" height="1.5em" />
+        <Placeholder
+          width='60%'
+          height='1.5em'
+        />
       </td>
       <td>
-        <Placeholder width="60%" height="1.5em" />
+        <Placeholder
+          width='60%'
+          height='1.5em'
+        />
       </td>
       <td>
-        <Placeholder width="60%" height="1.5em" />
+        <Placeholder
+          width='60%'
+          height='1.5em'
+        />
       </td>
       <td>
-        <Placeholder width="60%" height="1.5em" />
+        <Placeholder
+          width='60%'
+          height='1.5em'
+        />
       </td>
       <td></td>
     </tr>
   ));
   const ALLUSER = allUsers?.map((d, i) => (
     <>
-      <tr key={i}>
+      <tr key={d.empId}>
         <td>{i + 1}</td>
         <td>{d?.empName}</td>
         <td>{d?.empEmail}</td>
         <td>{d?.contact}</td>
         <td>{d?.role}</td>
-        <td className="text-right">
+        <td className='text-right'>
           <UncontrolledDropdown>
             <DropdownToggle
-              className="btn-icon-only text-light"
-              href="#pablo"
-              role="button"
-              size="sm"
-              color=""
+              className='btn-icon-only text-light'
+              href='#pablo'
+              role='button'
+              size='sm'
+              color=''
               onClick={(e) => e.preventDefault()}
             >
-              <i className="fas fa-ellipsis-v" />
+              <i className='fas fa-ellipsis-v' />
             </DropdownToggle>
-            <DropdownMenu className="dropdown-menu-arrow" right>
-              <DropdownItem href="#pablo" onClick={() => handleRowClick(d)}>
+            <DropdownMenu
+              className='dropdown-menu-arrow'
+              right
+            >
+              <DropdownItem
+                href='#pablo'
+                onClick={() => handleRowClick(d)}
+              >
                 Edit
               </DropdownItem>
-              <DropdownItem href="#pablo" onClick={(e) => deleteUser(d)}>
+              <DropdownItem
+                href='#pablo'
+                onClick={(e) => deleteUser(d)}
+              >
                 Delete
               </DropdownItem>
             </DropdownMenu>
@@ -259,55 +292,58 @@ const UserManagment = () => {
     <>
       <NormalHeader />
       {/* Page content */}
-      <Container className="mt--7" fluid>
+      <Container
+        className='mt--7'
+        fluid
+      >
         {/* Table */}
         <Row>
-          <div className="col">
-            <Card className="shadow">
-              <CardHeader className="border-0">
-                <div className="d-flex justify-content-between">
-                  <h3 className="mt-2">All Users</h3>
+          <div className='col'>
+            <Card className='shadow'>
+              <CardHeader className='border-0'>
+                <div className='d-flex justify-content-between'>
+                  <h3 className='mt-2'>All Users</h3>
                   <Button
-                    className=""
-                    color="primary"
-                    type="button"
+                    className=''
+                    color='primary'
+                    type='button'
                     onClick={() => setCreateModalShow(true)}
                   >
                     Create User
                   </Button>
                 </div>
               </CardHeader>
-              <div style={{ height: "70vh", overflow: "auto" }}>
+              <div style={{ height: '70vh', overflow: 'auto' }}>
                 <Table
-                  className="align-items-center table-flush mb-5"
+                  className='align-items-center table-flush mb-5'
                   responsive
-                  style={{ borderCollapse: "collapse" }}
+                  style={{ borderCollapse: 'collapse' }}
                 >
                   <thead
-                    className="thead-light"
+                    className='thead-light'
                     style={{
-                      position: "sticky",
+                      position: 'sticky',
                       top: 0,
-                      backgroundColor: "#f8f9fa", // Adjust to match your table's background color
+                      backgroundColor: '#f8f9fa', // Adjust to match your table's background color
                       zIndex: 10, // Ensure the header stays on top of other content
                     }}
                   >
                     <tr>
-                      <th scope="col">Sno.</th>
-                      <th scope="col">Username</th>
-                      <th scope="col">Email</th>
-                      <th scope="col">Phone Number</th>
-                      <th scope="col">Role</th>
-                      <th scope="col" />
+                      <th scope='col'>Sno.</th>
+                      <th scope='col'>Username</th>
+                      <th scope='col'>Email</th>
+                      <th scope='col'>Phone Number</th>
+                      <th scope='col'>Role</th>
+                      <th scope='col' />
                     </tr>
                   </thead>
-                  <tbody style={{ minHeight: "100rem" }}>
+                  <tbody style={{ minHeight: '100rem' }}>
                     {loading ? placeHolderUser : ALLUSER}
                     {ALLUSER.length === 0 && (
                       <tr>
                         <td
-                          colSpan="100%"
-                          style={{ textAlign: "center", width: "100%" }}
+                          colSpan='100%'
+                          style={{ textAlign: 'center', width: '100%' }}
                         >
                           No User Present
                         </td>
@@ -375,100 +411,100 @@ const UserManagment = () => {
 
       <Modal
         show={modalShow}
-        size="lg"
-        aria-labelledby="contained-modal-title-vcenter"
+        size='lg'
+        aria-labelledby='contained-modal-title-vcenter'
         centered
       >
         <Modal.Header>
-          <Modal.Title id="contained-modal-title-vcenter">
+          <Modal.Title id='contained-modal-title-vcenter'>
             Edit User
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Row className="mb-3">
+          <Row className='mb-3'>
             <label
-              htmlFor="example-text-input"
-              className="col-md-2 col-form-label"
+              htmlFor='example-text-input'
+              className='col-md-2 col-form-label'
             >
               Name
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <input
-                type="text"
-                className="form-control"
-                placeholder="Enter User Name"
+                type='text'
+                className='form-control'
+                placeholder='Enter User Name'
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
               {!name && (
-                <span style={{ color: "red", display: spanDisplay }}>
+                <span style={{ color: 'red', display: spanDisplay }}>
                   This feild is required
                 </span>
               )}
             </div>
           </Row>
-          <Row className="mb-3">
+          <Row className='mb-3'>
             <label
-              htmlFor="example-text-input"
-              className="col-md-2 col-form-label"
+              htmlFor='example-text-input'
+              className='col-md-2 col-form-label'
             >
               Email
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <input
-                type="text"
-                className="form-control"
-                placeholder="Enter Email Id"
+                type='text'
+                className='form-control'
+                placeholder='Enter Email Id'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
               {!email && (
-                <span style={{ color: "red", display: spanDisplay }}>
+                <span style={{ color: 'red', display: spanDisplay }}>
                   This feild is required
                 </span>
               )}
             </div>
           </Row>
-          <Row className="mb-3">
+          <Row className='mb-3'>
             <label
-              htmlFor="example-text-input"
-              className="col-md-2 col-form-label"
+              htmlFor='example-text-input'
+              className='col-md-2 col-form-label'
             >
               Phone Number
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <input
-                type="Number"
-                className="form-control"
-                placeholder="Enter Phone Number"
+                type='Number'
+                className='form-control'
+                placeholder='Enter Phone Number'
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
               />
               {!phoneNumber && (
-                <span style={{ color: "red", display: spanDisplay }}>
+                <span style={{ color: 'red', display: spanDisplay }}>
                   This feild is required
                 </span>
               )}
             </div>
           </Row>
 
-          <Row className="mb-3">
+          <Row className='mb-3'>
             <label
-              htmlFor="example-text-input"
-              className="col-md-2 col-form-label"
+              htmlFor='example-text-input'
+              className='col-md-2 col-form-label'
             >
               Role
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <Select
                 value={selectecdRole}
                 onChange={handleSelectRole}
                 options={roles}
-                getOptionLabel={(option) => option?.roleName || ""}
-                getOptionValue={(option) => option?.roleName?.toString() || ""}
+                getOptionLabel={(option) => option?.roleName || ''}
+                getOptionValue={(option) => option?.roleName?.toString() || ''}
               />
               {!selectecdRole && (
-                <span style={{ color: "red", display: spanDisplay }}>
+                <span style={{ color: 'red', display: spanDisplay }}>
                   This feild is required
                 </span>
               )}
@@ -477,54 +513,61 @@ const UserManagment = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            type="button"
-            color="primary"
+            type='button'
+            color='primary'
             onClick={() => setModalShow(false)}
-            className="waves-effect waves-light"
+            className='waves-effect waves-light'
           >
             Close
-          </Button>{" "}
+          </Button>{' '}
           <Button
-            type="button"
-            color="success"
+            type='button'
+            color='success'
+            disabled={btnLoading}
             onClick={handleUpdate}
-            className="waves-effect waves-light"
+            className='waves-effect waves-light'
           >
-            Update
-          </Button>{" "}
+            {btnLoading && (
+              <Spinner
+                animation='border'
+                role='status'
+              />
+            )}
+            {!btnLoading && 'Update'}
+          </Button>{' '}
         </Modal.Footer>
       </Modal>
 
       <Modal
         show={createModalShow}
-        size="lg"
-        aria-labelledby="contained-modal-title-vcenter"
+        size='lg'
+        aria-labelledby='contained-modal-title-vcenter'
         centered
       >
         <Modal.Header>
-          <Modal.Title id="contained-modal-title-vcenter">
+          <Modal.Title id='contained-modal-title-vcenter'>
             Create User
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Row className="mb-3">
+          <Row className='mb-3'>
             <label
-              htmlFor="example-text-input"
-              className="col-md-2 col-form-label"
+              htmlFor='example-text-input'
+              className='col-md-2 col-form-label'
             >
               Email
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <input
-                type="email"
-                className="form-control"
-                placeholder="Enter Email Id"
+                type='email'
+                className='form-control'
+                placeholder='Enter Email Id'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => {
-                  const toastId = "email-error-toast";
+                  const toastId = 'email-error-toast';
                   if (!validateEmail(email)) {
-                    toast.error("Please enter a valid email address.", {
+                    toast.error('Please enter a valid email address.', {
                       toastId, // Use the same ID for this toast
                     });
 
@@ -537,28 +580,28 @@ const UserManagment = () => {
                 ref={emailRef}
               />
               {!email && (
-                <span style={{ color: "red", display: spanDisplay }}>
+                <span style={{ color: 'red', display: spanDisplay }}>
                   This feild is required
                 </span>
               )}
             </div>
           </Row>
-          <Row className="mb-3">
+          <Row className='mb-3'>
             <label
-              htmlFor="example-text-input"
-              className="col-md-2 col-form-label"
+              htmlFor='example-text-input'
+              className='col-md-2 col-form-label'
             >
               Username
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <input
-                type="text"
-                className="form-control"
-                placeholder="Enter User Name"
+                type='text'
+                className='form-control'
+                placeholder='Enter User Name'
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
-              <small style={{ color: "red", display: "block" }}>
+              <small style={{ color: 'red', display: 'block' }}>
                 No space is allowed between username.
               </small>
               {/* {!name && (
@@ -569,18 +612,18 @@ const UserManagment = () => {
             </div>
           </Row>
 
-          <Row className="mb-3">
+          <Row className='mb-3'>
             <label
-              htmlFor="example-text-input"
-              className="col-md-2 col-form-label"
+              htmlFor='example-text-input'
+              className='col-md-2 col-form-label'
             >
               Phone Number
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <input
-                type="Number"
-                className="form-control"
-                placeholder="Enter 10 digit Phone Number "
+                type='Number'
+                className='form-control'
+                placeholder='Enter 10 digit Phone Number '
                 value={phoneNumber}
                 onChange={(e) => {
                   setPhoneNumber(e.target.value);
@@ -593,68 +636,71 @@ const UserManagment = () => {
               />
 
               {!phoneNumber && (
-                <span style={{ color: "red", display: spanDisplay }}>
+                <span style={{ color: 'red', display: spanDisplay }}>
                   This feild is required
                 </span>
               )}
             </div>
           </Row>
 
-          <Row className="mb-3">
+          <Row className='mb-3'>
             <label
-              htmlFor="example-text-input"
-              className="col-md-2 col-form-label"
+              htmlFor='example-text-input'
+              className='col-md-2 col-form-label'
             >
               Role
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <Select
                 value={selectecdRole}
                 onChange={handleSelectRole}
                 options={roles}
-                getOptionLabel={(option) => option?.roleName || ""}
-                getOptionValue={(option) => option?.roleName?.toString() || ""}
+                getOptionLabel={(option) => option?.roleName || ''}
+                getOptionValue={(option) => option?.roleName?.toString() || ''}
               />
               {!selectecdRole && (
-                <span style={{ color: "red", display: spanDisplay }}>
+                <span style={{ color: 'red', display: spanDisplay }}>
                   This feild is required
                 </span>
               )}
             </div>
           </Row>
 
-          <Row className="mb-3">
+          <Row className='mb-3'>
             <label
-              htmlFor="example-text-input"
-              className="col-md-2 col-form-label"
+              htmlFor='example-text-input'
+              className='col-md-2 col-form-label'
             >
               Password
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <input
-                type="password"
-                className="form-control"
-                placeholder="Enter Password"
+                type='password'
+                className='form-control'
+                placeholder='Enter Password'
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               {!password && (
-                <span style={{ color: "red", display: spanDisplay }}>
+                <span style={{ color: 'red', display: spanDisplay }}>
                   This feild is required
                 </span>
               )}
             </div>
           </Row>
 
-          <Row className="mb-3">
-            <label htmlFor="example-text-input" className="col-md-2 ">
+          <Row className='mb-3'>
+            <label
+              htmlFor='example-text-input'
+              className='col-md-2 '
+            >
               Confirm Password
             </label>
-            <div className="col-md-10">
+            <div className='col-md-10'>
               <input
-                type="password"
-                className="form-control"
-                placeholder="Enter Password"
+                type='password'
+                className='form-control'
+                placeholder='Enter Password'
                 value={ConfirmPassword}
                 ref={confirmRef}
                 onChange={(e) => {
@@ -662,13 +708,13 @@ const UserManagment = () => {
                 }}
                 onBlur={() => {
                   if (password !== ConfirmPassword) {
-                    toast.error("Password and confirm password does not match");
+                    toast.error('Password and confirm password does not match');
                     // confirmRef.current.focus();
                   }
                 }}
               />
               {!ConfirmPassword && (
-                <span style={{ color: "red", display: spanDisplay }}>
+                <span style={{ color: 'red', display: spanDisplay }}>
                   This feild is required
                 </span>
               )}
@@ -677,21 +723,28 @@ const UserManagment = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            type="button"
-            color="primary"
+            type='button'
+            color='primary'
             onClick={() => setCreateModalShow(false)}
-            className="waves-effect waves-light"
+            className='waves-effect waves-light'
           >
             Close
-          </Button>{" "}
+          </Button>{' '}
           <Button
-            type="button"
-            color="success"
+            type='button'
+            color='success'
+            disabled={btnLoading}
             onClick={handleCreate}
-            className="waves-effect waves-light"
+            className='waves-effect waves-light d-flex align-items-center justify-content-center'
           >
-            Create
-          </Button>{" "}
+            {btnLoading && (
+              <Spinner
+                animation='border'
+                role='status'
+              />
+            )}
+            {!btnLoading && 'Create'}
+          </Button>
         </Modal.Footer>
       </Modal>
     </>

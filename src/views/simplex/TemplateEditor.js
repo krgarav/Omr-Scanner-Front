@@ -10,6 +10,8 @@ import { getLayoutDataById, updateTemplate } from 'helper/TemplateHelper';
 import getBaseUrl from 'services/BackendApi';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import Spinner from 'react-bootstrap/Spinner';
+import { v4 as uuidv4 } from 'uuid';
 import ReferenceFieldModal from 'modals/ReferenceFieldModal';
 
 const referenceOptions = [
@@ -27,16 +29,20 @@ const TemplateEditor = () => {
   const imageRef = useRef(null);
   const [trigger, setTrigger] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [paths, setPaths] = useState(null);
   const [baseUrl, setBaseUrl] = useState(null);
+  const [showMergeMenu, setShowMergeMenu] = useState(false);
+  const [selectedMergeBoxes, setSelectedMergeBoxes] = useState([]);
+  const [mergedFields, setMergedFields] = useState([]);
   const [showReferenceBox, setShowReferenceBox] = useState(false);
   const [referenceBoxes, setReferenceBoxes] = useState([]);
   const [currentReferenceBox, setCurrentReferenceBox] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [options, setOptions] = useState(referenceOptions);
   const buttonRef = useRef(null);
-  const [Radius, setRadius] = useState(0.38);
+  const [radius, setRadius] = useState(0.38);
   const [scrollY, setScrollY] = useState(0);
   const [boxPos, setBoxPos] = useState({ x: -1000, y: 100 });
   const initialPosRef = useRef({ x: -1000, y: 100 });
@@ -86,6 +92,102 @@ const TemplateEditor = () => {
     setBoxPos({ x: d.x, y: d.y });
   };
 
+  // 3. Border lione box that indigate the outer box line of merge feilds --
+
+  const getMergeBoundary = (merge) => {
+    const children = boxes.filter((b) => merge.childrenIds.includes(b.id));
+    if (children.length === 0) return null;
+
+    const minX = Math.min(...children.map((b) => b.x));
+    const minY = Math.min(...children.map((b) => b.y));
+
+    const maxX = Math.max(...children.map((b) => b.x + b.width));
+    const maxY = Math.max(...children.map((b) => b.y + b.height));
+
+    return {
+      x: Math.round(minX * effectiveScale),
+      y: Math.round(minY * effectiveScale),
+      width: Math.round((maxX - minX) * effectiveScale),
+      height: Math.round((maxY - minY) * effectiveScale),
+    };
+  };
+
+  const handleMergeSelected = () => {
+    const selected = boxes.filter((b) => selectedMergeBoxes.includes(b.id));
+
+    console.table(
+      selected.map((b) => ({
+        id: b.id,
+        raw: b.fieldName,
+        normalized: (b.fieldName || '').trim().toLowerCase(),
+        type: b.fieldType,
+        isMerged: b.isMerged,
+      }))
+    );
+
+    if (selected.length < 2) {
+      toast.error('Select at least 2 fields to merge');
+      return;
+    }
+
+    // ✅ Prevent merging already merged boxes
+    if (selected.some((b) => b.isMerged)) {
+      toast.error('One or more fields are already merged');
+      return;
+    }
+
+    // ✅ Enforce same Field Name
+    const normalize = (v) => (v || '').toString().trim().toLowerCase();
+
+    const baseFieldName = normalize(selected[0].fieldName);
+
+    const invalidName = selected.some(
+      (b) => normalize(b.fieldName) !== baseFieldName
+    );
+
+    if (invalidName) {
+      toast.error('All merged fields must have same Field Name');
+      return;
+    }
+
+    // ✅ Enforce same Field Type
+    const type = selected[0].fieldType;
+    const invalidType = selected.some((b) => b.fieldType !== type);
+
+    if (invalidType) {
+      toast.error('All merged fields must have same Field Type');
+      return;
+    }
+
+    // ✅ Auto sort LEFT → RIGHT by X position
+    const sorted = [...selected].sort((a, b) => a.x - b.x);
+
+    const newMerge = {
+      mergeId: uuidv4(),
+      mergedName: baseFieldName,
+      childrenIds: sorted.map((b) => b.id),
+    };
+
+    setMergedFields((prev) => [...prev, newMerge]);
+
+    setBoxes((prev) =>
+      prev.map((b) =>
+        sorted.some((s) => s.id === b.id)
+          ? {
+              ...b,
+              isMerged: true,
+              mergedInto: baseFieldName,
+              merge: false, // ✅ lock toggle automatically
+            }
+          : b
+      )
+    );
+
+    setSelectedMergeBoxes([]);
+    setShowMergeMenu(false);
+    toast.success('Fields merged safely');
+  };
+
   // console.log(scrollY);
 
   useEffect(() => {
@@ -113,47 +215,76 @@ const TemplateEditor = () => {
         if (res) {
           const field = res?.data?.fields || [];
           const fieldDetails = res?.data?.referenceCoordinate;
+
+          // ✅ Restore reference boxes
           if (fieldDetails && Object.keys(fieldDetails).length > 0) {
             setReferenceBoxes(fieldDetails);
             setShowReferenceBox(true);
           } else {
             setShowReferenceBox(false);
           }
-          setBoxes(field || []);
+
+          // ✅ STEP 2 — RESTORE MERGE STATE SAFELY
+          const restored = (field || []).map((b) => ({
+            id: b.id || uuidv4(),
+            // ✅ AUTO-FIX OLD DATA
+            ...b,
+            merge: !!b.merge,
+            isMerged: !!b.isMerged,
+          }));
+
+          setBoxes(restored);
+
+          // ✅ Restore mergedFields array
+          setMergedFields(res?.data?.mergedFields || []);
         }
       } catch (error) {
         console.error('Error fetching JSON data:', error);
       }
     };
+
     if (paths && baseUrl) fetchJsonData();
   }, [paths, baseUrl]);
 
   // Delete key handling
   useEffect(() => {
     const handleDeleteKey = (e) => {
-      // Delete Field Box
+      // ✅ DELETE FIELD BOX (WITH MERGE CLEANUP)
       if (e.key === 'Delete' && activeBox !== null) {
         const res = window.confirm('Are you sure you want to delete this box?');
         if (res) {
-          setBoxes((prev) => prev.filter((_, i) => i !== activeBox));
+          const deletedId = boxes[activeBox]?.id;
+
+          // ✅ Remove field safely
+          setBoxes((prev) => prev.filter((b) => b.id !== deletedId));
+
+          // ✅ CLEAN MERGED FIELDS (STEP 5)
+          setMergedFields((prev) =>
+            prev
+              .map((m) => ({
+                ...m,
+                childrenIds: m.childrenIds.filter((id) => id !== deletedId),
+              }))
+              .filter((m) => m.childrenIds.length >= 2)
+          );
+
           setActiveBox(null);
         }
       }
 
-      // Delete Reference Box
+      // ✅ DELETE REFERENCE BOX (UNCHANGED)
       if (e.key === 'Delete' && currentReferenceBox !== null) {
         const res = window.confirm(
           'Are you sure you want to delete this reference box?'
         );
         if (res) {
-          // Remove the selected reference box
           const updatedBoxes = referenceBoxes.filter(
             (_, i) => i !== currentReferenceBox
           );
           setReferenceBoxes(updatedBoxes);
           setCurrentReferenceBox(null);
 
-          // ✅ Recalculate available options (avoid duplicates)
+          // ✅ Recalculate available options
           const usedPositions = updatedBoxes.map((b) => b.position);
           const availableOptions = referenceOptions.filter(
             (opt) => !usedPositions.includes(opt.id)
@@ -165,7 +296,7 @@ const TemplateEditor = () => {
 
     window.addEventListener('keydown', handleDeleteKey);
     return () => window.removeEventListener('keydown', handleDeleteKey);
-  }, [activeBox, currentReferenceBox, referenceBoxes]);
+  }, [activeBox, currentReferenceBox, referenceBoxes, boxes]);
 
   // Update baseDisplaySize on image load or window resize
   useEffect(() => {
@@ -227,6 +358,7 @@ const TemplateEditor = () => {
     setBoxes((prev) => [
       ...prev,
       {
+        id: uuidv4(), // ✅ PERMANENT ID
         x: 100,
         y: 100,
         width: 150,
@@ -234,6 +366,8 @@ const TemplateEditor = () => {
         totalCol: 8,
         totalRow: 10,
         gap: 1,
+        merge: false,
+        isMerged: false,
       },
     ]);
   };
@@ -336,43 +470,64 @@ const TemplateEditor = () => {
 
   // Save template
   const saveTemplate = async () => {
-    let referenceField = [];
-    if (showReferenceBox) {
-      const coordinates = getRefCoordinates(referenceBoxes);
-      if (coordinates.length <= 0) {
-        toast.error('Please select all the reference boxes before saving.');
+    if (isLoading) return; // ✅ Prevent double click
+
+    try {
+      setIsLoading(true); // ✅ DISABLE BUTTON IMMEDIATELY
+
+      let referenceField = [];
+      if (showReferenceBox) {
+        const coordinates = getRefCoordinates(referenceBoxes);
+        if (coordinates.length <= 0) {
+          toast.error('Please select all the reference boxes before saving.');
+          return;
+        }
+        const refBoxed = transformPositions(coordinates);
+        referenceField = refBoxed;
+      }
+
+      const mappedData = boxes.map((box, idx) => {
+        const bubbles = getBubbleCoordinates(box);
+        console.log(`Saving box ${idx}:`, { ...box, bubbles });
+        return { ...box, bubbles };
+      });
+
+      const obj = {
+        name: paths.fileName,
+        fields: mappedData,
+        mergedFields: mergedFields,
+        referncefield: showReferenceBox ? [referenceField] : [],
+        referenceCoordinate: showReferenceBox ? referenceBoxes : {},
+      };
+
+      const jsonString = JSON.stringify(obj);
+      const jsonFileName = paths.fileName.endsWith('.json')
+        ? paths.fileName
+        : `${paths.fileName}.json`;
+
+      const jsonFile = new File([jsonString], jsonFileName, {
+        type: 'application/json',
+      });
+
+      const res = await updateTemplate(paths.fileName, jsonFile);
+
+      if (!res) {
+        toast.error('Network error. Please try again.');
         return;
       }
-      const refBoxed = transformPositions(coordinates);
-      referenceField = refBoxed;
-    }
 
-    const mappedData = boxes.map((box, idx) => {
-      const bubbles = getBubbleCoordinates(box);
-      console.log(`Saving box ${idx}:`, { ...box, bubbles });
-      return { ...box, bubbles };
-    });
+      if (!res.state) {
+        toast.error('Failed to save template.');
+        return;
+      }
 
-    const obj = {
-      name: paths.fileName,
-      fields: mappedData,
-      referncefield: showReferenceBox ? [referenceField] : [],
-      referenceCoordinate: showReferenceBox ? referenceBoxes : {},
-    };
-
-    const jsonString = JSON.stringify(obj);
-    const jsonFileName = paths.fileName.endsWith('.json')
-      ? paths.fileName
-      : `${paths.fileName}.json`;
-
-    const jsonFile = new File([jsonString], jsonFileName, {
-      type: 'application/json',
-    });
-
-    const res = await updateTemplate(paths.fileName, jsonFile);
-    if (res?.state) {
       toast.success('Template Saved Successfully');
       navigate('/admin/template', { replace: true });
+    } catch (err) {
+      console.error(err);
+      toast.error('Something went wrong while saving.');
+    } finally {
+      setIsLoading(false); // ✅ ALWAYS RE-ENABLE BUTTON
     }
   };
 
@@ -536,6 +691,47 @@ const TemplateEditor = () => {
               pointerEvents: 'auto',
             }}
           />
+
+          {/* ✅ MERGED FIELD OUTLINES */}
+          {mergedFields.map((merge) => {
+            const boundary = getMergeBoundary(merge);
+            if (!boundary) return null;
+
+            return (
+              <div
+                key={merge.mergeId}
+                style={{
+                  position: 'absolute',
+                  left: boundary.x - 4,
+                  top: boundary.y - 4,
+                  width: boundary.width + 8,
+                  height: boundary.height + 8,
+                  border: '3px dashed #ff9800',
+                  borderRadius: '6px',
+                  pointerEvents: 'none',
+                  zIndex: 50,
+                  boxSizing: 'border-box',
+                }}
+              >
+                {/* Label */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: -22,
+                    left: 0,
+                    background: '#ff9800',
+                    color: '#fff',
+                    fontSize: 11,
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    fontWeight: 600,
+                  }}
+                >
+                  Link : {merge.mergedName}
+                </div>
+              </div>
+            );
+          })}
 
           {/* Field Boxes */}
           {boxes.map((box, index) => {
@@ -736,7 +932,7 @@ const TemplateEditor = () => {
                     isNewBox={false}
                     setActiveBox={setActiveBox}
                     setRadius={setRadius}
-                    Radius={Radius}
+                    Radius={radius}
                   />
                 </div>
               </div>
@@ -746,7 +942,10 @@ const TemplateEditor = () => {
       </section>
 
       {/* Controls */}
-      <div className='d-flex w-100 position-fixed bottom-0 bg-white z-9999'>
+      <div
+        className='d-flex w-100 position-fixed bottom-0 bg-white'
+        style={{ zIndex: 10000 }} // ✅ HARD OVERRIDE
+      >
         <div className='d-flex justify-content-around p-2 bg-white w-75 bottom-0'>
           <div className='custom-control custom-switch'>
             <input
@@ -791,12 +990,81 @@ const TemplateEditor = () => {
             Add Box
           </button>
 
+          {/* MERGE DROPDOWN BUTTON */}
+          {/* MERGE DROPDOWN BUTTON */}
+          <div
+            className='dropup me-2'
+            style={{ position: 'relative' }}
+          >
+            <button
+              className='btn btn-warning dropdown-toggle'
+              onClick={() => setShowMergeMenu((p) => !p)}
+            >
+              Links
+            </button>
+
+            {showMergeMenu && (
+              <div
+                className='dropdown-menu show p-2'
+                style={{
+                  minWidth: 220,
+                  position: 'absolute',
+                  bottom: '100%',
+                  transform: 'translateY(-8px)',
+                  zIndex: 999999,
+                }}
+              >
+                {boxes
+                  .filter((b) => b.merge === true && !b.isMerged)
+                  .map((box) => (
+                    <div
+                      key={box.id}
+                      className='form-check'
+                    >
+                      <input
+                        type='checkbox'
+                        className='form-check-input'
+                        checked={selectedMergeBoxes.includes(box.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedMergeBoxes((p) => [...p, box.id]); // ✅ FIXED
+                          } else {
+                            setSelectedMergeBoxes(
+                              (p) => p.filter((id) => id !== box.id) // ✅ FIXED
+                            );
+                          }
+                        }}
+                      />
+                      <label className='form-check-label'>
+                        {box.fieldName || 'Unnamed'}
+                      </label>
+                    </div>
+                  ))}
+
+                <Button
+                  size='sm'
+                  className='mt-2 w-100'
+                  onClick={handleMergeSelected}
+                >
+                  Links Selected
+                </Button>
+              </div>
+            )}
+          </div>
+
           <button
             type='button'
             className='btn btn-success'
+            disabled={isLoading}
             onClick={saveTemplate}
           >
-            Save Template
+            {isLoading && (
+              <Spinner
+                animation='border'
+                role='status'
+              />
+            )}
+            {!isLoading && 'Save Template'}
           </button>
 
           <div style={{ marginLeft: 12 }}>

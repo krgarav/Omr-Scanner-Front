@@ -1,6 +1,6 @@
-import axios from "axios";
-import { post, del, get, put } from "./api_helper";
-import * as url from "./url_helper";
+import axios from 'axios';
+import { post, del, get, put } from './api_helper';
+import * as url from './url_helper';
 
 // Create Class
 
@@ -11,12 +11,12 @@ export const fetchProcessData = async () => {
 
 export const scanFiles = async (selectedValue, userId, saveDb = true) => {
   const urls = await url.getUrls();
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   return post(
     `${
       urls.SCAN_FILES
     }?folderPath=${selectedValue}&idTemp=${userId}&token=${localStorage.getItem(
-      "token"
+      'token'
     )}&IsSaveDb=${saveDb}`, // saveDb is added to control whether to save data in the database or not
     null,
     {
@@ -29,10 +29,10 @@ export const scanFiles = async (selectedValue, userId, saveDb = true) => {
 
 export const getLastScannedFiles = async (tempId) => {
   const urls = await url.getUrls();
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   return get(
     `${urls.LAST_RECORDS}?TempId=${tempId}&token=${localStorage.getItem(
-      "token"
+      'token'
     )}`, // saveDb is added to control whether to save data in the database or not
     {
       headers: {
@@ -66,10 +66,23 @@ export const getDataByRowRange = async (startRow, endRow, LayoutId, UserId) => {
 };
 
 export const getTotalExcellRow = async (LayoutId, UserId) => {
-  const urls = await url.getUrls();
-  return get(
-    `${urls.GET_TOTAL_EXCEL_ROW}?LayoutId=${LayoutId}&UserId=${UserId}`
-  );
+  try {
+    const urls = await url.getUrls();
+
+    const FINAL_URL = `${urls.GET_TOTAL_EXCEL_ROW}?LayoutId=${LayoutId}&UserId=${UserId}`;
+    console.log('API URL:', FINAL_URL);
+
+    const res = await get(FINAL_URL);
+    return res;
+  } catch (error) {
+    if (error?.response?.status === 404) {
+      console.warn('GET_TOTAL_EXCEL_ROW API not found (404 ignored safely)');
+      return 0; // ✅ Prevents runtime crash
+    }
+
+    console.error('GET_TOTAL_EXCEL_ROW API Error:', error);
+    return 0; // ✅ Prevents UI crash for any API failure
+  }
 };
 
 export const pauseScanning = async () => {

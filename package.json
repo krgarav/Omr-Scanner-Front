@@ -92,6 +92,7 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "ajv": "^7.2.4",
     "gulp": "4.0.2",
     "gulp-append-prepend": "1.0.9"

@@ -1,3 +1,4 @@
+// Function to fetch config.json and get the base URL
 const getBaseUrl = () => {
   const fetchDetails = async () => {
     try {
@@ -21,11 +22,14 @@ const getBaseUrl = () => {
       return 'https://localhost:82/';
     }
   };
+
+  return 'https://nzm7rnqk-1000.inc1.devtunnels.ms/';
+
+  //return 'https://rqjvqjq1-5001.inc1.devtunnels.ms/';
   // return fetchDetails();
 
   // return "https://192.168.1.27/swagger/index.html";
-  // return "https://rqjvqjq1-5001.inc1.devtunnels.ms/";
-  return 'https://rqjvqjq1-1000.inc1.devtunnels.ms/';
+  // return "http://192.168.1.24:7200/";
   // return "http://192.168.1.60:4000/";
 
   // https://sb02kkq1-44388.inc1.devtunnels.ms/

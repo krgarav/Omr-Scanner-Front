@@ -1,6 +1,6 @@
-import axios from "axios";
-import { post, del, get, put } from "./api_helper";
-import * as url from "./url_helper";
+import axios from 'axios';
+import { post, del, get, put } from './api_helper';
+import * as url from './url_helper';
 
 // Create Class
 export const createUser = async (data) => {
@@ -23,7 +23,7 @@ export const removeUser = async (id) => {
 
 export const fetchAllUsers = async () => {
   const urls = await url.getUrls();
-  return get(urls.GET_USERS);
+  return get(urls.GET_USERS); // ✅ get() already handles no-cache + _ts
 };
 
 export const getUserRoles = async () => {
@@ -32,7 +32,7 @@ export const getUserRoles = async () => {
 };
 
 export const login = async (uname, pwd) => {
-  const token = localStorage.getItem("token")
+  const token = localStorage.getItem('token');
   const urls = await url.getUrls();
   return get(`${urls.LOGIN}?uname=${uname}&pwd=${pwd}`);
 };

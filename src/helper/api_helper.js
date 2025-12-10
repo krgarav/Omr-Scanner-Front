@@ -1,15 +1,15 @@
-import axios from "axios";
-import { toast } from "react-toastify";
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 //pass new generated access token here
 
 //apply base url for axios
-const API_URL = "";
+const API_URL = '';
 
 const axiosApi = axios.create({
   baseURL: API_URL,
 });
-const data = localStorage.getItem("authUser");
+const data = localStorage.getItem('authUser');
 const parseData = JSON.parse(data);
 const token = parseData?.token;
 // axiosApi.defaults.headers.common["Authorization"] = "Bearer " + token;
@@ -19,12 +19,26 @@ axiosApi.interceptors.response.use(
 );
 
 export async function get(url, config = {}) {
-  return await axiosApi
-    .get(url, { ...config })
-    .then((response) => response.data)
-    .catch((error) => {
-      toast.error(error?.response?.data?.message);
+  try {
+    const response = await axiosApi.get(url, {
+      ...config,
+      headers: {
+        ...(config.headers || {}),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+      params: {
+        ...(config.params || {}),
+        _ts: Date.now(), // ✅ cache-buster query param
+      },
     });
+
+    return response.data;
+  } catch (error) {
+    toast.error(error?.response?.data?.message || 'Something went wrong');
+    throw error; // ✅ rethrow so callers know it failed if needed
+  }
 }
 
 export async function postWithFormData(url, data, config = {}) {
@@ -64,12 +78,12 @@ export async function put(url, data, config = {}) {
 }
 
 export async function del(url, config = {}) {
-  console.log("from the del --->", url);
+  console.log('from the del --->', url);
   try {
     const response = await axiosApi.delete(url, config);
     return response.data;
   } catch (error) {
-    toast.error(error?.response?.data?.message || "Delete failed");
+    toast.error(error?.response?.data?.message || 'Delete failed');
     throw error;
   }
 }

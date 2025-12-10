@@ -1,5 +1,5 @@
-import React, { useEffect, forwardRef, useState } from "react";
-import { Modal, Button, Row, Col, Spinner, Form } from "react-bootstrap";
+import React, { useEffect, forwardRef, useState } from 'react';
+import { Modal, Button, Row, Col, Spinner, Form } from 'react-bootstrap';
 
 const FormData = forwardRef(
   (
@@ -17,7 +17,7 @@ const FormData = forwardRef(
     },
     ref
   ) => {
-    const [customInput, setCustomInput] = useState("");
+    const [customInput, setCustomInput] = useState('');
     console.log(currentBoxData);
 
     useEffect(() => {
@@ -28,14 +28,14 @@ const FormData = forwardRef(
 
     useEffect(() => {
       if (Array.isArray(currentBoxData?.Custom)) {
-        setCustomInput(currentBoxData.Custom.join(", "));
+        setCustomInput(currentBoxData.Custom.join(', '));
       }
     }, []);
 
     const onSubmitHandler = (e) => {
       e.preventDefault();
       if (!currentBoxData) {
-        alert("Please fill all the fields");
+        alert('Please fill all the fields');
         return;
       }
       const {
@@ -59,25 +59,28 @@ const FormData = forwardRef(
         // !fieldValue ||
         !bubbleIntensity
       ) {
-        alert("Please complete all required fields.");
+        alert('Please complete all required fields.');
         return;
       }
 
       // Ensure totalRow and totalCol are positive numbers
       if (Number(totalRow) <= 0 || Number(totalCol) <= 0) {
-        alert("Row and Column values must be greater than 0.");
+        alert('Row and Column values must be greater than 0.');
         return;
       }
       if (isNewBox) {
         setBoxes((prevBoxes) => [
           ...prevBoxes,
           {
+            id: crypto.randomUUID(), // ✅ THIS WAS MISSING (MAIN BUG)
             ...currentBoxData,
             x: 100,
             y: 100,
             width: 150,
             height: 100,
             radius: currentBoxData?.radius,
+            isMerged: false, // ✅ ensure default
+            merge: false, // ✅ ensure default
           },
         ]);
         setCurrentBoxData({});
@@ -85,9 +88,15 @@ const FormData = forwardRef(
       } else {
         setBoxes((prevBoxes) =>
           prevBoxes.map((box, idx) =>
-            idx === activeBox ? { ...currentBoxData } : box
+            idx === activeBox
+              ? {
+                  ...currentBoxData,
+                  fieldName: currentBoxData.fieldName?.trim(), // ✅ CLEAN
+                }
+              : box
           )
         );
+
         setActiveBox(null);
       }
     };
@@ -95,17 +104,17 @@ const FormData = forwardRef(
     return (
       <Form
         onSubmit={onSubmitHandler}
-        className="p-0 bg-white rounded shadow-sm "
+        className='p-0 bg-white rounded shadow-sm '
       >
-        <h2 className="text-center mb-1">Box Settings</h2>
+        <h2 className='text-center mb-1'>Box Settings</h2>
 
-        {currentBoxData?.fieldType !== "barcode" && (
+        {currentBoxData?.fieldType !== 'barcode' && (
           <Row>
             <Col md={6}>
-              <Form.Group controlId="totalCol">
+              <Form.Group controlId='totalCol'>
                 <Form.Label>Row:</Form.Label>
                 <Form.Control
-                  type="number"
+                  type='number'
                   value={currentBoxData?.totalRow}
                   onChange={(e) =>
                     setCurrentBoxData((prev) => ({
@@ -118,10 +127,10 @@ const FormData = forwardRef(
             </Col>
 
             <Col md={6}>
-              <Form.Group controlId="totalRow">
+              <Form.Group controlId='totalRow'>
                 <Form.Label>Col:</Form.Label>
                 <Form.Control
-                  type="number"
+                  type='number'
                   value={currentBoxData?.totalCol}
                   onChange={(e) =>
                     setCurrentBoxData((prev) => ({
@@ -137,10 +146,10 @@ const FormData = forwardRef(
 
         <Row>
           <Col md={6}>
-            <Form.Group controlId="fieldName">
+            <Form.Group controlId='fieldName'>
               <Form.Label>Field Name:</Form.Label>
               <Form.Control
-                type="text"
+                type='text'
                 value={currentBoxData?.fieldName}
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
@@ -153,10 +162,10 @@ const FormData = forwardRef(
           </Col>
 
           <Col md={6}>
-            <Form.Group controlId="fieldType">
+            <Form.Group controlId='fieldType'>
               <Form.Label>Field Type:</Form.Label>
               <Form.Control
-                as="select"
+                as='select'
                 value={currentBoxData?.fieldType}
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
@@ -165,11 +174,11 @@ const FormData = forwardRef(
                   }))
                 }
               >
-                <option value="">Select direction</option>
-                <option value="formfield">Form Field</option>
-                <option value="questionfield">Question Field</option>
-                <option value="barcode">Barcode</option>
-                <option value="lithocode">lithocode</option>
+                <option value=''>Select direction</option>
+                <option value='formfield'>Form Field</option>
+                <option value='questionfield'>Question Field</option>
+                <option value='barcode'>Barcode</option>
+                <option value='lithocode'>lithocode</option>
               </Form.Control>
             </Form.Group>
           </Col>
@@ -177,11 +186,11 @@ const FormData = forwardRef(
 
         <Row>
           <Col md={6}>
-            <Form.Group controlId="readingDirection">
+            <Form.Group controlId='readingDirection'>
               <Form.Label>Reading Direction:</Form.Label>
               <Form.Control
-                as="select"
-                value={currentBoxData?.ReadingDirection ?? ""}
+                as='select'
+                value={currentBoxData?.ReadingDirection ?? ''}
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
                     ...prev,
@@ -189,19 +198,19 @@ const FormData = forwardRef(
                   }))
                 }
               >
-                <option value="">Select direction</option>
-                <option value="Horizontal">Horizontal</option>
-                <option value="Vertical">Vertical</option>
+                <option value=''>Select direction</option>
+                <option value='Horizontal'>Horizontal</option>
+                <option value='Vertical'>Vertical</option>
               </Form.Control>
             </Form.Group>
           </Col>
 
           <Col md={6}>
-            <Form.Group controlId="allowMultiple">
+            <Form.Group controlId='allowMultiple'>
               <Form.Label>Allow Multiple:</Form.Label>
               <Form.Control
-                as="select"
-                value={currentBoxData?.allowMultiple ?? ""}
+                as='select'
+                value={currentBoxData?.allowMultiple ?? ''}
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
                     ...prev,
@@ -209,23 +218,23 @@ const FormData = forwardRef(
                   }))
                 }
               >
-                <option value="">Select multiple</option>
-                <option value="true">True</option>
-                <option value="false">False</option>
+                <option value=''>Select multiple</option>
+                <option value='true'>True</option>
+                <option value='false'>False</option>
               </Form.Control>
             </Form.Group>
           </Col>
         </Row>
         <Row>
-          {currentBoxData?.allowMultiple === "false" && (
+          {currentBoxData?.allowMultiple === 'false' && (
             <Col md={6}>
-              <Form.Group controlId="allowMultiple">
+              <Form.Group controlId='allowMultiple'>
                 <Form.Label>Multiple Value:</Form.Label>
                 <Form.Control
-                  as="input"
+                  as='input'
                   maxLength={1}
-                  placeholder="Enter multiple value"
-                  value={currentBoxData?.multipleBubbleOutput ?? ""}
+                  placeholder='Enter multiple value'
+                  value={currentBoxData?.multipleBubbleOutput ?? ''}
                   onChange={(e) =>
                     setCurrentBoxData((prev) => ({
                       ...prev,
@@ -236,14 +245,14 @@ const FormData = forwardRef(
               </Form.Group>
             </Col>
           )}
-          <Col md={currentBoxData?.allowMultiple === "false" ? 6 : 12}>
-            <Form.Group controlId="allowMultiple">
+          <Col md={currentBoxData?.allowMultiple === 'false' ? 6 : 12}>
+            <Form.Group controlId='allowMultiple'>
               <Form.Label>Blank Value:</Form.Label>
               <Form.Control
-                as="input"
+                as='input'
                 maxLength={1}
-                value={currentBoxData?.blankOuputSymbol ?? ""}
-                placeholder="Enter blank value"
+                value={currentBoxData?.blankOuputSymbol ?? ''}
+                placeholder='Enter blank value'
                 onChange={(e) =>
                   setCurrentBoxData((prev) => ({
                     ...prev,
@@ -255,16 +264,16 @@ const FormData = forwardRef(
           </Col>
         </Row>
 
-        {currentBoxData?.fieldType !== "barcode" && (
+        {currentBoxData?.fieldType !== 'barcode' && (
           <Row>
             <Col md={12}>
-              <Form.Group controlId="readingDirection">
+              <Form.Group controlId='readingDirection'>
                 <Form.Label>Field Value:</Form.Label>
                 <Form.Control
-                  as="select"
-                  value={currentBoxData?.fieldValue ?? ""}
+                  as='select'
+                  value={currentBoxData?.fieldValue ?? ''}
                   onChange={(e) => {
-                    if (e.target.value !== "Custom") {
+                    if (e.target.value !== 'Custom') {
                       setCurrentBoxData((prev) => {
                         const copiedData = { ...prev };
                         delete copiedData.Custom; // remove Custom property
@@ -277,29 +286,29 @@ const FormData = forwardRef(
                     }));
                   }}
                 >
-                  <option value="">Select field value</option>
-                  <option value="Integer">Integer</option>
-                  <option value="Alphabet">Alphabet</option>
-                  <option value="Custom">Custom</option>
+                  <option value=''>Select field value</option>
+                  <option value='Integer'>Integer</option>
+                  <option value='Alphabet'>Alphabet</option>
+                  <option value='Custom'>Custom</option>
                 </Form.Control>
               </Form.Group>
             </Col>
           </Row>
         )}
-        {currentBoxData?.fieldValue === "Custom" && (
+        {currentBoxData?.fieldValue === 'Custom' && (
           <Row>
             <Col md={12}>
-              <Form.Group controlId="readingDirection">
+              <Form.Group controlId='readingDirection'>
                 <Form.Label>Custom Value:</Form.Label>
                 <Form.Control
-                  as="input"
+                  as='input'
                   value={customInput}
                   onChange={(e) => {
                     const inputValue = e.target.value;
                     setCustomInput(inputValue); // allow free typing
 
                     const parsedArray = inputValue
-                      .split(",")
+                      .split(',')
                       .map((item) => item.trim())
                       .filter((item) => item.length > 0);
 
@@ -316,12 +325,12 @@ const FormData = forwardRef(
 
         <Row>
           <Col md={6}>
-            <Form.Group controlId="margin">
+            <Form.Group controlId='margin'>
               <Form.Label>
                 Margin: <strong>{currentBoxData?.gap}</strong>
               </Form.Label>
               <Form.Control
-                type="range"
+                type='range'
                 min={0}
                 max={80}
                 step={0.1}
@@ -342,12 +351,12 @@ const FormData = forwardRef(
           </Col>
 
           <Col md={6}>
-            <Form.Group controlId="sensitivity">
+            <Form.Group controlId='sensitivity'>
               <Form.Label>
                 Sensitivity: <strong>{currentBoxData?.bubbleIntensity}</strong>
               </Form.Label>
               <Form.Control
-                type="range"
+                type='range'
                 min={-1}
                 max={30}
                 step={0.1}
@@ -363,16 +372,16 @@ const FormData = forwardRef(
           </Col>
         </Row>
 
-        {currentBoxData?.fieldType !== "barcode" && (
+        {currentBoxData?.fieldType !== 'barcode' && (
           <Row>
             <Col md={6}>
-              <Form.Group controlId="radius">
+              <Form.Group controlId='radius'>
                 <Form.Label>
                   Radius: <strong>{currentBoxData?.radius}</strong>
                 </Form.Label>
 
                 <Form.Control
-                  type="range"
+                  type='range'
                   min={0.01}
                   max={0.7}
                   step={0.001}
@@ -394,7 +403,7 @@ const FormData = forwardRef(
         )}
         <Row>
           <Col md={6}>
-            <Form.Group controlId="best_bubble">
+            <Form.Group controlId='best_bubble'>
               <Form.Label>
                 Best Bubble : <strong>{currentBoxData?.best_bubble}</strong>
               </Form.Label>
@@ -402,8 +411,8 @@ const FormData = forwardRef(
               <div
                 className={`btn btn-sm  d-flex align-items-center justify-content-between ${
                   currentBoxData?.best_bubble
-                    ? "btn-success"
-                    : "btn-outline-secondary"
+                    ? 'btn-success'
+                    : 'btn-outline-secondary'
                 }`}
                 onClick={() => {
                   const newValue = !currentBoxData?.best_bubble;
@@ -416,42 +425,42 @@ const FormData = forwardRef(
                   // console.log(currentBoxData?.best_bubble)
                 }}
                 style={{
-                  cursor: "pointer",
-                  position: "relative",
-                  transition: "all 0.3s ease",
-                  borderRadius: "60px",
-                  width: "70px",
-                  boxShadow: "0px 0px 4px gray",
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'all 0.3s ease',
+                  borderRadius: '60px',
+                  width: '70px',
+                  boxShadow: '0px 0px 4px gray',
                   backgroundColor: currentBoxData?.best_bubble
-                    ? "##2dce89"
-                    : "#e3e3e3",
+                    ? '##2dce89'
+                    : '#e3e3e3',
                 }}
               >
                 <span
                   className={
-                    currentBoxData?.best_bubble ? "fw-bold" : "text-muted"
+                    currentBoxData?.best_bubble ? 'fw-bold' : 'text-muted'
                   }
                 >
                   OFF
                 </span>
 
                 <div
-                  className="bg-white rounded-circle shadow-sm"
+                  className='bg-white rounded-circle shadow-sm'
                   style={{
-                    width: "24px",
-                    height: "24px",
-                    position: "absolute",
+                    width: '24px',
+                    height: '24px',
+                    position: 'absolute',
                     left: currentBoxData?.best_bubble
-                      ? "calc(100% - 24px)"
-                      : "2px",
-                    transition: "left 0.3s ease",
-                    boxShadow: "2px 2px 4px black",
+                      ? 'calc(100% - 24px)'
+                      : '2px',
+                    transition: 'left 0.3s ease',
+                    boxShadow: '2px 2px 4px black',
                   }}
                 />
 
                 <span
                   className={
-                    currentBoxData?.best_bubble ? "fw-bold" : "text-muted"
+                    currentBoxData?.best_bubble ? 'fw-bold' : 'text-muted'
                   }
                 >
                   ON
@@ -460,12 +469,71 @@ const FormData = forwardRef(
             </Form.Group>
           </Col>
         </Row>
-        <div className="text-right mt-4">
+
+        <Row>
+          <Col md={6}>
+            <Form.Group controlId='merge'>
+              <Form.Label>
+                Link : <strong>{currentBoxData?.merge ? 'ON' : 'OFF'}</strong>
+              </Form.Label>
+
+              <div
+                className={`btn btn-sm d-flex align-items-center justify-content-between ${
+                  currentBoxData?.merge
+                    ? 'btn-warning'
+                    : 'btn-outline-secondary'
+                }`}
+                onClick={() => {
+                  const newValue = !currentBoxData?.merge;
+
+                  setCurrentBoxData((p) => ({ ...p, merge: newValue }));
+
+                  setBoxes((prev) =>
+                    prev.map((b, i) =>
+                      i === activeBox ? { ...b, merge: newValue } : b
+                    )
+                  );
+                }}
+                style={{
+                  cursor: 'pointer',
+                  borderRadius: '60px',
+                  width: '90px',
+                  boxShadow: '0px 0px 4px gray',
+                }}
+              >
+                <span
+                  className={currentBoxData?.merge ? 'fw-bold' : 'text-muted'}
+                >
+                  OFF
+                </span>
+
+                <div
+                  className='bg-white rounded-circle shadow-sm'
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    position: 'absolute',
+                    left: currentBoxData?.merge ? 'calc(100% - 24px)' : '2px',
+                    transition: 'left 0.3s ease',
+                  }}
+                />
+
+                <span
+                  className={currentBoxData?.merge ? 'fw-bold' : 'text-muted'}
+                >
+                  ON
+                </span>
+              </div>
+            </Form.Group>
+          </Col>
+        </Row>
+
+        <div className='text-right mt-4'>
           <Button
-            style={{ display: isNewBox ? "none" : "" }}
+            style={{ display: isNewBox ? 'none' : '' }}
             ref={ref}
-            type="submit"
-            variant="primary"
+            type='submit'
+            variant='primary'
           >
             Save
           </Button>
