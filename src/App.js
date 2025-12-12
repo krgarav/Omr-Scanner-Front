@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from 'react';
 import {
   BrowserRouter,
   Route,
@@ -6,26 +6,27 @@ import {
   Navigate,
   useNavigate,
   useLocation,
-} from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
-import AdminLayout from "layouts/Admin.js";
-import Operator from "layouts/Operator";
-import AuthLayout from "layouts/Auth.js";
-import Moderator from "layouts/Moderator";
-import IpModal from "ui/IpChange";
-import axios from "axios";
-import { getUrls } from "helper/url_helper";
-import DataContext from "store/DataContext";
-import { fetchAllTemplate } from "helper/TemplateHelper";
-import TextLoader from "loaders/TextLoader";
-import { toast } from "react-toastify";
-import Template from "views/Template";
+} from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import ProtectedRoute from './ProtectedRoute';
+import AdminLayout from 'layouts/Admin.js';
+import Operator from 'layouts/Operator';
+import AuthLayout from 'layouts/Auth.js';
+import Moderator from 'layouts/Moderator';
+import IpModal from 'ui/IpChange';
+import axios from 'axios';
+import { getUrls } from 'helper/url_helper';
+import DataContext from 'store/DataContext';
+import { fetchAllTemplate } from 'helper/TemplateHelper';
+import TextLoader from 'loaders/TextLoader';
+import { toast } from 'react-toastify';
+import Template from 'views/Template';
 const useTokenRedirect = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     if (token) {
       try {
         const decoded = jwtDecode(token);
@@ -34,38 +35,38 @@ const useTokenRedirect = () => {
         // Get the current time in milliseconds
         const currentTime = Date.now();
         if (currentTime >= tokenExp) {
-          console.log("Token has expired");
-          alert("Session has expired, Please login again.");
+          console.log('Token has expired');
+          alert('Session has expired, Please login again.');
           localStorage.clear();
           setTimeout(() => {
-            navigate("/auth/login", { replace: true });
+            navigate('/auth/login', { replace: true });
           }, 100);
         }
-        if (decoded.Role === "Operator") {
-          if (location.pathname.includes("operator")) {
+        if (decoded.Role === 'Operator') {
+          if (location.pathname.includes('operator')) {
             navigate(location.pathname);
           } else {
-            navigate("/operator/index", { replace: true });
+            navigate('/operator/index', { replace: true });
           }
-        } else if (decoded.Role === "Admin") {
-          if (location.pathname.includes("admin")) {
+        } else if (decoded.Role === 'Admin') {
+          if (location.pathname.includes('admin')) {
             navigate(location.pathname);
           } else {
-            navigate("/admin/index", { replace: true });
+            navigate('/admin/index', { replace: true });
           }
-        } else if (decoded.Role === "Moderator") {
-          if (location.pathname.includes("moderator")) {
+        } else if (decoded.Role === 'Moderator') {
+          if (location.pathname.includes('moderator')) {
             navigate(location.pathname);
           } else {
-            navigate("/moderator/index", { replace: true });
+            navigate('/moderator/index', { replace: true });
           }
         }
       } catch (error) {
-        console.error("Invalid token:", error);
-        navigate("/auth/login", { replace: true });
+        console.error('Invalid token:', error);
+        navigate('/auth/login', { replace: true });
       }
     } else {
-      navigate("/auth/login", { replace: true });
+      navigate('/auth/login', { replace: true });
     }
   }, [location.pathname]);
 };
@@ -83,14 +84,14 @@ const App = () => {
         const getUserUrl = response2?.GET_USERS;
 
         if (!getUserUrl) {
-          throw new Error("GET_USERS URL is not defined in configuration");
+          throw new Error('GET_USERS URL is not defined in configuration');
         }
 
         // Perform the GET request to fetch user data
         const getUserResponse = await fetch(getUserUrl);
 
         if (!getUserResponse.ok) {
-          throw new Error("Failed to fetch user data");
+          throw new Error('Failed to fetch user data');
         }
 
         const userData = await getUserResponse.json();
@@ -98,7 +99,7 @@ const App = () => {
 
         // Handle successful fetch here
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error('Error fetching data:', error);
         setShowIpModal(true); // Show the modal or handle the error as needed
       }
     };
@@ -110,7 +111,7 @@ const App = () => {
     const Obj = {
       backendUrl: ip,
     };
-    const res2 = axios.post("http://localhost/api/config", Obj);
+    const res2 = axios.post('http://localhost/api/config', Obj);
 
     setTimeout(() => {
       window.location.reload(); // Reload the page
@@ -131,12 +132,47 @@ const App = () => {
       /> */}
 
       <Routes>
-        <Route path="/admin/*" element={<AdminLayout />} />
-        <Route path="/operator/*" element={<Operator />} />
-        <Route path="/moderator/*" element={<Moderator />} />
-        <Route path="/auth/*" element={<AuthLayout />} />
-        {/* <Route path="/" element={<Template />} /> */}
-        <Route path="*" element={<Navigate to="/auth/login" replace />} />
+        <Route
+          path='/admin/*'
+          element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path='/operator/*'
+          element={
+            <ProtectedRoute allowedRoles={['Operator']}>
+              <Operator />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path='/moderator/*'
+          element={
+            <ProtectedRoute allowedRoles={['Moderator']}>
+              <Moderator />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path='/auth/*'
+          element={<AuthLayout />}
+        />
+
+        <Route
+          path='*'
+          element={
+            <Navigate
+              to='/auth/login'
+              replace
+            />
+          }
+        />
       </Routes>
     </>
   );

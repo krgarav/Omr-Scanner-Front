@@ -19,6 +19,8 @@ import axios from 'axios';
 import { fetchAllTemplate } from 'helper/TemplateHelper';
 import { deleteTemplate } from 'helper/TemplateHelper';
 import CryptoJS from 'crypto-js';
+import Swal from 'sweetalert2';
+
 import { toast } from 'react-toastify';
 import { getTemplateImage } from 'helper/TemplateHelper';
 import { getTemplateCsv } from 'helper/TemplateHelper';
@@ -47,6 +49,7 @@ const Template = () => {
   const [templateDatail, setTemplateDetail] = useState([]);
   const [toggle, setToggle] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState('');
   const [templateLoading, setTemplateLoading] = useState(false);
   const [templateName, setTemplateName] = useState(null);
   const [templateImage, setTemplateImage] = useState(null);
@@ -154,17 +157,39 @@ const Template = () => {
   };
 
   const deleteHandler = async (arr, index) => {
-    const result = window.confirm('Are you sure you want to delete template ?');
-    if (result) {
-      const id = arr.id;
-      const res = await deleteTemplate(id);
-      if (res?.state) {
-        setToggle((prev) => !prev);
-        toast.success('Successfully deleted template');
+    Swal.fire({
+      title: 'Delete Template?',
+      text: 'Are you sure you want to delete this template?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const id = arr.id;
+        const res = await deleteTemplate(id);
+
+        if (res?.state) {
+          setToggle((prev) => !prev);
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted',
+            text: 'Template deleted successfully',
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed',
+            text: 'Could not delete template',
+          });
+        }
       }
-    } else {
-      return;
-    }
+    });
   };
 
   const placeHolderJobs = new Array(10).fill(null).map((_, index) => (
@@ -203,7 +228,15 @@ const Template = () => {
     </tr>
   ));
 
-  const LoadedTemplates = dataCtx.allTemplates?.map((d, i) => (
+  const filteredTemplates = dataCtx.allTemplates?.filter((t) => {
+    const name = (t.fileName || '').toLowerCase();
+    const createdBy = (t.createdBy || '').toLowerCase();
+    const search = searchText.toLowerCase();
+
+    return name.includes(search) || createdBy.includes(search);
+  });
+
+  const LoadedTemplates = filteredTemplates?.map((d, i) => (
     <tr
       key={i}
       onClick={() => handleRowClick(d, i)}
@@ -212,6 +245,9 @@ const Template = () => {
       <td>{i + 1}</td>
       <td>{d.fileName}</td>
       <td>{d.createAt}</td>
+      <td>{d.updateAt || 'N/A'}</td>
+      <td>{d.createdBy || 'N/A'}</td>
+
       {/* <td>{d.jsonPath}</td>
       <td>{"Omr Template"}</td> */}
       <td className='text-right'>
@@ -276,17 +312,34 @@ const Template = () => {
           <div className='col'>
             <Card className='shadow'>
               <CardHeader className='border-0'>
-                <div className='d-flex justify-content-between'>
+                <div className='d-flex justify-content-between align-items-center'>
                   <h3 className='mt-2'>All Templates</h3>
 
-                  <Button
-                    className=''
-                    color='primary'
-                    type='button'
-                    onClick={() => setModalShow(true)}
-                  >
-                    Create Template
-                  </Button>
+                  <div className='d-flex align-items-center gap-2'>
+                    {/* Search Bar */}
+                    <input
+                      type='text'
+                      placeholder='Search templates...'
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      style={{
+                        width: '250px',
+                        padding: '9px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid #ccc',
+                        fontSize: '15px',
+                        marginRight: '20px',
+                      }}
+                    />
+
+                    <Button
+                      color='primary'
+                      type='button'
+                      onClick={() => setModalShow(true)}
+                    >
+                      Create Template
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
 
@@ -318,22 +371,18 @@ const Template = () => {
                 >
                   <thead
                     className='thead-light'
-                    style={{
-                      position: 'sticky',
-                      top: 0,
-                      zIndex: 1,
-                      backgroundColor: 'white',
-                    }}
+                    style={{ position: 'sticky', top: 0 }}
                   >
                     <tr>
-                      <th scope='col'>SL no.</th>
-                      <th scope='col'>Template Name</th>
-                      <th scope='col'>Creation Date</th>
-                      {/* <th scope="col">Col</th>
-                      <th scope="col">Bubble Type</th> */}
-                      <th scope='col'></th>
+                      <th>SL no.</th>
+                      <th>Template Name</th>
+                      <th>Creation Date</th>
+                      <th>Updated Date</th>
+                      <th>Created By</th>
+                      <th style={{ width: '70px', textAlign: 'right' }}></th>
                     </tr>
                   </thead>
+
                   <tbody>
                     {templateLoading ? placeHolderJobs : LoadedTemplates}
                   </tbody>

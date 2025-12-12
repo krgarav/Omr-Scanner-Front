@@ -1,7 +1,7 @@
 import Header from 'components/Headers/Header.js';
 import NormalHeader from 'components/Headers/NormalHeader';
 import { Modal } from 'react-bootstrap';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Select from 'react-select';
 import { fetchProcessData } from 'helper/Booklet32Page_helper';
 import { toast } from 'react-toastify';
@@ -45,6 +45,18 @@ import { getLayoutDataById } from 'helper/TemplateHelper';
 import ZoomViewer from 'components/ZoomView';
 import { getLastScannedFiles } from 'helper/Booklet32Page_helper';
 import { useScan } from 'context/ScanningContext';
+
+// --- Debounce helper ---
+function debounce(func, delay = 500) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      func(...args);
+    }, delay);
+  };
+}
+
 function emptyMessageTemplate() {
   return (
     <div className='text-center'>
@@ -59,7 +71,13 @@ function emptyMessageTemplate() {
     </div>
   );
 }
+
 let num = JSON.parse(localStorage.getItem('lastSerialNo'), 10) || 1;
+
+const MAX_VISIBLE = 150;
+const LOAD_SIZE = 100;
+const LOCAL_KEY = 'scan_old_data'; // user requested key
+
 const AdminScanJob = () => {
   const {
     isScanning,
@@ -69,15 +87,15 @@ const AdminScanJob = () => {
     setIsPausedContext,
     setIsStarting,
   } = useScan();
+
+  // --- states ---
   const [count, setCount] = useState(true);
-  const [processedData, setProcessedData] = useState([]);
+  const [processedData, setProcessedData] = useState([]); // visible records (can grow when loading older)
   const [scanning, setScanning] = useState(false);
   const [headData, setHeadData] = useState(['Student Data']);
   const [borderRowId, setBorderRowId] = useState(null);
 
-  // const [headData, setHeadData] = useState(Object.keys(jsonData[0]));
   const filterSettings = { type: 'Excel' };
-  // const toolbar = ['Add', 'Edit', 'Delete', 'Update', 'Cancel', 'ExcelExport', 'CsvExport'];
   const editSettings = {
     allowEditing: true,
     allowAdding: true,
@@ -110,30 +128,106 @@ const AdminScanJob = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [templateData, setTemplateData] = useState([]);
   const [obj, setObj] = useState({});
-  const [dbState, setDbState] = useState(false); // State to track if the modal is open
-  // const zoomedData =
+  const [dbState, setDbState] = useState(false);
+
+  const [isWaitingToLoad, setIsWaitingToLoad] = useState(false);
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
+
   const template = emptyMessageTemplate;
 
   const gridRef = useRef();
-
   const location = useLocation();
   const navigate = useNavigate();
   const serialRef = useRef();
   const isStartingRef = useRef(false);
   const isTogglingRef = useRef(false);
 
-  //debounce function
+  // timeout ref to manage the 3s wait
+  const waitingTimeoutRef = useRef(null);
 
-  function debounce(func, delay = 500) {
-    let timer;
-    return (...args) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        func(...args);
-      }, delay);
-    };
-  }
+  // --- helper localStorage functions ---
+  const readLocal = () => {
+    try {
+      const raw = localStorage.getItem(LOCAL_KEY);
+      if (!raw) return [];
+      return JSON.parse(raw);
+    } catch (e) {
+      console.error('Failed to read local storage for scans', e);
+      return [];
+    }
+  };
 
+  const writeLocal = (arr) => {
+    try {
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(arr));
+    } catch (e) {
+      console.error('Failed to write to local storage', e);
+    }
+  };
+
+  const saveToLocal = (records) => {
+    if (!records || records.length === 0) return;
+    const existing = readLocal(); // oldest ... newest (we maintain ordering oldest->newest)
+    const merged = [...existing, ...records];
+    writeLocal(merged);
+  };
+
+  /**
+   * Load up to 'LOAD_SIZE' most-recent items from local storage (those at the tail),
+   * remove them from storage, and return the chunk (in the correct order oldest->newest).
+   */
+  const pullFromLocal = (size = LOAD_SIZE) => {
+    const storage = readLocal();
+    if (storage.length === 0) return [];
+    const take = Math.min(size, storage.length);
+    // take last 'take' entries (most-recent saved)
+    const chunk = storage.slice(storage.length - take, storage.length);
+    const remaining = storage.slice(0, storage.length - take);
+    writeLocal(remaining);
+    return chunk;
+  };
+
+  /**
+   * Core function to append new incoming records (from WS / API / refresh).
+   * - Appends to visible data
+   * - If visible length > MAX_VISIBLE, move extras (older ones) to local storage
+   */
+  const pushNewRecords = useCallback((newRecords = []) => {
+    if (!newRecords || newRecords.length === 0) return;
+    setProcessedData((prev) => {
+      const updated = [...prev, ...newRecords];
+      if (updated.length > MAX_VISIBLE) {
+        const extraCount = updated.length - MAX_VISIBLE;
+        const extra = updated.slice(0, extraCount); // oldest entries to move out
+        const latest = updated.slice(extraCount); // keep newest MAX_VISIBLE
+        saveToLocal(extra);
+        // persist last serial no
+        const lastSlNo = latest.length
+          ? latest[latest.length - 1]['Serial No']
+          : num - 1;
+        localStorage.setItem('lastSerialNo', JSON.stringify(lastSlNo));
+        // refresh grid after state update will be called by useEffect where needed
+        return latest;
+      } else {
+        // persist last serial no if any
+        const lastSlNo = updated.length
+          ? updated[updated.length - 1]['Serial No']
+          : num - 1;
+        localStorage.setItem('lastSerialNo', JSON.stringify(lastSlNo));
+        return updated;
+      }
+    });
+    // ensure grid refresh if available
+    setTimeout(() => {
+      try {
+        gridRef.current?.refresh();
+      } catch (e) {
+        // ignore
+      }
+    }, 100);
+  }, []);
+
+  // --- initial data fetch (existing logic) ---
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -145,16 +239,29 @@ const AdminScanJob = () => {
 
           if (Array.isArray(data) && data.length > 0) {
             setHeadData(Object.keys(data[0])); // Use first row to get headers
-            setProcessedData(data); // Set the entire array at once
+            // map to include Serial No if not present
+            const mapped = data.map((d) => {
+              if (!d['Serial No']) {
+                const newItem = { ...d, ['Serial No']: num++ };
+                return newItem;
+              }
+              return d;
+            });
+            // push through buffer so it trims/saves as needed
+            pushNewRecords(mapped);
             console.log('Fetched data:', data);
           } else {
             console.log('No data received.');
           }
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error('Initial fetch error', error);
+      }
     };
     fetchData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once
+
   useEffect(() => {
     const fetchBaseUrl = async () => {
       try {
@@ -170,25 +277,28 @@ const AdminScanJob = () => {
 
     fetchBaseUrl();
   }, []);
-  // Connect to WebSocket on mount
+
+  // --- WebSocket: push through pushNewRecords ---
   useEffect(() => {
     if (!baseUrl) return;
-    console.log(baseUrl);
     const token = localStorage.getItem('token');
     const ws = new WebSocket(`ws://${baseUrl}/ws?token=${token}`);
     let isHeadSet = false;
-    // const ws = new WebSocket(`ws://192.168.1.10:5500/ws`);
 
-    // console.log(baseUrl)
     ws.onopen = () => {
       console.log('WebSocket connected');
     };
 
     ws.onmessage = (event) => {
-      console.log('Message received:', event.data);
+      // If event is string 'success' treat separately
+      if (event.data === 'success') {
+        console.log('success');
+        return;
+      }
+
       try {
-        const jsonData = JSON.parse(event.data);
-        const data = jsonData;
+        const json = JSON.parse(event.data);
+        const data = json; // depending on payload shape, adjust as needed
 
         if (data) {
           // Set header only once
@@ -197,44 +307,20 @@ const AdminScanJob = () => {
             isHeadSet = true;
           }
 
-          // Maintain only the latest 200 entries
-          setProcessedData((prev) => {
-            const updated = [...prev, data];
-            return updated.length > 200 ? updated.slice(-200) : updated;
-          });
+          // Ensure Serial No exists for incoming row
+          const row = { ...data };
+          if (!row['Serial No']) {
+            row['Serial No'] = num++;
+          }
+
+          // Use core push function
+          pushNewRecords([row]);
         }
       } catch (err) {
-        console.error('Failed to parse message:', event.data, err);
-      }
-      // Example: when receiving "success", hide print
-      if (event.data === 'success') {
-        console.log('success');
-        // handleSuccess();
+        console.error('Failed to parse WS message:', event.data, err);
       }
     };
-    // ws.onmessage = (event) => {
-    //   const jsonData = JSON.parse(event.data);
-    //   const data = jsonData?.FieldResults;
 
-    //   if (data && gridRef.current?.grid) {
-    //     const grid = gridRef.current.grid;
-
-    //     // Append new row to internal data source
-    //     grid.currentViewData.push(data); // push to current view
-    //     grid.dataSource = [...grid.dataSource, data]; // update underlying data
-
-    //     // Refresh only the row rendering (not full data source reload)
-    //     grid.refresh(); // Optional: try grid.refreshRows() if you want to skip headers
-
-    //     // Auto scroll to bottom
-    //     setTimeout(() => {
-    //       const content = grid.getContent?.();
-    //       if (content) {
-    //         content.scrollTop = content.scrollHeight;
-    //       }
-    //     }, 100);
-    //   }
-    // };
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
     };
@@ -246,8 +332,10 @@ const AdminScanJob = () => {
     return () => {
       ws.close();
     };
-  }, [baseUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [baseUrl, pushNewRecords]);
 
+  // --- fetch layout data (no change) ---
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -277,42 +365,21 @@ const AdminScanJob = () => {
     }
   }, [baseUrl]);
 
-  useEffect(() => {
-    const gridContainer = gridRef.current?.element?.querySelector('.e-content');
+  // --- attach scroll listener for grid content ---
 
-    console.log('Grid container:', gridContainer); // Check if this logs a valid DOM element
-    // setIsRunning(prev=>!prev )
-    if (gridContainer) {
-      console.log('Attaching scroll listener');
-      gridContainer.addEventListener('scroll', handleScroll);
-      console.log(gridContainer);
-      // return () => {
-      // console.log("Removing scroll listener");
-      // gridContainer.removeEventListener("scroll", handleScroll);
-      // };
-    }
-  }, [gridRef]);
   useEffect(() => {
-    // serialRef.current.value = num;
-  }, [serialRef]);
-  useEffect(() => {
-    // Function to calculate 80% of the viewport height
     const calculateGridHeight = () => {
-      const height = window.innerHeight * 0.65; // 80% of viewport height
+      const height = window.innerHeight * 0.65;
       setGridHeight(`${height}px`);
     };
 
-    // Call the function to set initial height
     calculateGridHeight();
-
-    // Update height when the window is resized
     window.addEventListener('resize', calculateGridHeight);
-
-    // Cleanup event listener on component unmount
     return () => {
       window.removeEventListener('resize', calculateGridHeight);
     };
-  }, []); // Empty dependency array to run only once and on resize
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       const response = await getUrls();
@@ -321,71 +388,87 @@ const AdminScanJob = () => {
     };
     fetchData();
   }, []);
+
   useEffect(() => {
     const handleResize = () => setIsSmallScreen(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  // useEffect(() => {
-  //   // Calculate 60% of the viewport height
-  //   const handleResize = () => {
-  //     const height = `${window.innerHeight * 0.5}px`;
-  //     setGridHeight(height);
-  //   };
 
-  //   // Set the initial height
-  //   handleResize();
-
-  //   // Add event listener to update height on window resize
-  //   window.addEventListener("resize", handleResize);
-
-  //   // Cleanup the event listener on component unmount
-  //   return () => {
-  //     window.removeEventListener("resize", handleResize);
-  //   };
-  // }, []);
   useEffect(() => {
-    // if (!location.state) {
-    //   navigate("/admin/job-queue", { replace: true });
-    //   return;
-    // }
-    // const { templateId } = location?.state;
     const localTemplateId = localStorage.getItem('scantemplateId');
     const templateName = localStorage.getItem('templateName');
-    // if (templateId) {
-    //   setSelectedValue(templateId);
-    // }
     if (localTemplateId) {
       setSelectedValue(localTemplateId);
       setTemplateName(templateName);
     }
   }, [location]);
 
-  const handleScroll = async (e) => {
-    const scrollTop = e.target.scrollTop;
+  // --------------- SCROLL HANDLER with 3s wait ---------------
+  // declared with useCallback to keep stable reference for addEventListener
+  // --- State declarations above ---
 
-    if (scrollTop === 0) {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
+  // --- helper for scrolling with 3s wait ---
+  const handleScroll = useCallback(
+    async (e) => {
+      const scrollTop = e?.target?.scrollTop;
+      if (scrollTop !== 0) return;
 
-        const userInfo = jwtDecode(token);
-        const userId = userInfo?.UserId;
-        const templateId = localStorage.getItem('scantemplateId');
+      if (isWaitingToLoad || isLoadingOlder) return;
 
-        if (!templateId || !userId) return;
+      setIsWaitingToLoad(true);
+      toast.info('Loading more records in 3s...');
 
-        const res = await getTotalExcellRow(templateId, userId);
-        console.log('Total Excel Rows:', res);
-      } catch (error) {
-        // ✅ This line PREVENTS the red runtime crash
-        console.warn('Scroll API not available (404 ignored safely)');
+      if (waitingTimeoutRef.current) {
+        clearTimeout(waitingTimeoutRef.current);
       }
-    }
-  };
 
+      waitingTimeoutRef.current = setTimeout(async () => {
+        setIsWaitingToLoad(false);
+        setIsLoadingOlder(true);
+        toast.info('Loading more records...');
+
+        try {
+          const chunk = pullFromLocal(LOAD_SIZE);
+          if (chunk.length > 0) {
+            setProcessedData((prev) => [...chunk, ...prev]);
+            setTimeout(() => gridRef.current?.refresh(), 100);
+          } else {
+            toast.info('No more older records in local storage.');
+          }
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsLoadingOlder(false);
+        }
+      }, 3000);
+    },
+    [isWaitingToLoad, isLoadingOlder]
+  );
+
+  useEffect(() => {
+    const attach = () => {
+      const gridContainer =
+        gridRef.current?.element?.querySelector('.e-content');
+      if (gridContainer) {
+        gridContainer.addEventListener('scroll', handleScroll);
+      }
+    };
+    attach();
+    return () => {
+      try {
+        const gridContainer =
+          gridRef.current?.element?.querySelector('.e-content');
+        if (gridContainer) {
+          gridContainer.removeEventListener('scroll', handleScroll);
+        }
+      } catch (e) {}
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gridRef, handleScroll]);
+
+  // --------------- API fetch integration (getScanData) ---------------
   const getScanData = async () => {
-    // Start numbering from the last serial number
     try {
       const token = localStorage.getItem('token');
       const userInfo = jwtDecode(token);
@@ -412,18 +495,10 @@ const AdminScanJob = () => {
           return newItem;
         });
 
-        setProcessedData((prevData) => {
-          const combinedData = [...prevData, ...updatedData];
-          const lastSlNo = combinedData[combinedData.length - 1]['Serial No'];
-          localStorage.setItem('lastSerialNo', JSON.stringify(lastSlNo));
-          if (combinedData.length > 100) {
-            return combinedData.slice(-100);
-          }
-          return combinedData;
-        });
+        // Use pushNewRecords so trimming works
+        pushNewRecords(updatedData);
 
-        // setLastSerialNo(num - 1); // Update the last serial number
-        gridRef.current.refresh();
+        gridRef.current?.refresh();
         return res;
       }
 
@@ -442,6 +517,7 @@ const AdminScanJob = () => {
     }
   };
 
+  // intervalCreation retained (no change)
   const intervalCreation = (data) => {
     const interval = setInterval(() => {
       setItems((prevItems) => {
@@ -456,6 +532,7 @@ const AdminScanJob = () => {
     }, 1000);
   };
 
+  // --------------- Start / Pause / Resume logic (unchanged) ---------------
   const handleStart = async () => {
     try {
       setScanning(true);
@@ -480,13 +557,11 @@ const AdminScanJob = () => {
   const handleSave = (args) => {
     if (args.data) {
       const updatedData = [...processedData];
-      console.log(updatedData);
       const index = updatedData.findIndex(
         (item) => item['Serial No'] == args.data['Serial No']
       );
       if (index > -1) {
         updatedData[index] = args.data;
-        console.log(updatedData);
         setProcessedData(updatedData);
       }
     }
@@ -502,7 +577,7 @@ const AdminScanJob = () => {
   };
 
   const dataBound = () => {
-    if (!isAutoScrollEnabled || scanning) return; // ✅ STOP auto-scroll during scanning
+    if (!isAutoScrollEnabled || scanning) return;
 
     if (gridRef.current) {
       const grid = gridRef.current;
@@ -546,18 +621,16 @@ const AdminScanJob = () => {
   const handleToolbarClick = (args) => {
     const id = args.item.id.toLowerCase();
     if (id.includes('excelexport')) {
-      // gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.excelExport();
     }
     if (id.includes('pdfexport')) {
-      // gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.pdfExport();
     }
     if (id.includes('csvexport')) {
-      // gridRef.current.refresh(); // Ensure the grid data is refreshed
       gridRef.current.csvExport();
     }
   };
+
   const handleStop = async () => {
     try {
       if (!isPaused) {
@@ -574,11 +647,11 @@ const AdminScanJob = () => {
       toast.error('Failed to toggle scanning state');
     }
   };
+
   const debouncedStart = useRef(debounce(handleStart, 500)).current;
   const debouncedResume = useRef(debounce(handleResume, 500)).current;
   const debouncedPause = useRef(debounce(handlePause, 500)).current;
-  // const debouncedStop = useRef(debounce(handleStop, 500)).current;
-  console.log(headData);
+
   const columnsDirective = headData.map((item, index) => {
     return (
       <ColumnDirective
@@ -590,40 +663,6 @@ const AdminScanJob = () => {
       ></ColumnDirective>
     );
   });
-  // const completeJobHandler = async () => {
-  //   try{
-  //   const result = window.confirm("Are you sure to finish the job ?");
-  //   if (!result) {
-  //     return;
-  //   }
-  //   const id = localStorage.getItem("jobId");
-  //   const templateId = localStorage.getItem("scantemplateId");
-
-  //   const obj = {
-  //     id: id,
-  //     templateId: templateId,
-  //   };
-  //   const res = await finishJob(obj);
-  //   if (res?.success) {
-  //     const token = localStorage.getItem("token");
-
-  //     if (token) {
-  //       const userInfo = jwtDecode(token);
-  //       const userId = userInfo.UserId;
-  //       const response2 = await getUrls();
-  //       const GetDataURL = response2?.GENERATE_EXCEL;
-  //       const excelgenerate =  axios.get(
-  //         GetDataURL + `?Id=${selectedValue}&UserId=${userId}`
-  //       );
-  //     }
-  //     toast.success("Completed the job!!");
-  //     navigate("/admin/job-queue", { replace: true });
-  //   }
-  // }catch(err){
-  //   console.log("Error Occured",err);
-  //   toast.error("Error Occured during saving the job!");
-  // }
-  // };
 
   const completeJobHandler = async () => {
     try {
@@ -634,9 +673,6 @@ const AdminScanJob = () => {
 
       const id = localStorage.getItem('jobId');
       const templateId = localStorage.getItem('scantemplateId');
-
-      console.log('jobId:', id);
-      console.log('scantemplateId:', templateId);
 
       if (!id || !templateId) {
         toast.error(
@@ -649,25 +685,8 @@ const AdminScanJob = () => {
       const res = await finishJob(obj);
 
       if (res?.success) {
-        const token = localStorage.getItem('token');
-
-        // if (token) {
-        //   // const userInfo = jwtDecode(token);
-        //   // const userId = userInfo.UserId;
-
-        //   // const response2 = await getUrls();
-        //   // const GetDataURL = response2?.GENERATE_EXCEL;
-
-        //   try {
-        //     // Fire and forget
-        //     // axios.get(`${GetDataURL}?Id=${selectedValue}&UserId=${userId}`);
-        //   } catch (error) {
-        //     console.error("Excel generation failed", error);
-        //   }
-        // }
-
         toast.success('Completed the job!');
-        setTimeout(() => navigate('/admin/job-queue', { replace: true }), 500); // Delay for toast visibility
+        setTimeout(() => navigate('/admin/job-queue', { replace: true }), 500);
       }
     } catch (err) {
       console.error('Error occurred', err);
@@ -678,26 +697,23 @@ const AdminScanJob = () => {
   const rowDataBound = (args) => {
     const rowData = args.data;
 
-    // ✅ RESET STYLES (important during live updates)
+    // RESET STYLES
     args.row.style.border = '';
     args.row.style.boxShadow = '';
     args.row.style.borderRadius = '';
     args.row.style.backgroundColor = '';
     args.row.style.color = '';
 
-    // ✅ SELECTED ROW — BACKGROUND ONLY
     if (rowData?.FileName === borderRowId) {
-      args.row.style.backgroundColor = '#d4d4d4'; // Selected row background
-      args.row.style.borderRadius = '10px'; // Optional rounding
+      args.row.style.backgroundColor = '#d4d4d4';
+      args.row.style.borderRadius = '10px';
     }
 
-    // 🔴 FAILED ROW HIGHLIGHT (OVERRIDES NORMAL)
     if (rowData?.Success === 'False') {
       args.row.style.backgroundColor = '#f8d7da';
       args.row.style.color = '#721c24';
     }
 
-    // 🟡 EMPTY CELL HIGHLIGHT
     Object.keys(rowData).forEach((key) => {
       if (rowData[key] === null || rowData[key] === '') {
         const cellIndex = args.row.cells.findIndex(
@@ -714,28 +730,19 @@ const AdminScanJob = () => {
   const handleRefreshData = async () => {
     try {
       setIsRefreshing(true);
+      // Clear visible and local storage (fresh start)
       setProcessedData([]);
+      writeLocal([]);
+      toast.info('Cleared visible data and local storage.');
     } catch (error) {
       toast.error('Could not get data');
       console.log(error);
     } finally {
       setIsRefreshing(false);
+      gridRef.current?.refresh();
     }
   };
 
-  // Handle the toggle switch
-  const handleToggle = (event) => {
-    setIsAutoScrollEnabled(event.target.checked);
-
-    if (event.target.checked) {
-      console.log('Auto Scroll Enabled');
-      gridRef.current.refresh();
-      // Add functionality to enable auto-scroll here
-    } else {
-      console.log('Auto Scroll Disabled');
-      // Add functionality to disable auto-scroll here
-    }
-  };
   const handleOldRefreshData = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -763,43 +770,35 @@ const AdminScanJob = () => {
           return newItem;
         });
 
-        setProcessedData((prevData) => {
-          const combinedData = [...prevData, ...updatedData];
-          const lastSlNo = combinedData[combinedData.length - 1]['Serial No'];
-          localStorage.setItem('lastSerialNo', JSON.stringify(lastSlNo));
-          if (combinedData.length > 100) {
-            return combinedData.slice(-100);
-          }
-          return combinedData;
-        });
+        // Use pushNewRecords so trimming works
+        pushNewRecords(updatedData);
       }
       gridRef.current.refresh();
     } catch (error) {
       console.log(error);
     }
   };
+
   const onRowSelected = (args) => {
     const rowData = args.data;
 
     setBorderRowId(rowData?.FileName);
-    // console.log("Row selected:", args);
-    // console.log("Row selected:", rowData);
     setIsViewerOpen(true);
     setCurrentImage(rowData?.FileName);
   };
 
   const handleGridClick = (e) => {
     if (!e.target.closest('.e-row')) {
-      setBorderRowId(null); // ✅ Remove border on blank area click
+      setBorderRowId(null);
       setIsViewerOpen(false);
     }
   };
 
   const onCellSelected = (args) => {
-    const rowData = args.data; // same as args.rowData
+    const rowData = args.data;
     const columnField = args.currentCell.cellIndex;
-    const obj = Object.keys(rowData);
-    const columnHeader = obj[columnField];
+    const objKeys = Object.keys(rowData);
+    const columnHeader = objKeys[columnField];
 
     const filter = templateData.filter(
       (item) => item.fieldName === columnHeader
@@ -809,19 +808,19 @@ const AdminScanJob = () => {
       setObj({ x, y, width, height });
     }
 
-    // console.log("Row data:", templateData);
     setIsViewerOpen(true);
     setCurrentImage(rowData?.FileName);
   };
+
   const closeImageViewer = () => {
     setIsViewerOpen(false);
-    console.log('Image viewer closed');
   };
 
+  // expose scanning/paused state to context
   setIsScanning(scanning);
   setIsPausedContext(isPaused);
 
-  console.log(processedData);
+  // render
   return (
     <>
       <NormalHeader />
@@ -881,9 +880,9 @@ const AdminScanJob = () => {
         <br />
         <div style={{ position: 'relative' }}>
           <select
-            className='form-select' // Bootstrap styling
+            className='form-select'
             onChange={(e) => {
-              const value = e.target.value === 'true'; // Convert string to boolean
+              const value = e.target.value === 'true';
               setDbState(value);
             }}
             value={dbState.toString()}
@@ -892,20 +891,54 @@ const AdminScanJob = () => {
               top: 10,
               right: 10,
               zIndex: 99,
-              width: '200px', // optional: to make it look nicer
+              width: '200px',
             }}
           >
             <option value={'false'}>Don't Save To DB</option>
             <option value={'true'}>Save To Db</option>
           </select>
         </div>
-        {/* <div className="control-pane"> */}
-        <div
-          className='w-100  m-1'
-          style={{ overflowY: 'auto', backgroundColor: 'green', zIndex: '999' }}
-        ></div>
 
-        <div className='control-section'>
+        <div
+          className='control-section'
+          style={{ position: 'relative' }}
+        >
+          {/* Loading banner shown when waiting/loading older */}
+          {isWaitingToLoad && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 8,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: '#fff3cd',
+                color: '#856404',
+                padding: '6px 12px',
+                borderRadius: 6,
+                zIndex: 1050,
+              }}
+            >
+              Loading more records in 3s...
+            </div>
+          )}
+          {isLoadingOlder && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 8,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: '#cce5ff',
+                color: '#004085',
+                padding: '6px 12px',
+                borderRadius: 6,
+                zIndex: 1050,
+              }}
+            >
+              Loading more records...
+            </div>
+          )}
+
           <GridComponent
             ref={gridRef}
             onClick={handleGridClick}
@@ -962,7 +995,6 @@ const AdminScanJob = () => {
                   maxHeight: '90vh',
                 }}
               >
-                {/* Drag handle (no buttons here) */}
                 <div
                   className='modal-drag-handle'
                   style={{ marginBottom: '8px' }}
@@ -995,14 +1027,7 @@ const AdminScanJob = () => {
               </div>
             </Rnd>
           )}
-          {/* {isViewerOpen && (
-            <ZoomViewer
-              currentImage={currentImage}
-              baseUrl={baseUrl}
-              focusBox={obj}
-              templateData={templateData}
-            />
-          )} */}
+
           <div>
             <Button
               className='mt-2'
@@ -1012,13 +1037,6 @@ const AdminScanJob = () => {
             >
               Refresh Data
             </Button>
-            {/* <Button
-              className="mt-2"
-              color={"warning"}
-              onClick={handleOldRefreshData}
-            >
-              Refresh Latest Data
-            </Button> */}
 
             <div
               className='m-2'
@@ -1051,10 +1069,9 @@ const AdminScanJob = () => {
               )}
             </div>
           </div>
-          {/* </div> */}
         </div>
       </Container>
-      {/* {showPrintModal && <PrintModal show={showPrintModal} setData={setData} />} */}
+
       <div
         style={{
           position: 'absolute',
@@ -1067,9 +1084,9 @@ const AdminScanJob = () => {
       >
         <div
           style={{
-            marginTop: 'auto', // Push to bottom
+            marginTop: 'auto',
             display: 'flex',
-            justifyContent: 'center', // Center horizontally
+            justifyContent: 'center',
             pointerEvents: scanning ? 'none' : 'auto',
             opacity: scanning ? 0.5 : 1,
           }}

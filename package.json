@@ -89,6 +89,7 @@
     "reactstrap": "8.10.0",
     "sass": "1.69.5",
     "strip-json-comments": "^5.0.1",
+    "sweetalert2": "^11.26.4",
     "uuid": "^10.0.0"
   },
   "devDependencies": {

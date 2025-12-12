@@ -156,15 +156,27 @@ const Login = () => {
                   onClick={signInHandler}
                   style={{ minWidth: '100px', minHeight: '50px' }}
                 >
-                  {isLoading && (
+                  {isLoading ? (
                     <Spinner
                       animation='border'
                       role='status'
                     />
+                  ) : (
+                    'Sign in'
                   )}
-                  {!isLoading && 'Sign in'}
-                  {/* Sign in */}
                 </Button>
+
+                {/* Sign Up Button */}
+                <div className='mt-3'>
+                  <Button
+                    color='secondary'
+                    type='button'
+                    onClick={() => navigate('/auth/signup')}
+                    style={{ minWidth: '100px', minHeight: '45px' }}
+                  >
+                    Sign Up
+                  </Button>
+                </div>
               </div>
             </Form>
           </CardBody>

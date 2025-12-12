@@ -1,4 +1,5 @@
 import React, { useEffect, forwardRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Modal, Button, Row, Col, Spinner, Form } from 'react-bootstrap';
 
 const FormData = forwardRef(
@@ -72,15 +73,15 @@ const FormData = forwardRef(
         setBoxes((prevBoxes) => [
           ...prevBoxes,
           {
-            id: crypto.randomUUID(), // ✅ THIS WAS MISSING (MAIN BUG)
+            id: uuidv4(), // ✅ FIXED
             ...currentBoxData,
             x: 100,
             y: 100,
             width: 150,
             height: 100,
             radius: currentBoxData?.radius,
-            isMerged: false, // ✅ ensure default
-            merge: false, // ✅ ensure default
+            isMerged: false,
+            merge: false,
           },
         ]);
         setCurrentBoxData({});
@@ -324,7 +325,7 @@ const FormData = forwardRef(
         )}
 
         <Row>
-          <Col md={6}>
+          {/*  <Col md={6}>
             <Form.Group controlId='margin'>
               <Form.Label>
                 Margin: <strong>{currentBoxData?.gap}</strong>
@@ -348,7 +349,7 @@ const FormData = forwardRef(
                 }}
               />
             </Form.Group>
-          </Col>
+          </Col> */}
 
           <Col md={6}>
             <Form.Group controlId='sensitivity'>

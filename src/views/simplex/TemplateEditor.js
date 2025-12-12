@@ -10,6 +10,7 @@ import { getLayoutDataById, updateTemplate } from 'helper/TemplateHelper';
 import getBaseUrl from 'services/BackendApi';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 import Spinner from 'react-bootstrap/Spinner';
 import { v4 as uuidv4 } from 'uuid';
 import ReferenceFieldModal from 'modals/ReferenceFieldModal';
@@ -24,6 +25,7 @@ const referenceOptions = [
 const TemplateEditor = () => {
   // Core states
   const [boxes, setBoxes] = useState([]);
+  const [copiedBox, setCopiedBox] = useState(null);
   const [activeBox, setActiveBox] = useState(null);
   const [currentBoxData, setCurrentBoxData] = useState(null);
   const imageRef = useRef(null);
@@ -112,6 +114,68 @@ const TemplateEditor = () => {
     };
   };
 
+  const copyBox = () => {
+    if (activeBox === null) {
+      toast.warn('Select a field first');
+      return;
+    }
+
+    const boxToCopy = boxes[activeBox];
+
+    // Deep clone to prevent mutation
+    const cloned = JSON.parse(JSON.stringify(boxToCopy));
+
+    setCopiedBox(cloned);
+    toast.success('Field Copied');
+  };
+
+  const pasteBox = () => {
+    if (!copiedBox) {
+      toast.warn('No copied field found');
+      return;
+    }
+
+    const OFFSET = 20;
+
+    const newBox = {
+      ...copiedBox,
+      id: uuidv4(), // ✅ NEW UNIQUE ID
+      x: copiedBox.x + OFFSET,
+      y: copiedBox.y + OFFSET,
+      isMerged: false, // ✅ MERGE RESET
+      mergedInto: null,
+      merge: false,
+    };
+
+    setBoxes((prev) => [...prev, newBox]);
+
+    setActiveBox(boxes.length); // Focus new box
+    toast.success('Field Pasted');
+  };
+
+  const duplicateBox = () => {
+    if (activeBox === null) {
+      toast.warn('Select a field to duplicate');
+      return;
+    }
+
+    const source = boxes[activeBox];
+
+    const newBox = {
+      ...source,
+      id: uuidv4(),
+      x: source.x + 25,
+      y: source.y + 25,
+      isMerged: false,
+      mergedInto: null,
+      merge: false,
+    };
+
+    setBoxes((prev) => [...prev, newBox]);
+    setActiveBox(boxes.length);
+    toast.success('Field Duplicated');
+  };
+
   const handleMergeSelected = () => {
     const selected = boxes.filter((b) => selectedMergeBoxes.includes(b.id));
 
@@ -189,6 +253,28 @@ const TemplateEditor = () => {
   };
 
   // console.log(scrollY);
+
+  useEffect(() => {
+    const handleKeyCopyPaste = (e) => {
+      if (e.ctrlKey && e.key === 'c') {
+        e.preventDefault();
+        copyBox();
+      }
+
+      if (e.ctrlKey && e.key === 'v') {
+        e.preventDefault();
+        pasteBox();
+      }
+
+      if (e.ctrlKey && e.key === 'd') {
+        e.preventDefault();
+        duplicateBox();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyCopyPaste);
+    return () => window.removeEventListener('keydown', handleKeyCopyPaste);
+  }, [activeBox, copiedBox, boxes]);
 
   useEffect(() => {
     const fetchTemplateData = async () => {
@@ -855,7 +941,54 @@ const TemplateEditor = () => {
                   </div>
 
                   <button
-                    onClick={() => removeBox(index)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      Swal.fire({
+                        title: 'Delete Field?',
+                        text: 'Are you sure you want to delete this field box?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Delete',
+                        cancelButtonText: 'Cancel',
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          const deletedId = boxes[index]?.id;
+
+                          // Remove field
+                          setBoxes((prev) =>
+                            prev.filter((_, i) => i !== index)
+                          );
+
+                          // Cleanup merged fields
+                          setMergedFields((prev) =>
+                            prev
+                              .map((m) => ({
+                                ...m,
+                                childrenIds: m.childrenIds.filter(
+                                  (id) => id !== deletedId
+                                ),
+                              }))
+                              .filter((m) => m.childrenIds.length >= 2)
+                          );
+
+                          // Remove active selection
+                          if (activeBox === index) {
+                            setActiveBox(null);
+                          }
+
+                          Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted',
+                            text: 'Field deleted successfully',
+                            timer: 1200,
+                            showConfirmButton: false,
+                          });
+                        }
+                      });
+                    }}
                     style={{
                       position: 'absolute',
                       top: -10,
@@ -988,6 +1121,30 @@ const TemplateEditor = () => {
             }}
           >
             Add Box
+          </button>
+
+          <button
+            className='btn btn-info me-2'
+            onClick={copyBox}
+            disabled={activeBox === null}
+          >
+            Copy
+          </button>
+
+          <button
+            className='btn btn-secondary me-2'
+            onClick={pasteBox}
+            disabled={!copiedBox}
+          >
+            Paste
+          </button>
+
+          <button
+            className='btn btn-dark me-2'
+            onClick={duplicateBox}
+            disabled={activeBox === null}
+          >
+            Duplicate
           </button>
 
           {/* MERGE DROPDOWN BUTTON */}
