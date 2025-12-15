@@ -153,6 +153,43 @@ const TemplateEditor = () => {
     toast.success('Field Pasted');
   };
 
+  // already exists in TemplateEditor.jsx
+  const QUESTION_NAME_REGEX = /^([qQ])(\d+)-([qQ])(\d+)$/;
+
+  function parseQuestionRange(name) {
+    const m = name?.trim().match(QUESTION_NAME_REGEX);
+    if (!m) return null;
+
+    const prefix = m[1];
+    const start = Number(m[2]);
+    const end = Number(m[4]);
+
+    if (end <= start) return null;
+
+    return { prefix, start, end, gap: end - start + 1 };
+  }
+
+  // ✅ ADD THIS JUST BELOW IT
+  function getNextQuestionRangeFromBoxes(boxes, baseFieldName) {
+    const parsedBase = parseQuestionRange(baseFieldName);
+    if (!parsedBase) return baseFieldName;
+
+    const { prefix, gap } = parsedBase;
+
+    const ranges = boxes
+      .map((b) => parseQuestionRange(b.fieldName))
+      .filter((r) => r && r.prefix === prefix && r.gap === gap);
+
+    if (ranges.length === 0) return baseFieldName;
+
+    const maxEnd = Math.max(...ranges.map((r) => r.end));
+
+    const newStart = maxEnd + 1;
+    const newEnd = newStart + gap - 1;
+
+    return `${prefix}${newStart}-${prefix}${newEnd}`;
+  }
+
   const duplicateBox = () => {
     if (activeBox === null) {
       toast.warn('Select a field to duplicate');
@@ -160,12 +197,18 @@ const TemplateEditor = () => {
     }
 
     const source = boxes[activeBox];
+    let updatedFieldName = source.fieldName;
+
+    if (source.fieldType === 'questionfield') {
+      updatedFieldName = getNextQuestionRangeFromBoxes(boxes, source.fieldName);
+    }
 
     const newBox = {
       ...source,
       id: uuidv4(),
       x: source.x + 25,
       y: source.y + 25,
+      fieldName: updatedFieldName,
       isMerged: false,
       mergedInto: null,
       merge: false,
@@ -1280,7 +1323,7 @@ const TemplateEditor = () => {
               />
             </div>
 
-            <div className='flex justify-end gap-2 p-3 border-t'>
+            <div className='flex justify-end gap-2 pl-3 pb-3 border-t'>
               <Button
                 type='button'
                 variant='warning'

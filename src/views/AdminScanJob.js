@@ -277,6 +277,7 @@ const AdminScanJob = () => {
 
     fetchBaseUrl();
   }, []);
+  
 
   // --- WebSocket: push through pushNewRecords ---
   useEffect(() => {

@@ -1,6 +1,7 @@
 import React, { useEffect, forwardRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Modal, Button, Row, Col, Spinner, Form } from 'react-bootstrap';
+import { toast } from 'react-toastify';
 
 const FormData = forwardRef(
   (
@@ -33,12 +34,36 @@ const FormData = forwardRef(
       }
     }, []);
 
+    const QUESTION_NAME_REGEX = /^([qQ])(\d+)-([qQ])(\d+)$/;
+
+    function parseQuestionRange(name) {
+      if (!name || typeof name !== 'string') return null;
+      const m = name.trim().match(QUESTION_NAME_REGEX);
+      if (!m) return null;
+
+      const prefix = m[1];
+      const start = Number(m[2]);
+      const end = Number(m[4]);
+
+      if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
+      if (end <= start) return null; // enforce increasing range
+
+      return {
+        prefix,
+        start,
+        end,
+        gap: end - start + 1,
+      };
+    }
+
     const onSubmitHandler = (e) => {
       e.preventDefault();
+
       if (!currentBoxData) {
         alert('Please fill all the fields');
         return;
       }
+
       const {
         totalRow,
         totalCol,
@@ -50,30 +75,46 @@ const FormData = forwardRef(
         bubbleIntensity,
       } = currentBoxData;
 
+      // Basic required fields validation
       if (
-        // !totalRow ||
-        // !totalCol ||
         !fieldName ||
         !fieldType ||
         !ReadingDirection ||
         !allowMultiple ||
-        // !fieldValue ||
         !bubbleIntensity
       ) {
         alert('Please complete all required fields.');
         return;
       }
 
-      // Ensure totalRow and totalCol are positive numbers
+      // Validate positive row/column
       if (Number(totalRow) <= 0 || Number(totalCol) <= 0) {
         alert('Row and Column values must be greater than 0.');
         return;
       }
+
+      // ---------------------------
+      // QUESTION FIELD VALIDATION
+      // ---------------------------
+      if (fieldType === 'questionfield') {
+        const parsed = parseQuestionRange(fieldName);
+
+        if (!parsed) {
+          toast.error(
+            'Invalid question field name. Use format q1-q10 or Q1-Q10.'
+          );
+          return;
+        }
+      }
+
+      // ---------------------------
+      // CREATE NEW BOX
+      // ---------------------------
       if (isNewBox) {
         setBoxes((prevBoxes) => [
           ...prevBoxes,
           {
-            id: uuidv4(), // ✅ FIXED
+            id: uuidv4(),
             ...currentBoxData,
             x: 100,
             y: 100,
@@ -84,28 +125,33 @@ const FormData = forwardRef(
             merge: false,
           },
         ]);
+
         setCurrentBoxData({});
         setIsOpen(false);
-      } else {
-        setBoxes((prevBoxes) =>
-          prevBoxes.map((box, idx) =>
-            idx === activeBox
-              ? {
-                  ...currentBoxData,
-                  fieldName: currentBoxData.fieldName?.trim(), // ✅ CLEAN
-                }
-              : box
-          )
-        );
-
-        setActiveBox(null);
+        return;
       }
+
+      // ---------------------------
+      // UPDATE EXISTING BOX
+      // ---------------------------
+      setBoxes((prevBoxes) =>
+        prevBoxes.map((box, idx) =>
+          idx === activeBox
+            ? {
+                ...currentBoxData,
+                fieldName: currentBoxData.fieldName?.trim(),
+              }
+            : box
+        )
+      );
+
+      setActiveBox(null);
     };
 
     return (
       <Form
         onSubmit={onSubmitHandler}
-        className='p-0 bg-white rounded shadow-sm '
+        className='p--2 bg-white rounded shadow-sm '
       >
         <h2 className='text-center mb-1'>Box Settings</h2>
 
@@ -145,7 +191,7 @@ const FormData = forwardRef(
           </Row>
         )}
 
-        <Row>
+        <Row className='mt-2'>
           <Col md={6}>
             <Form.Group controlId='fieldName'>
               <Form.Label>Field Name:</Form.Label>
@@ -185,7 +231,7 @@ const FormData = forwardRef(
           </Col>
         </Row>
 
-        <Row>
+        <Row className='mt-2'>
           <Col md={6}>
             <Form.Group controlId='readingDirection'>
               <Form.Label>Reading Direction:</Form.Label>
@@ -226,7 +272,7 @@ const FormData = forwardRef(
             </Form.Group>
           </Col>
         </Row>
-        <Row>
+        <Row className='mt-2'>
           {currentBoxData?.allowMultiple === 'false' && (
             <Col md={6}>
               <Form.Group controlId='allowMultiple'>
@@ -266,7 +312,7 @@ const FormData = forwardRef(
         </Row>
 
         {currentBoxData?.fieldType !== 'barcode' && (
-          <Row>
+          <Row className='mt-2'>
             <Col md={12}>
               <Form.Group controlId='readingDirection'>
                 <Form.Label>Field Value:</Form.Label>
@@ -297,7 +343,7 @@ const FormData = forwardRef(
           </Row>
         )}
         {currentBoxData?.fieldValue === 'Custom' && (
-          <Row>
+          <Row className='mt-2'>
             <Col md={12}>
               <Form.Group controlId='readingDirection'>
                 <Form.Label>Custom Value:</Form.Label>
@@ -324,7 +370,7 @@ const FormData = forwardRef(
           </Row>
         )}
 
-        <Row>
+        <Row className='mt-2'>
           {/*  <Col md={6}>
             <Form.Group controlId='margin'>
               <Form.Label>
@@ -371,10 +417,8 @@ const FormData = forwardRef(
               />
             </Form.Group>
           </Col>
-        </Row>
 
-        {currentBoxData?.fieldType !== 'barcode' && (
-          <Row>
+          {currentBoxData?.fieldType !== 'barcode' && (
             <Col md={6}>
               <Form.Group controlId='radius'>
                 <Form.Label>
@@ -400,8 +444,9 @@ const FormData = forwardRef(
                 />
               </Form.Group>
             </Col>
-          </Row>
-        )}
+          )}
+        </Row>
+
         <Row>
           <Col md={6}>
             <Form.Group controlId='best_bubble'>
@@ -469,13 +514,10 @@ const FormData = forwardRef(
               </div>
             </Form.Group>
           </Col>
-        </Row>
-
-        <Row>
           <Col md={6}>
             <Form.Group controlId='merge'>
               <Form.Label>
-                Link : <strong>{currentBoxData?.merge ? 'ON' : 'OFF'}</strong>
+                Link : <strong>{currentBoxData?.merge ? '' : ''}</strong>
               </Form.Label>
 
               <div
@@ -529,7 +571,7 @@ const FormData = forwardRef(
           </Col>
         </Row>
 
-        <div className='text-right mt-4'>
+        <div className='text-right mt-1'>
           <Button
             style={{ display: isNewBox ? 'none' : '' }}
             ref={ref}
